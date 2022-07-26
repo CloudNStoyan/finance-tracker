@@ -33,3 +33,28 @@ public class TransactionPoco
     [Column(Name = "details")]
     public string? Details { get; set; }
 }
+
+[Table(Name = "category", Schema = "public")]
+public class CategoryPoco
+{
+    [Column(Name = "category_id", IsPrimaryKey = true)]
+    public int CategoryId { get; set; }
+
+    [Column(Name = "name")]
+    public string Name { get; set; }
+
+    [Column(Name = "background_color")]
+    public string BackgroundColor { get; set; }
+
+    [Column(Name = "text_color")]
+    public string TextColor { get; set; }
+
+    [Column(Name = "list_order")]
+    public int ListOrder { get; set; }
+
+    [Column(Name = "icon")]
+    public string Icon { get; set; }
+
+    [Column(Name = "user_id")]
+    public int? UserId { get; set; }
+}

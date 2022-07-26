@@ -23,7 +23,8 @@ public class TransactionService
             Details = dto.Details,
             ImageReceiptId = dto.ImageReceiptId,
             TransactionDate = dto.TransactionDate,
-            Value = dto.Value
+            Value = dto.Value,
+            CategoryId = dto.Category
         };
 
         if (dto.TransactionId.HasValue)
