@@ -58,3 +58,41 @@ public class CategoryPoco
     [Column(Name = "user_id")]
     public int? UserId { get; set; }
 }
+
+[Table(Name = "user_account", Schema = "public")]
+public class UserPoco
+{
+    [Column(Name = "user_id", IsPrimaryKey = true)]
+    public int UserId { get; set; }
+
+    [Column(Name = "username")]
+    public string Username { get; set; }
+
+    [Column(Name = "password")]
+    public byte[] Password { get; set; }
+}
+
+[Table(Name = "session", Schema = "public")]
+public class SessionPoco
+{
+    [Column(Name = "session", IsPrimaryKey = true)]
+    public int SessionId { get; set; }
+
+    [Column(Name = "session_key")]
+    public string SessionKey { get; set; }
+
+    [Column(Name = "login_time")]
+    public DateTime LoginTime { get; set; }
+
+    [Column(Name = "user_id")]
+    public int UserId { get; set; }
+
+    [Column(Name = "logged_out")]
+    public bool LoggedOut { get; set; }
+
+    [Column(Name = "logout_time")]
+    public DateTime? LogoutTime { get; set; }
+
+    [Column(Name = "expiration_date")]
+    public DateTime ExpirationDate { get; set; }
+}

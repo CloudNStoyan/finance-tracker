@@ -1,0 +1,74 @@
+﻿using FinanceTrackerApi.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+
+namespace FinanceTrackerApi.Auth;
+
+[ApiController]
+[Route("[controller]")]
+public class AuthController : ControllerBase
+{
+    private AuthenticationService AuthenticationService { get; }
+    private ReCaptchaService ReCaptchaService { get; }
+
+    public AuthController(AuthenticationService authenticationService, ReCaptchaService reCaptchaService)
+    {
+        this.AuthenticationService = authenticationService;
+        this.ReCaptchaService = reCaptchaService;
+    }
+
+    [HttpPost("/auth/register")]
+    public async Task<ActionResult> Register([FromBody] UserCredentialsDTO credentials)
+    {
+        var validatorResult = CustomValidator.Validate(credentials);
+
+        if (!validatorResult.IsValid)
+        {
+            return this.BadRequest();
+        }
+
+        bool captchaIsValid = await this.ReCaptchaService.VerifyToken(credentials.ReCaptchaToken!);
+
+        if (!captchaIsValid)
+        {
+            return this.BadRequest(new { status = 400, error = "Captcha Failed" });
+        }
+
+        bool usernameIsFree = await this.AuthenticationService.IsUsernameFree(credentials.Username!);
+
+        if (!usernameIsFree)
+        {
+            this.BadRequest(new { status = 400, error = "Username is taken!" });
+        }
+
+        await this.AuthenticationService.Register(credentials);
+
+        return this.Ok();
+    }
+
+    [HttpPost("/auth/login")]
+    public async Task<ActionResult> Login([FromBody] UserCredentialsDTO credentials)
+    {
+        var validatorResult = CustomValidator.Validate(credentials);
+
+        if (!validatorResult.IsValid)
+        {
+            return this.BadRequest();
+        }
+
+        bool captchaIsValid = await this.ReCaptchaService.VerifyToken(credentials.ReCaptchaToken!);
+
+        if (!captchaIsValid)
+        {
+            return this.BadRequest(new { status = 400, error = "Captcha Failed" });
+        }
+
+        string? sessionKey = await this.AuthenticationService.Login(credentials);
+
+        if (sessionKey == null)
+        {
+            return this.Unauthorized();
+        }
+
+        return this.Ok(new {status = 200, sessionKey});
+    }
+}
