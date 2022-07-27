@@ -9,11 +9,13 @@ public class AuthController : ControllerBase
 {
     private AuthenticationService AuthenticationService { get; }
     private ReCaptchaService ReCaptchaService { get; }
+    private SessionService SessionService { get; }
 
-    public AuthController(AuthenticationService authenticationService, ReCaptchaService reCaptchaService)
+    public AuthController(AuthenticationService authenticationService, ReCaptchaService reCaptchaService, SessionService sessionService)
     {
         this.AuthenticationService = authenticationService;
         this.ReCaptchaService = reCaptchaService;
+        this.SessionService = sessionService;
     }
 
     [HttpPost("/auth/register")]
@@ -70,5 +72,13 @@ public class AuthController : ControllerBase
         }
 
         return this.Ok(new {status = 200, sessionKey});
+    }
+
+    [HttpPost("/auth/logout")]
+    public async Task<ActionResult> Logout()
+    {
+        await this.AuthenticationService.Logout(this.SessionService.Session.SessionId);
+
+        return this.Ok();
     }
 }

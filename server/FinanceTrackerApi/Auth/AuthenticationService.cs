@@ -72,6 +72,24 @@ public class AuthenticationService
         return sessionPoco.SessionKey;
     }
 
+    public async Task Logout(int sessionId)
+    {
+        var session = await this.Database.QueryOne<SessionPoco>(
+            "SELECT * FROM session s WHERE s.session_id=@sessionId;", new NpgsqlParameter("sessionId", sessionId));
+
+        if (session == null)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        session.LoggedOut = true;
+        session.LogoutTime = now;
+        
+        await this.Database.Update(session);
+    }
+
     public async Task<SessionPoco?> GetSessionBySessionKey(string sessionKey)
     {
         var sessionPoco = await this.Database.QueryOne<SessionPoco>(
