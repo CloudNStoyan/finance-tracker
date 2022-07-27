@@ -1,4 +1,5 @@
-﻿using FinanceTrackerApi.Infrastructure;
+﻿using FinanceTrackerApi.Auth;
+using FinanceTrackerApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceTrackerApi.Category;
@@ -8,10 +9,12 @@ namespace FinanceTrackerApi.Category;
 public class CategoryController : ControllerBase
 {
     private CategoryService CategoryService { get; }
+    private SessionService SessionService { get; }
 
-    public CategoryController(CategoryService categoryService)
+    public CategoryController(CategoryService categoryService, SessionService sessionService)
     {
         this.CategoryService = categoryService;
+        this.SessionService = sessionService;
     }
 
     [HttpDelete]
@@ -29,6 +32,15 @@ public class CategoryController : ControllerBase
             return this.NotFound();
         }
 
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !category.UserId.HasValue || category.UserId != session.UserId)
+        {
+            return this.Unauthorized();
+        }
+
         await this.CategoryService.Delete(category);
 
         return this.Ok();
@@ -42,6 +54,15 @@ public class CategoryController : ControllerBase
         if (!validatorResult.IsValid)
         {
             return new BadRequestResult();
+        }
+
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !inputDto.UserId.HasValue || inputDto.UserId != session.UserId)
+        {
+            return this.Unauthorized();
         }
 
         await this.CategoryService.Update(inputDto);
@@ -64,6 +85,15 @@ public class CategoryController : ControllerBase
             return this.NotFound();
         }
 
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !category.UserId.HasValue || category.UserId != session.UserId)
+        {
+            return this.Unauthorized();
+        }
+
         return this.Ok(category);
     }
 
@@ -76,6 +106,8 @@ public class CategoryController : ControllerBase
         {
             return new BadRequestResult();
         }
+
+        inputDto.UserId = this.SessionService.Session.UserId;
 
         var category = await this.CategoryService.Create(inputDto);
 

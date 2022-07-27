@@ -3,7 +3,7 @@ using Npgsql;
 
 namespace FinanceTrackerApi.Category;
 
-// ReSharper disable once UnusedType.Global
+// ReSharper disable once ClassNeverInstantiated.Global
 public class CategoryService
 {
     private Database Database { get; }
@@ -21,12 +21,18 @@ public class CategoryService
             BackgroundColor = dto.BgColor,
             Icon = dto.Icon,
             ListOrder = dto.Order,
-            TextColor = dto.TextColor
+            TextColor = dto.TextColor,
+            UserId = dto.UserId
         };
 
         if (dto.CategoryId.HasValue)
         {
             poco.CategoryId = dto.CategoryId.Value;
+        }
+
+        if (dto.UserId.HasValue)
+        {
+            poco.UserId = dto.UserId.Value;
         }
 
         return poco;

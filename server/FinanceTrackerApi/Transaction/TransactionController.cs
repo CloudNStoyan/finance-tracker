@@ -1,4 +1,6 @@
-﻿using FinanceTrackerApi.Infrastructure;
+﻿using FinanceTrackerApi.Auth;
+using FinanceTrackerApi.DAL;
+using FinanceTrackerApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceTrackerApi.Transaction;
@@ -8,10 +10,12 @@ namespace FinanceTrackerApi.Transaction;
 public class TransactionController : ControllerBase
 {
     private TransactionService TransactionService { get; }
+    private SessionService SessionService { get; }
 
-    public TransactionController(TransactionService transactionService)
+    public TransactionController(TransactionService transactionService, SessionService sessionService)
     {
         this.TransactionService = transactionService;
+        this.SessionService = sessionService;
     }
 
     public async Task<ActionResult> Delete([FromQuery] int? transactionId)
@@ -26,6 +30,15 @@ public class TransactionController : ControllerBase
         if (transaction == null)
         {
             return this.NotFound();
+        }
+
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !transaction.UserId.HasValue || transaction.UserId != session.UserId)
+        {
+            return this.Unauthorized();
         }
 
         await this.TransactionService.Delete(transaction);
@@ -43,7 +56,16 @@ public class TransactionController : ControllerBase
             return new BadRequestResult();
         }
 
-        await this.TransactionService.Update(inputDto);
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !inputDto.UserId.HasValue || inputDto.UserId != session.UserId)
+        {
+            return this.Unauthorized();
+        }
+
+        await this.TransactionService.Update(TransactionService.PocoFromDto(inputDto));
 
         return Ok(inputDto);
     }
@@ -51,31 +73,30 @@ public class TransactionController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<TransactionDTO>> Get([FromQuery] int? transactionId, [FromQuery] DateTime? transactionDate)
     {
-        if (transactionId.HasValue)
+        if (!transactionId.HasValue && !transactionDate.HasValue)
         {
-            var transactionDto = await this.TransactionService.GetById(transactionId.Value);
-
-            if (transactionDto == null)
-            {
-                return this.NotFound();
-            }
-
-            return this.Ok(transactionDto);
+            return this.BadRequest();
         }
 
-        if (transactionDate.HasValue)
+        var transaction = transactionId.HasValue
+            ? await this.TransactionService.GetById(transactionId.Value)
+            : await this.TransactionService.GetByDate(DateOnly.FromDateTime(transactionDate!.Value));
+
+        if (transaction == null)
         {
-            var transactionDto = await this.TransactionService.GetByDate(DateOnly.FromDateTime(transactionDate.Value));
-
-            if (transactionDto == null)
-            {
-                return this.NotFound();
-            }
-
-            return this.Ok(transactionDto);
+            return this.NotFound();
         }
 
-        return this.BadRequest();
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !transaction.UserId.HasValue || transaction.UserId != session.UserId)
+        {
+            return this.Unauthorized();
+        }
+
+        return this.Ok(transaction);
     }
 
     [HttpPost]
@@ -87,6 +108,8 @@ public class TransactionController : ControllerBase
         {
             return new BadRequestResult();
         }
+
+        inputDto.UserId = this.SessionService.Session.UserId;
 
         var model = await this.TransactionService.Create(inputDto);
 

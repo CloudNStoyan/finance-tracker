@@ -13,7 +13,7 @@ public class TransactionService
         this.Database = database;
     }
 
-    private static TransactionPoco PocoFromDto(TransactionDTO dto)
+    public static TransactionPoco PocoFromDto(TransactionDTO dto)
     {
         var poco = new TransactionPoco
         {
@@ -24,7 +24,8 @@ public class TransactionService
             ImageReceiptId = dto.ImageReceiptId,
             TransactionDate = dto.TransactionDate,
             Value = dto.Value,
-            CategoryId = dto.Category
+            CategoryId = dto.Category,
+            UserId = dto.UserId
         };
 
         if (dto.TransactionId.HasValue)
@@ -35,36 +36,22 @@ public class TransactionService
         return poco;
     }
 
-    public async Task<TransactionDTO?> GetById(int transactionId)
+    public async Task<TransactionPoco?> GetById(int transactionId)
     {
         var poco = await this.Database.QueryOne<TransactionPoco>(
             "SELECT * FROM transaction t WHERE t.transaction_id=@transactionId;",
             new NpgsqlParameter("transactionId", transactionId));
 
-        if (poco == null)
-        {
-            return null;
-        }
-
-        var model = TransactionDTO.FromPoco(poco);
-
-        return model;
+        return poco;
     }
 
-    public async Task<TransactionDTO?> GetByDate(DateOnly transactionDate)
+    public async Task<TransactionPoco?> GetByDate(DateOnly transactionDate)
     {
         var poco = await this.Database.QueryOne<TransactionPoco>(
             "SELECT * FROM transaction t WHERE t.transaction_date=@transactionDate;",
             new NpgsqlParameter("transactionDate", transactionDate));
 
-        if (poco == null)
-        {
-            return null;
-        }
-
-        var model = TransactionDTO.FromPoco(poco);
-
-        return model;
+        return poco;
     }
 
     public async Task<TransactionDTO> Create(TransactionDTO inputDto)
@@ -85,13 +72,13 @@ public class TransactionService
         return model;
     }
 
-    public async Task Update(TransactionDTO inputDto)
+    public async Task Update(TransactionPoco poco)
     {
-        await this.Database.Update(PocoFromDto(inputDto));
+        await this.Database.Update(poco);
     }
 
-    public async Task Delete(TransactionDTO inputDto)
+    public async Task Delete(TransactionPoco poco)
     {
-        await this.Database.Delete(PocoFromDto(inputDto));
+        await this.Database.Delete(poco);
     }
 }

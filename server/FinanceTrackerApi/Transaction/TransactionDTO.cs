@@ -24,6 +24,8 @@ public class TransactionDTO
     [Required]
     public DateTime TransactionDate { get; set; }
 
+    public int? UserId { get; set; }
+
     [Required]
     public bool Confirmed { get; set; }
 
@@ -41,6 +43,7 @@ public class TransactionDTO
         Value = poco.Value,
         Label = poco.Label,
         Type = poco.Type,
-        TransactionDate = poco.TransactionDate
+        TransactionDate = poco.TransactionDate,
+        UserId = poco.UserId,
     };
 }

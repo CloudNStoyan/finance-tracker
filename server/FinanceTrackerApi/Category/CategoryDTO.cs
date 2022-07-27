@@ -10,6 +10,7 @@ public class CategoryDTO
     public string TextColor { get; set; }
     public int Order { get; set; }
     public string Icon { get; set; }
+    public int? UserId { get; set; }
 
     public static CategoryDTO FromPoco(CategoryPoco poco) => new()
     {
@@ -18,6 +19,7 @@ public class CategoryDTO
         TextColor = poco.TextColor,
         Icon = poco.Icon,
         Name = poco.Name,
-        Order = poco.ListOrder
+        Order = poco.ListOrder,
+        UserId = poco.UserId,
     };
 }
