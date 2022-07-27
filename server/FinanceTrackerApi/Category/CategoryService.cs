@@ -54,6 +54,15 @@ public class CategoryService
         return model;
     }
 
+    public async Task<CategoryDTO[]> GetAllByUserId(int userId)
+    {
+        var pocos = await this.Database.Query<CategoryPoco>(
+            "SELECT * FROM category c WHERE c.user_id=@userId;",
+            new NpgsqlParameter("userId", userId));
+
+        return pocos.Select(CategoryDTO.FromPoco).ToArray();
+    }
+
     public async Task<CategoryDTO?> Create(CategoryDTO inputDto)
     {
         if (inputDto == null)

@@ -97,6 +97,24 @@ public class CategoryController : ControllerBase
         return this.Ok(category);
     }
 
+    [HttpGet("/category/getall")]
+    public async Task<ActionResult<CategoryDTO[]>> GetAll()
+    {
+
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !session.UserId.HasValue)
+        {
+            return this.Unauthorized();
+        }
+
+        var transactions = await this.CategoryService.GetAllByUserId(session.UserId.Value);
+
+        return this.Ok(transactions);
+    }
+
     [HttpPost]
     public async Task<ActionResult<CategoryDTO>> Create([FromBody] CategoryDTO inputDto)
     {

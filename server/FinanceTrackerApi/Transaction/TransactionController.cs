@@ -71,16 +71,14 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<TransactionDTO>> Get([FromQuery] int? transactionId, [FromQuery] DateTime? transactionDate)
+    public async Task<ActionResult<TransactionDTO>> Get([FromQuery] int? transactionId)
     {
-        if (!transactionId.HasValue && !transactionDate.HasValue)
+        if (!transactionId.HasValue)
         {
             return this.BadRequest();
         }
 
-        var transaction = transactionId.HasValue
-            ? await this.TransactionService.GetById(transactionId.Value)
-            : await this.TransactionService.GetByDate(DateOnly.FromDateTime(transactionDate!.Value));
+        var transaction = await this.TransactionService.GetById(transactionId.Value);
 
         if (transaction == null)
         {
@@ -97,6 +95,26 @@ public class TransactionController : ControllerBase
         }
 
         return this.Ok(transaction);
+    }
+
+    [HttpGet("/transaction/getall")]
+    public async Task<ActionResult<TransactionDTO[]>> GetAll([FromQuery] DateTime? transactionDate)
+    {
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !session.UserId.HasValue)
+        {
+            return this.Unauthorized();
+        }
+
+        if (!transactionDate.HasValue)
+        {
+            return this.Ok(await this.TransactionService.GetAllByUserId(session.UserId.Value));
+        }
+
+        return this.Ok(await this.TransactionService.GetAllByDate(DateOnly.FromDateTime(transactionDate!.Value), session.UserId.Value));
     }
 
     [HttpPost]

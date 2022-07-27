@@ -45,13 +45,21 @@ public class TransactionService
         return poco;
     }
 
-    public async Task<TransactionPoco?> GetByDate(DateOnly transactionDate)
+    public async Task<TransactionDTO[]> GetAllByDate(DateOnly date, int userId)
     {
-        var poco = await this.Database.QueryOne<TransactionPoco>(
-            "SELECT * FROM transaction t WHERE t.transaction_date=@transactionDate;",
-            new NpgsqlParameter("transactionDate", transactionDate));
+        var pocos = await this.Database.Query<TransactionPoco>(
+            "SELECT * FROM transaction t WHERE t.transaction_date=@transactionDate AND t.user_id=@userId;",
+            new NpgsqlParameter("transactionDate", date), new NpgsqlParameter("userId", userId));
 
-        return poco;
+        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+    }
+
+    public async Task<TransactionDTO[]> GetAllByUserId(int userId)
+    {
+        var pocos = await this.Database.Query<TransactionPoco>(
+            "SELECT * FROM transaction t WHERE t.user_id=@userId;", new NpgsqlParameter("userId", userId));
+
+        return pocos.Select(TransactionDTO.FromPoco).ToArray();
     }
 
     public async Task<TransactionDTO> Create(TransactionDTO inputDto)
