@@ -72,6 +72,14 @@ public class AuthenticationService
         return sessionPoco.SessionKey;
     }
 
+    public async Task<SessionPoco?> GetSessionBySessionKey(string sessionKey)
+    {
+        var sessionPoco = await this.Database.QueryOne<SessionPoco>(
+            "SELECT * FROM session s WHERE s.session_key=@sessionKey;", new NpgsqlParameter("sessionKey", sessionKey));
+
+        return sessionPoco;
+    }
+
     public async Task<bool> IsUsernameFree(string username)
     {
         var userPoco = await this.Database.QueryOne<UserPoco>(

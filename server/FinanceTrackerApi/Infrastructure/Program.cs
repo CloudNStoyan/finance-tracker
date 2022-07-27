@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using FinanceTrackerApi.Auth;
 using FinanceTrackerApi.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(autofacBuilder =>
@@ -14,9 +14,9 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofacBuilder =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
 app.UseAuthorization();
+
+app.UseAuthMiddleware();
 
 app.MapControllerRoute(
     "default",

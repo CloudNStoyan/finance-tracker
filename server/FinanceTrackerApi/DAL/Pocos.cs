@@ -75,7 +75,7 @@ public class UserPoco
 [Table(Name = "session", Schema = "public")]
 public class SessionPoco
 {
-    [Column(Name = "session", IsPrimaryKey = true)]
+    [Column(Name = "session_id", IsPrimaryKey = true)]
     public int SessionId { get; set; }
 
     [Column(Name = "session_key")]
