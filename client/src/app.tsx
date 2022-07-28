@@ -9,6 +9,7 @@ const App = () => {
     <div>
       <Link to="/invoices">Invoices</Link>
       <Link to="/expenses">Expenses</Link>
+      <Link to="/login">Log in</Link>
       <MyHeading text="Is it rendered?" />
       <MyButton />
       <Button variant="contained">Good</Button>
