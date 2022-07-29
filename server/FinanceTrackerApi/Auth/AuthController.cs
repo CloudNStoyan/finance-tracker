@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
 
         if (!usernameIsFree)
         {
-            this.BadRequest(new { status = 400, error = "Username is taken!" });
+            return this.BadRequest(new { status = 400, error = "Username is taken!" });
         }
 
         await this.AuthenticationService.Register(credentials);
