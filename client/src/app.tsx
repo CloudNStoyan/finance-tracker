@@ -10,6 +10,7 @@ const App = () => {
       <Link to="/invoices">Invoices</Link>
       <Link to="/expenses">Expenses</Link>
       <Link to="/login">Log in</Link>
+      <Link to="/register">Sign up</Link>
       <MyHeading text="Is it rendered?" />
       <MyButton />
       <Button variant="contained">Good</Button>

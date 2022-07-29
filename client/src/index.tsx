@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import GlobalStyles from "./components/styles/Global.styled";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const root = createRoot(document.getElementById("app"));
 
@@ -18,6 +19,7 @@ root.render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="expenses" element={<h1>Expenses</h1>} />
           <Route path="invoices" element={<h1>Invoices</h1>} />
         </Routes>

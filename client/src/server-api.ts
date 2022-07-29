@@ -7,12 +7,29 @@ export interface SessionData {
   sessionKey: string;
 }
 
+export interface ServerError {
+  status: number;
+  error: string;
+}
+
 export const login = async (
   username: string,
   password: string,
   recaptchaToken: string
 ) => {
   return axios.post<SessionData>(`${SERVER_URL}/auth/login`, {
+    username,
+    password,
+    recaptchaToken,
+  });
+};
+
+export const register = async (
+  username: string,
+  password: string,
+  recaptchaToken: string
+) => {
+  return axios.post<ServerError>(`${SERVER_URL}/auth/register`, {
     username,
     password,
     recaptchaToken,
