@@ -70,7 +70,7 @@ const LoginPage = () => {
       {loading && <CircularProgress className="loading-circle" />}
       <div className="wrapper min-h-screen w-full">
         <form className={`px-8 pt-6 pb-8 w-80 ${loading ? "opacity-50" : ""}`}>
-          <h1 className="text-center text-lg font-medium text-gray-600 mb-5">
+          <h1 className="text-center text-lg font-medium text-gray-600 mb-5 dark:text-white">
             Log in to Finance Tracker
           </h1>
           <div className="mb-4 flex flex-row items-end">
@@ -78,7 +78,7 @@ const LoginPage = () => {
               className={`mr-1 icon ${usernameError ? "mb-6" : "mb-1"}`}
             />
             <TextField
-              className="w-full"
+              className="w-full text-white"
               label="Username"
               variant="standard"
               value={username}
@@ -130,6 +130,7 @@ const LoginPage = () => {
                 initLogin();
               }}
               disabled={loading}
+              color="primary"
             >
               Sign In
             </Button>
@@ -143,7 +144,10 @@ const LoginPage = () => {
           <div>
             <p className="text-sm text-gray-400 font-medium text-center mt-3">
               Don&#39;t have an account?{" "}
-              <Link to="/register" className="text-blue-400">
+              <Link
+                to="/register"
+                className="text-blue-400 dark:text-purple-400"
+              >
                 Sign up
               </Link>
             </p>

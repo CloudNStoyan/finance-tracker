@@ -74,7 +74,7 @@ const RegisterPage = () => {
       {loading && <CircularProgress className="loading-circle" />}
       <div className="wrapper min-h-screen w-full">
         <form className={`px-8 pt-6 pb-8 w-80 ${loading ? "opacity-50" : ""}`}>
-          <h1 className="text-center text-lg font-medium text-gray-600 mb-5">
+          <h1 className="text-center text-lg font-medium text-gray-600 mb-5 dark:text-white">
             Sign up to Finance Tracker
           </h1>
           <div className="mb-4 flex flex-row items-end">
@@ -164,7 +164,7 @@ const RegisterPage = () => {
           <div>
             <p className="text-sm text-gray-400 font-medium text-center mt-3">
               Already have an account?{" "}
-              <Link to="/login" className="text-blue-400">
+              <Link to="/login" className="text-blue-400 dark:text-purple-400">
                 Log in
               </Link>
             </p>

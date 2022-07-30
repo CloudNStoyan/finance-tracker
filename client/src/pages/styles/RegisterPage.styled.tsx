@@ -1,20 +1,18 @@
-import styled from "styled-components";
-
-import bottomWaves from "../../assets/bottom-waves.svg";
-import bottomWavesFlipped from "../../assets/bottom-waves-v-flipped.svg";
+import { styled } from "../../infrastructure/ThemeManager";
 
 const RegisterPageStyled = styled.div`
   min-height: 100vh;
-  background: url(${bottomWavesFlipped});
+  background: url(${({ theme }) => theme.svgs.bottomWavesFlipped});
   background-repeat: no-repeat;
   background-size: cover;
+  background-position-y: 25px;
 
   display: flex;
   justify-content: center;
   align-items: center;
 
   .icon {
-    color: #4facf7;
+    color: ${({ theme }) => theme.colors.accentText};
   }
 
   .wrapper {
@@ -22,7 +20,7 @@ const RegisterPageStyled = styled.div`
     justify-content: center;
     align-items: center;
 
-    background: url(${bottomWaves});
+    background: url(${({ theme }) => theme.svgs.bottomWaves});
     background-repeat: no-repeat;
     background-size: cover;
   }

@@ -17,7 +17,7 @@ const PasswordStrengthIndicator: FunctionComponent<{
           <div className={`level ${score > 3 ? "active" : ""}`}></div>
         </div>
         <div className="flex flex-column flex-wrap text-sm">
-          <span className="text-right block w-full uppercase font-semibold text-gray-500">
+          <span className="text-right block w-full uppercase font-semibold text-gray-500 dark:text-white">
             {text}
           </span>
         </div>

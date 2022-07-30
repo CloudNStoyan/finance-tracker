@@ -1,5 +1,4 @@
-import styled from "styled-components";
-
+import { styled } from "../../infrastructure/ThemeManager";
 type Props = {
   activeColor: string;
 };

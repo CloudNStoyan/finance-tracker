@@ -1,10 +1,9 @@
 module.exports = {
-  mode: "jit",
+  darkMode: "class",
   content: ["./src/**/*.{html,js,ts,tsx}"],
   theme: {
     extend: {},
   },
   important: "#app",
-  variant: {},
   plugins: [],
 };
