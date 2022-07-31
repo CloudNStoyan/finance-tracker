@@ -24,7 +24,7 @@ const RegisterPage = () => {
   const validateFields = () => {
     const usernameIsValid = username.trim().length >= 6;
     if (!usernameIsValid) {
-      setUsernameError("too short");
+      setUsernameError("Too short");
     }
 
     const passwordIsValid = score >= 2;
