@@ -1,19 +1,18 @@
-import React from "react";
-import MyHeading from "./components/MyHeading";
-import { Link } from "react-router-dom";
-import Button from "@mui/material/Button/Button";
+import React, { lazy } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 
 const App = () => {
   return (
-    <div>
-      <Link to="/invoices">Invoices</Link>
-      <Link to="/expenses">Expenses</Link>
-      <Link to="/login">Log in</Link>
-      <Link to="/register">Sign up</Link>
-      <MyHeading text="Is it rendered?" />
-      <Button variant="contained">Good</Button>
-      <h4 className="bg-red-400">Hello from the other side</h4>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="*" element={<h2>404</h2>} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
