@@ -2,6 +2,7 @@ import React, { FunctionComponent } from "react";
 import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import { createTheme, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { useAppSelector } from "../state/hooks";
+import ThemesComponentStyled from "./styles/ThemesComponent.styled";
 
 export type ThemesComponentProps = {
   children: React.ReactNode[] | React.ReactNode;
@@ -15,13 +16,13 @@ const ThemesComponent: FunctionComponent<ThemesComponentProps> = ({
   );
 
   return (
-    <div className={`${isDarkMode ? "dark" : ""}`}>
+    <ThemesComponentStyled className={`${isDarkMode ? "dark" : ""}`}>
       <StyledThemeProvider theme={styledTheme}>
         <MuiThemeProvider theme={createTheme(muiTheme)}>
           {children}
         </MuiThemeProvider>
       </StyledThemeProvider>
-    </div>
+    </ThemesComponentStyled>
   );
 };
 
