@@ -13,11 +13,27 @@ export interface ThemeState {
   isDarkMode: boolean;
 }
 
-const initialState: ThemeState = {
-  styledTheme: styledLightTheme,
-  muiTheme: muiLightTheme,
-  isDarkMode: false,
+const getInitState = (): ThemeState => {
+  const themePref = localStorage.getItem("theme_preference");
+
+  if (themePref === "dark") {
+    return {
+      styledTheme: styledDarkTheme,
+      muiTheme: muiDarkTheme,
+      isDarkMode: true,
+    };
+  }
+
+  if (themePref === "light") {
+    return {
+      styledTheme: styledLightTheme,
+      muiTheme: muiLightTheme,
+      isDarkMode: false,
+    };
+  }
 };
+
+const initialState = getInitState();
 
 const themeSlice = createSlice({
   name: "theme",

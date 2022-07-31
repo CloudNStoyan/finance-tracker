@@ -1,5 +1,5 @@
 import { styled, Switch } from "@mui/material";
-import React, { FunctionComponent, useEffect } from "react";
+import React, { FunctionComponent } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { switchTheme } from "../state/themeSlice";
 import TopbarStyled from "./styles/Topbar.styled";
@@ -55,15 +55,6 @@ const Topbar: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
-  useEffect(() => {
-    const themePref = localStorage.getItem("theme_preference");
-
-    if (themePref === "dark") {
-      dispatch(switchTheme("dark"));
-    } else if (themePref === "light") {
-      dispatch(switchTheme("light"));
-    }
-  }, [dispatch]);
   return (
     <TopbarStyled className="text-right py-2">
       <MaterialUISwitch
