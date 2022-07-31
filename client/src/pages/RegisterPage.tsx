@@ -115,7 +115,11 @@ const RegisterPage = () => {
               }}
             />
           </div>
-          <div className="mb-6 flex flex-row items-center">
+          <div
+            className={`mb-6 flex flex-row items-${
+              password.length > 0 ? "center" : "end"
+            }`}
+          >
             <LockOutlined
               className={`mr-1 icon ${passwordError ? "mb-6" : "mb-1"}`}
             />
