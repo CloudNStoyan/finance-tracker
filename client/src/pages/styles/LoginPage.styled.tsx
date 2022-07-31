@@ -1,15 +1,39 @@
 import { styled } from "../../infrastructure/ThemeManager";
 
 const LoginPageStyled = styled.div`
-  min-height: 100vh;
-  background: url(${({ theme }) => theme.svgs.bottomWavesFlipped});
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position-y: -25px;
+  min-height: 100%;
 
   display: flex;
   justify-content: center;
   align-items: center;
+
+  ::before {
+    content: "";
+    position: absolute;
+    display: block;
+    top: 25px;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: url(${({ theme }) => theme.svgs.bottomWavesFlipped});
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: -1;
+  }
+
+  ::after {
+    content: "";
+    position: absolute;
+    display: block;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: url(${({ theme }) => theme.svgs.bottomWaves});
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: -1;
+  }
 
   .icon {
     color: ${({ theme }) => theme.colors.accentText};
@@ -19,10 +43,6 @@ const LoginPageStyled = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-
-    background: url(${({ theme }) => theme.svgs.bottomWaves});
-    background-repeat: no-repeat;
-    background-size: cover;
   }
 
   .loading-circle {

@@ -73,7 +73,7 @@ const LoginPage = () => {
   return (
     <LoginPageStyled>
       {loading && <CircularProgress className="loading-circle" />}
-      <div className="wrapper min-h-screen w-full">
+      <div className="wrapper h-full w-full">
         <form className={`px-8 pt-6 pb-8 w-80 ${loading ? "opacity-50" : ""}`}>
           <h1 className="text-center text-lg font-medium text-gray-600 mb-5 dark:text-white">
             Log in to Finance Tracker
