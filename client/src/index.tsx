@@ -8,6 +8,8 @@ import "./index.css";
 import GlobalStyles from "./components/styles/Global.styled";
 import ThemesComponent from "./components/ThemesComponent";
 import Topbar from "./components/Topbar";
+import LoadingHelper from "./components/LoadingHelper";
+import Loading from "./components/Loading";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
@@ -17,21 +19,22 @@ const root = createRoot(document.getElementById("app"));
 root.render(
   <StrictMode>
     <Provider store={store}>
-      <Suspense fallback={<></>}>
-        <ThemesComponent>
-          <GlobalStyles />
-          <Topbar />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<App />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="expenses" element={<h1>Expenses</h1>} />
-              <Route path="invoices" element={<h1>Invoices</h1>} />
-            </Routes>
-          </BrowserRouter>
-        </ThemesComponent>
-      </Suspense>
+      <ThemesComponent>
+        <GlobalStyles />
+        <Topbar />
+        <Loading>
+          <Suspense fallback={<LoadingHelper />}>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<App />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="*" element={<h2>404</h2>} />
+              </Routes>
+            </BrowserRouter>
+          </Suspense>
+        </Loading>
+      </ThemesComponent>
     </Provider>
   </StrictMode>
 );
