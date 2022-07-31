@@ -11,13 +11,14 @@ const RegisterPageStyled = styled.div`
     content: "";
     position: absolute;
     display: block;
-    top: 25px;
+    top: 0;
     left: 0;
     height: 100%;
     width: 100%;
     background: url(${({ theme }) => theme.svgs.bottomWavesFlipped});
     background-repeat: no-repeat;
     background-size: cover;
+    background-position-y: 25px
     z-index: -1;
   }
 
