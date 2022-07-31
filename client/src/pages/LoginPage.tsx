@@ -12,7 +12,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [credentialsDontMatch, setCredentialsDontMatch] = useState(false);
+  const [error, setError] = useState<string>(null);
   const [loading, setLoading] = useState(false);
 
   const [generateToken] = useReCaptcha();
@@ -55,8 +55,13 @@ const LoginPage = () => {
           return;
         }
 
+        if (error.code === "ERR_NETWORK") {
+          setError("Something went wrong, try again later.");
+          return;
+        }
+
         if (error.response.status === 401) {
-          setCredentialsDontMatch(true);
+          setError("Username or password did not match");
           return;
         }
       } finally {
@@ -87,12 +92,12 @@ const LoginPage = () => {
               onChange={(e) => {
                 setUsernameError(e.target.value.trim().length === 0);
                 setUsername(e.target.value);
-                setCredentialsDontMatch(false);
+                setError(null);
               }}
               onBlur={(e) => {
                 setUsernameError(e.target.value.trim().length === 0);
                 setUsername(e.target.value);
-                setCredentialsDontMatch(false);
+                setError(null);
               }}
             />
           </div>
@@ -111,12 +116,12 @@ const LoginPage = () => {
               onChange={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
-                setCredentialsDontMatch(false);
+                setError(null);
               }}
               onBlur={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
-                setCredentialsDontMatch(false);
+                setError(null);
               }}
             />
           </div>
@@ -135,10 +140,10 @@ const LoginPage = () => {
               Sign In
             </Button>
           </div>
-          {credentialsDontMatch === true && (
+          {error && (
             <div className="text-red-400 text-center mt-2">
               <p className="font-medium">Login failed</p>
-              <p>Username or password did not match</p>
+              <p>{error}</p>
             </div>
           )}
           <div>

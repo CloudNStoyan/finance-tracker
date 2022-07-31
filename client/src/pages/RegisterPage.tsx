@@ -14,7 +14,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>(null);
   const [loading, setLoading] = useState(false);
   const [score, color, text] = usePasswordStrength(password);
 
@@ -58,6 +58,11 @@ const RegisterPage = () => {
         }
 
         const serverError = error as AxiosError<ServerError>;
+
+        if (error.code === "ERR_NETWORK") {
+          setError("Something went wrong, try again later.");
+          return;
+        }
 
         if (serverError.response.status === 400) {
           setError(serverError.response.data.error);
@@ -157,7 +162,7 @@ const RegisterPage = () => {
             </Button>
           </div>
           {error && (
-            <div className="text-red-400 text-center mt-2 font-semibold">
+            <div className="text-red-400 text-center mt-2">
               <p>{error}</p>
             </div>
           )}
