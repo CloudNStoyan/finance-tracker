@@ -7,7 +7,6 @@ public class CategoryDTO
     public int? CategoryId { get; set; }
     public string Name { get; set; }
     public string BgColor { get; set; }
-    public string TextColor { get; set; }
     public int Order { get; set; }
     public string Icon { get; set; }
     public int? UserId { get; set; }
@@ -16,7 +15,6 @@ public class CategoryDTO
     {
         CategoryId = poco.CategoryId,
         BgColor = poco.BackgroundColor,
-        TextColor = poco.TextColor,
         Icon = poco.Icon,
         Name = poco.Name,
         Order = poco.ListOrder,

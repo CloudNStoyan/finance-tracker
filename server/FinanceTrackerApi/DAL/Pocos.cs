@@ -46,9 +46,6 @@ public class CategoryPoco
     [Column(Name = "background_color")]
     public string BackgroundColor { get; set; }
 
-    [Column(Name = "text_color")]
-    public string TextColor { get; set; }
-
     [Column(Name = "list_order")]
     public int ListOrder { get; set; }
 

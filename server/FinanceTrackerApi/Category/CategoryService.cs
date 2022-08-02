@@ -21,7 +21,6 @@ public class CategoryService
             BackgroundColor = dto.BgColor,
             Icon = dto.Icon,
             ListOrder = dto.Order,
-            TextColor = dto.TextColor,
             UserId = dto.UserId
         };
 
