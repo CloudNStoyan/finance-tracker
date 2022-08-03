@@ -21,6 +21,10 @@ export interface Category {
   order: number;
 }
 
+export interface User {
+  username: string;
+}
+
 export const login = async (
   username: string,
   password: string,
@@ -45,6 +49,14 @@ export const register = async (
   });
 };
 
+export const getMe = async () => {
+  return axios.get<User>(`${SERVER_URL}/auth/me`);
+};
+
+export const getCategories = async () => {
+  return axios.get<Category[]>(`${SERVER_URL}/category/getAll`);
+};
+
 export const getCategoryById = async (categoryId: number) => {
   return axios.get<Category>(`${SERVER_URL}/category?categoryId=${categoryId}`);
 };
@@ -57,4 +69,10 @@ export const createOrEditCategory = async (category: Category) => {
 
   //create
   return axios.post<Category>(url, category);
+};
+
+export const deleteCategory = async (categoryId: number) => {
+  return axios.delete<Category>(
+    `${SERVER_URL}/category?categoryId=${categoryId}`
+  );
 };

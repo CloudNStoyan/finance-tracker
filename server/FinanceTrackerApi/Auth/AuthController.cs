@@ -18,6 +18,24 @@ public class AuthController : ControllerBase
         this.SessionService = sessionService;
     }
 
+    [HttpGet("/auth/me")]
+
+    public async Task<ActionResult> Me()
+    {
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession)
+        {
+            return this.NotFound();
+        }
+
+        var user = await this.AuthenticationService.GetUserById(session.UserId!.Value);
+
+        return this.Ok(new MeDTO { Username = user.Username });
+    }
+
     [HttpPost("/auth/register")]
     public async Task<ActionResult> Register([FromBody] UserCredentialsDTO credentials)
     {

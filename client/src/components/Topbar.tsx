@@ -1,8 +1,10 @@
-import { styled, Switch } from "@mui/material";
+import { IconButton, styled, Switch } from "@mui/material";
 import React, { FunctionComponent } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { switchTheme } from "../state/themeSlice";
 import TopbarStyled from "./styles/Topbar.styled";
+import WestIcon from "@mui/icons-material/West";
+import { useNavigate } from "react-router-dom";
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   width: 62,
@@ -51,12 +53,33 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   },
 }));
 
+declare let history: {
+  state: {
+    idx: number;
+  };
+};
+
 const Topbar: FunctionComponent = () => {
+  const navigate = useNavigate();
+
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
+  const navigateBack = () => {
+    if (history.state.idx > 0) {
+      navigate(-1);
+    }
+  };
+
   return (
-    <TopbarStyled className="text-right py-2">
+    <TopbarStyled className="flex justify-between items-center py-2">
+      <IconButton
+        size="small"
+        className="text-white ml-2"
+        onClick={() => navigateBack()}
+      >
+        <WestIcon />
+      </IconButton>
       <MaterialUISwitch
         checked={isDarkMode}
         onChange={() => {

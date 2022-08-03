@@ -5,8 +5,15 @@ import ColorComponent from "../components/ColorComponent";
 import CheckIcon from "@mui/icons-material/Check";
 import Icons, { IconKey } from "../infrastructure/Icons";
 import IconComponent from "../components/IconComponent";
-import { Category, createOrEditCategory, getCategoryById } from "../server-api";
-import { useParams } from "react-router-dom";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  Category,
+  createOrEditCategory,
+  deleteCategory,
+  getCategoryById,
+} from "../server-api";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 export type UseParamsCategoryType = { categoryId: number };
 
@@ -91,6 +98,8 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
   const { categoryId } = useParams();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!hasCategoryId) {
       return;
@@ -143,8 +152,30 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
       }
 
       await createOrEditCategory(category);
+
+      navigate("/categories");
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const onDelete = async () => {
+    if (!hasCategoryId) {
+      return;
+    }
+
+    try {
+      const resp = await deleteCategory(Number(categoryId));
+
+      if (resp.status !== 200) {
+        return;
+      }
+
+      navigate("/categories");
+    } catch (error) {
+      if (!axios.isAxiosError(error)) {
+        return;
+      }
     }
   };
 
@@ -175,6 +206,15 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         >
           <CheckIcon />
         </IconButton>
+        {hasCategoryId && (
+          <IconButton
+            onClick={() => void onDelete()}
+            size="small"
+            className="bg-red-500 text-gray-100 border-2 border-gray-400 delete-btn focus:scale-110"
+          >
+            <DeleteIcon />
+          </IconButton>
+        )}
       </div>
       {showIcons ? (
         <div className="m-5 flex flex-wrap gap-5 justify-center items-center">

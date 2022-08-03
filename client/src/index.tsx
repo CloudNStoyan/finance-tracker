@@ -9,6 +9,7 @@ import Topbar from "./components/Topbar";
 import LoadingHelper from "./components/LoadingHelper";
 import Loading from "./components/Loading";
 import App from "./app";
+import { BrowserRouter } from "react-router-dom";
 
 const root = createRoot(document.getElementById("app"));
 
@@ -16,13 +17,15 @@ root.render(
   <StrictMode>
     <Provider store={store}>
       <ThemesComponent>
-        <GlobalStyles />
-        <Topbar />
-        <Loading>
-          <Suspense fallback={<LoadingHelper />}>
-            <App />
-          </Suspense>
-        </Loading>
+        <BrowserRouter>
+          <GlobalStyles />
+          <Topbar />
+          <Loading>
+            <Suspense fallback={<LoadingHelper />}>
+              <App />
+            </Suspense>
+          </Loading>
+        </BrowserRouter>
       </ThemesComponent>
     </Provider>
   </StrictMode>

@@ -15,6 +15,14 @@ public class AuthenticationService
         this.Database = database;
     }
 
+    public async Task<UserPoco> GetUserById(int userId)
+    {
+        var userPoco = await this.Database.QueryOne<UserPoco>("SELECT * FROM user_account WHERE user_id=@userId;",
+            new NpgsqlParameter("userId", userId));
+
+        return userPoco;
+    }
+
     public async Task Register(UserCredentialsDTO dto)
     {
         byte[] passwordBytes = Encoding.ASCII.GetBytes(dto.Password!);

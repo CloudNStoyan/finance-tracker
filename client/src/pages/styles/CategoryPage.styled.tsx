@@ -20,6 +20,13 @@ const CategoryPageStyled = styled.div<CategoryPageStyledProps>`
     right: 5px;
     box-shadow: 0 0 10px #333;
   }
+
+  .delete-btn {
+    position: absolute;
+    bottom: -20px;
+    left: 5px;
+    box-shadow: 0 0 10px #333;
+  }
 `;
 
 export default CategoryPageStyled;
