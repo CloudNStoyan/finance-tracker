@@ -1,9 +1,14 @@
 import { IconButton, styled, TextField } from "@mui/material";
-import React, { useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import CategoryPageStyled from "./styles/CategoryPage.styled";
-import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import ColorComponent from "../components/ColorComponent";
 import CheckIcon from "@mui/icons-material/Check";
+import Icons, { IconKey } from "../infrastructure/Icons";
+import IconComponent from "../components/IconComponent";
+import { Category, createOrEditCategory, getCategoryById } from "../server-api";
+import { useParams } from "react-router-dom";
+
+export type UseParamsCategoryType = { categoryId: number };
 
 const INITIAL_COLOR_INDEX = 20;
 
@@ -70,46 +75,132 @@ const CustomTextField = styled(TextField)({
   },
 });
 
-const CategoryPage = () => {
+const categoryIcons = Object.keys(Icons);
+
+const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
+  hasCategoryId,
+}) => {
   const [color, setColor] = useState(COLORS[INITIAL_COLOR_INDEX]);
+  const [colorIdx, setColorIdx] = useState(INITIAL_COLOR_INDEX);
+  const [showIcons, setShowIcons] = useState(false);
+
+  const [iconKey, setIconKey] = useState<IconKey>("money");
+  const [iconIdx, setIconIdx] = useState(0);
+
+  const [categoryName, setCategoryName] = useState("");
+
+  const { categoryId } = useParams();
+
+  useEffect(() => {
+    if (!hasCategoryId) {
+      return;
+    }
+
+    const fetchCategory = async () => {
+      const resp = await getCategoryById(Number(categoryId));
+
+      if (resp.status !== 200) {
+        return;
+      }
+
+      const category = resp.data;
+
+      setCategoryName(category.name);
+      setColor(category.bgColor);
+      setColorIdx(COLORS.indexOf(category.bgColor));
+      setIconKey(category.icon);
+      setIconIdx(categoryIcons.indexOf(category.icon));
+    };
+
+    void fetchCategory();
+  }, [hasCategoryId, categoryId]);
+
   const onColorClick = (bgColor: string, idx: number) => {
     setColor(bgColor);
     setColorIdx(idx);
   };
-  const [colorIdx, setColorIdx] = useState(INITIAL_COLOR_INDEX);
+
+  const onIconClick = (key: IconKey, idx: number) => {
+    setIconIdx(idx);
+    setIconKey(key);
+  };
+
+  const onSubmit = async () => {
+    if (categoryName.length === 0) {
+      return;
+    }
+
+    try {
+      const category: Category = {
+        name: categoryName.trim(),
+        bgColor: color,
+        icon: iconKey,
+        order: 100,
+      };
+
+      if (hasCategoryId) {
+        category.categoryId = Number(categoryId);
+      }
+
+      await createOrEditCategory(category);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <CategoryPageStyled categoryColor={color}>
       <div className="relative">
         <div className="pt-5 pb-10 flex items-center fields shadow-md">
-          <IconButton className="border-2 text-white border-white border-dashed mx-5">
-            <AttachMoneyOutlinedIcon />
+          <IconButton
+            onClick={() => setShowIcons(!showIcons)}
+            className="border-2 text-white border-white border-dashed mx-5"
+          >
+            {Icons[iconKey]}
           </IconButton>
           <CustomTextField
             label="Category name"
             variant="standard"
             color="primary"
             className="flex-1 mr-10"
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
+            onBlur={(e) => setCategoryName(e.target.value)}
           />
         </div>
         <IconButton
+          onClick={() => void onSubmit()}
           size="large"
           className="dark:bg-purple-500 text-white bg-blue-500 save-btn shadow-lg focus:scale-110"
         >
           <CheckIcon />
         </IconButton>
       </div>
-      <div className="m-5 flex flex-wrap gap-5 justify-center items-center">
-        {COLORS.map((color: string, idx: number) => (
-          <ColorComponent
-            bgColor={color}
-            selected={idx === colorIdx}
-            onClick={onColorClick}
-            key={idx}
-            idx={idx}
-          />
-        ))}
-      </div>
+      {showIcons ? (
+        <div className="m-5 flex flex-wrap gap-5 justify-center items-center">
+          {categoryIcons.map((iconKey: IconKey, idx: number) => (
+            <IconComponent
+              onClick={onIconClick}
+              iconKey={iconKey}
+              idx={idx}
+              key={idx}
+              selected={idx === iconIdx}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="m-5 flex flex-wrap gap-5 justify-center items-center">
+          {COLORS.map((color: string, idx: number) => (
+            <ColorComponent
+              bgColor={color}
+              selected={idx === colorIdx}
+              onClick={onColorClick}
+              key={idx}
+              idx={idx}
+            />
+          ))}
+        </div>
+      )}
     </CategoryPageStyled>
   );
 };
