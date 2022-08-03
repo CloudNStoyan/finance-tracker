@@ -65,21 +65,29 @@ const Topbar: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
+  const canGoBack = history.state.idx > 0;
+
   const navigateBack = () => {
-    if (history.state.idx > 0) {
+    if (canGoBack) {
       navigate(-1);
     }
   };
 
   return (
-    <TopbarStyled className="flex justify-between items-center py-2">
-      <IconButton
-        size="small"
-        className="text-white ml-2"
-        onClick={() => navigateBack()}
-      >
-        <WestIcon />
-      </IconButton>
+    <TopbarStyled
+      className={`flex ${
+        canGoBack ? "justify-between" : "justify-end"
+      } items-center py-2`}
+    >
+      {canGoBack && (
+        <IconButton
+          size="small"
+          className="text-white ml-2"
+          onClick={() => navigateBack()}
+        >
+          <WestIcon />
+        </IconButton>
+      )}
       <MaterialUISwitch
         checked={isDarkMode}
         onChange={() => {
