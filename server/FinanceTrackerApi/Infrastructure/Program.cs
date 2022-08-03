@@ -10,6 +10,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
 {
     builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+    builder.WithOrigins("http://localhost:8001").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
 }));
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());

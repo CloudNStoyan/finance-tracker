@@ -127,6 +127,15 @@ public class TransactionController : ControllerBase
             return new BadRequestResult();
         }
 
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession)
+        {
+            return this.Unauthorized();
+        }
+
         inputDto.UserId = this.SessionService.Session.UserId;
 
         var model = await this.TransactionService.Create(inputDto);

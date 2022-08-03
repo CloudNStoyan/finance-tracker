@@ -56,14 +56,33 @@ public class CategoryController : ControllerBase
             return new BadRequestResult();
         }
 
+        if (!inputDto.CategoryId.HasValue)
+        {
+            return this.BadRequest();
+        }
+
         var session = this.SessionService.Session;
 
         bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
 
-        if (!isValidSession || !inputDto.UserId.HasValue || inputDto.UserId != session.UserId)
+        if (!isValidSession)
         {
             return this.Unauthorized();
         }
+
+        var categoryDto = await this.CategoryService.GetById(inputDto.CategoryId.Value);
+
+        if (categoryDto == null)
+        {
+            return this.NotFound();
+        }
+
+        if (session.UserId == null || session.UserId.Value != categoryDto.UserId.Value)
+        {
+            return this.Unauthorized();
+        }
+
+        inputDto.UserId = session.UserId.Value;
 
         await this.CategoryService.Update(inputDto);
 
@@ -123,6 +142,15 @@ public class CategoryController : ControllerBase
         if (!validatorResult.IsValid)
         {
             return new BadRequestResult();
+        }
+
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession)
+        {
+            return this.Unauthorized();
         }
 
         inputDto.UserId = this.SessionService.Session.UserId;
