@@ -24,13 +24,11 @@ const getInitState = (): ThemeState => {
     };
   }
 
-  if (themePref === "light") {
-    return {
-      styledTheme: styledLightTheme,
-      muiTheme: muiLightTheme,
-      isDarkMode: false,
-    };
-  }
+  return {
+    styledTheme: styledLightTheme,
+    muiTheme: muiLightTheme,
+    isDarkMode: false,
+  };
 };
 
 const initialState = getInitState();
