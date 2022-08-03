@@ -150,7 +150,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
   return (
     <CategoryPageStyled categoryColor={color}>
-      <div className="relative">
+      <div className="relative fields-wrapper">
         <div className="pt-5 pb-10 flex items-center fields shadow-md">
           <IconButton
             onClick={() => setShowIcons(!showIcons)}
@@ -171,7 +171,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         <IconButton
           onClick={() => void onSubmit()}
           size="large"
-          className="dark:bg-purple-500 text-white bg-blue-500 save-btn shadow-lg focus:scale-110"
+          className="dark:bg-purple-500 text-white bg-blue-500 save-btn focus:scale-110"
         >
           <CheckIcon />
         </IconButton>
