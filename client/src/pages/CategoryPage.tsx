@@ -14,6 +14,8 @@ import {
 } from "../server-api";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useAppDispatch } from "../state/hooks";
+import { setNotification } from "../state/notificationSlice";
 
 export type UseParamsCategoryType = { categoryId: number };
 
@@ -100,6 +102,8 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
   const navigate = useNavigate();
 
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     if (!hasCategoryId) {
       return;
@@ -136,6 +140,12 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
   const onSubmit = async () => {
     if (categoryName.length === 0) {
+      dispatch(
+        setNotification({
+          message: "Category name can't be empty",
+          color: "error",
+        })
+      );
       return;
     }
 
@@ -153,6 +163,12 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
       await createOrEditCategory(category);
 
+      dispatch(
+        setNotification({
+          message: "Category created.",
+          color: "success",
+        })
+      );
       navigate("/categories");
     } catch (error) {
       console.log(error);
@@ -171,6 +187,12 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         return;
       }
 
+      dispatch(
+        setNotification({
+          message: "Category deleted.",
+          color: "success",
+        })
+      );
       navigate("/categories");
     } catch (error) {
       if (!axios.isAxiosError(error)) {

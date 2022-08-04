@@ -10,6 +10,7 @@ import LoadingHelper from "./components/LoadingHelper";
 import Loading from "./components/Loading";
 import App from "./app";
 import { BrowserRouter } from "react-router-dom";
+import SnackbarHelper from "./components/SnackbarHelper";
 
 const root = createRoot(document.getElementById("app"));
 
@@ -25,6 +26,7 @@ root.render(
               <App />
             </Suspense>
           </Loading>
+          <SnackbarHelper />
         </BrowserRouter>
       </ThemesComponent>
     </Provider>
