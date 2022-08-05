@@ -99,3 +99,15 @@ export const createOrEditTransaction = async (transaction: Transaction) => {
   //create
   return axios.post<Transaction>(url, transaction);
 };
+
+export const getTransactionById = async (transactionId: number) => {
+  return axios.get<Transaction>(
+    `${SERVER_URL}/transaction?transactionId=${transactionId}`
+  );
+};
+
+export const deleteTransaction = async (transactionId: number) => {
+  return axios.delete<Transaction>(
+    `${SERVER_URL}/transaction?transactionId=${transactionId}`
+  );
+};

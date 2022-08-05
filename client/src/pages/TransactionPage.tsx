@@ -1,4 +1,4 @@
-import { Add, Remove } from "@mui/icons-material";
+import { Add, Delete, Remove } from "@mui/icons-material";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
@@ -19,13 +19,19 @@ import {
   TextField,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
-import React, { useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./styles/TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { createOrEditTransaction, Transaction } from "../server-api";
+import {
+  createOrEditTransaction,
+  deleteTransaction,
+  getTransactionById,
+  Transaction,
+} from "../server-api";
 import axios from "axios";
 import { setNotification } from "../state/notificationSlice";
+import { useParams } from "react-router-dom";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -45,13 +51,41 @@ const CustomTextField = styled(TextField)({
   },
 });
 
-const TransactionPage = () => {
+const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
+  hasTransactionId,
+}) => {
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
   const [transactionType, setTransactionType] = useState("expense");
   const [value, setValue] = useState("");
   const [label, setLabel] = useState("");
   const [confirmed, setConfirmed] = useState(true);
+
+  const { transactionId } = useParams();
+
+  useEffect(() => {
+    if (!hasTransactionId) {
+      return;
+    }
+
+    const fetchTransaction = async () => {
+      const resp = await getTransactionById(Number(transactionId));
+
+      if (resp.status !== 200) {
+        return;
+      }
+
+      const transaction = resp.data;
+
+      setValue(transaction.value.toString());
+      setLabel(transaction.label);
+      setConfirmed(transaction.confirmed);
+      setTransactionType(transaction.type);
+      setDate(transaction.transactionDate);
+    };
+
+    void fetchTransaction();
+  }, [hasTransactionId, transactionId]);
 
   const [date, setDate] = useState<Date | null>(new Date());
 
@@ -84,6 +118,10 @@ const TransactionPage = () => {
       confirmed,
     };
 
+    if (hasTransactionId) {
+      transaction.transactionId = Number(transactionId);
+    }
+
     try {
       await createOrEditTransaction(transaction);
     } catch (error) {
@@ -93,6 +131,31 @@ const TransactionPage = () => {
     }
 
     console.log(transaction);
+  };
+
+  const onDelete = async () => {
+    if (!hasTransactionId) {
+      return;
+    }
+
+    try {
+      const resp = await deleteTransaction(Number(transactionId));
+
+      if (resp.status !== 200) {
+        return;
+      }
+
+      dispatch(
+        setNotification({
+          message: "Transaction deleted.",
+          color: "success",
+        })
+      );
+    } catch (error) {
+      if (!axios.isAxiosError(error)) {
+        return;
+      }
+    }
   };
 
   return (
@@ -125,6 +188,15 @@ const TransactionPage = () => {
         >
           <CheckIcon />
         </IconButton>
+        {hasTransactionId && (
+          <IconButton
+            onClick={() => void onDelete()}
+            size="small"
+            className="bg-red-500 text-gray-100 border-2 border-gray-400 delete-btn focus:scale-110"
+          >
+            <Delete />
+          </IconButton>
+        )}
         <div className="m-2 flex items-end">
           <CustomTextField
             onChange={(e) => setValue(e.target.value)}

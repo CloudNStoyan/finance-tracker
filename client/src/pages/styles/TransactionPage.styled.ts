@@ -112,6 +112,12 @@ const TransactionPageStyled = styled.div<{
       z-index: 1;
     }
 
+    .delete-btn {
+      position: absolute;
+      right: -5px;
+      box-shadow: 0 0 10px #333;
+    }
+
     input:-webkit-autofill,
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,

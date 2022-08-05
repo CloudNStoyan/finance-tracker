@@ -44,7 +44,16 @@ const App = () => {
       <Route path="/" element={<h1>Home</h1>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/transaction" element={<TransactionPage />} />
+      <Route>
+        <Route
+          path="/transaction/:transactionId"
+          element={<TransactionPage hasTransactionId={true} />}
+        />
+        <Route
+          path="/transaction"
+          element={<TransactionPage hasTransactionId={false} />}
+        />
+      </Route>
       <Route>
         <Route
           path="/category/:categoryId"
