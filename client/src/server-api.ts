@@ -23,6 +23,7 @@ export interface Category {
 
 export interface Transaction {
   transactionId?: number;
+  categoryId?: number;
   label: string;
   confirmed: boolean;
   transactionDate: Date;

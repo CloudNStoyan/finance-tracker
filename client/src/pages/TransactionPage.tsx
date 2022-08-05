@@ -16,6 +16,7 @@ import {
   RadioGroup,
   Select,
   styled,
+  SwipeableDrawer,
   TextField,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
@@ -24,14 +25,20 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./styles/TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import {
+  Category,
   createOrEditTransaction,
   deleteTransaction,
+  getCategories,
+  getCategoryById,
   getTransactionById,
   Transaction,
 } from "../server-api";
 import axios from "axios";
 import { setNotification } from "../state/notificationSlice";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import Icons from "../infrastructure/Icons";
+import PickCategoryStyled from "../components/styles/PickCategory.styled";
+import PickCategoriesStyled from "../components/styles/PickCategories.styled";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -54,14 +61,39 @@ const CustomTextField = styled(TextField)({
 const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   hasTransactionId,
 }) => {
-  const dispatch = useAppDispatch();
-  const { isDarkMode } = useAppSelector((state) => state.themeReducer);
   const [transactionType, setTransactionType] = useState("expense");
   const [value, setValue] = useState("");
   const [label, setLabel] = useState("");
   const [confirmed, setConfirmed] = useState(true);
+  const [drawerIsOpen, setDrawerIsOpen] = useState(false);
+  const [date, setDate] = useState<Date | null>(new Date());
+  const [repeat, setRepeat] = useState("none");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [category, setCategory] = useState<Category | undefined>();
 
+  const dispatch = useAppDispatch();
+  const { isDarkMode } = useAppSelector((state) => state.themeReducer);
   const { transactionId } = useParams();
+
+  useEffect(() => {
+    const fetchApi = async () => {
+      try {
+        const resp = await getCategories();
+
+        if (resp.status !== 200) {
+          return;
+        }
+
+        setCategories(resp.data);
+      } catch (error) {
+        if (!axios.isAxiosError(error)) {
+          return;
+        }
+      }
+    };
+
+    void fetchApi();
+  }, []);
 
   useEffect(() => {
     if (!hasTransactionId) {
@@ -77,6 +109,22 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
 
       const transaction = resp.data;
 
+      if (transaction.categoryId !== null) {
+        try {
+          const catResp = await getCategoryById(transaction.categoryId);
+
+          if (catResp.status !== 200) {
+            return;
+          }
+
+          setCategory(catResp.data);
+        } catch (error) {
+          if (!axios.isAxiosError(error)) {
+            return;
+          }
+        }
+      }
+
       setValue(transaction.value.toString());
       setLabel(transaction.label);
       setConfirmed(transaction.confirmed);
@@ -87,13 +135,9 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     void fetchTransaction();
   }, [hasTransactionId, transactionId]);
 
-  const [date, setDate] = useState<Date | null>(new Date());
-
   const handleDateChange = (newDate: Date | null) => {
     setDate(newDate);
   };
-
-  const [repeat, setRepeat] = useState("none");
 
   const handleRepeatChange = (newRepeat: string) => {
     setRepeat(newRepeat);
@@ -120,6 +164,10 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
 
     if (hasTransactionId) {
       transaction.transactionId = Number(transactionId);
+    }
+
+    if (category !== undefined) {
+      transaction.categoryId = category.categoryId;
     }
 
     try {
@@ -159,7 +207,10 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   };
 
   return (
-    <TransactionPageStyled bgColor="purple" isDarkMode={isDarkMode}>
+    <TransactionPageStyled
+      bgColor={category != undefined ? category.bgColor : "rgb(82, 188, 232)"}
+      isDarkMode={isDarkMode}
+    >
       <div className="relative fields">
         <FormControl className="w-full justify-center items-center mt-2">
           <RadioGroup
@@ -234,11 +285,18 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           label="Confirmed"
         />
         <Button
+          onClick={() => setDrawerIsOpen(true)}
           className="label-button justify-start normal-case"
           size="large"
-          startIcon={<LocalOfferOutlinedIcon />}
+          startIcon={
+            category != undefined ? (
+              Icons[category.icon]
+            ) : (
+              <LocalOfferOutlinedIcon />
+            )
+          }
         >
-          Uncategorized
+          {category != undefined ? category.name : "Uncategorized"}
         </Button>
         <div>
           <LocalizationProvider dateAdapter={AdapterMoment}>
@@ -283,6 +341,33 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
             <MenuItem value={"year"}>Repeat every year</MenuItem>
           </Select>
         </div>
+
+        <SwipeableDrawer
+          anchor={"bottom"}
+          open={drawerIsOpen}
+          onClose={() => setDrawerIsOpen(false)}
+          onOpen={() => {}}
+        >
+          <PickCategoriesStyled>
+            {categories.map((cat, idx) => (
+              <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
+                <button
+                  className="wrapper"
+                  onClick={() => {
+                    setCategory(cat);
+                    setDrawerIsOpen(false);
+                  }}
+                >
+                  <div className="icon">{Icons[cat.icon]}</div>
+                  <h4>{cat.name}</h4>
+                </button>
+              </PickCategoryStyled>
+            ))}
+            <Button>
+              <Link to={"/categories"}>Manage categories</Link>
+            </Button>
+          </PickCategoriesStyled>
+        </SwipeableDrawer>
       </div>
     </TransactionPageStyled>
   );
