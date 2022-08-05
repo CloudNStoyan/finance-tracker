@@ -17,7 +17,7 @@ public class TransactionDTO
     [Range(0, int.MaxValue)]
     public decimal Value { get; set; }
 
-    public int? Category { get; set; }
+    public int? CategoryId { get; set; }
 
     [Required]
     public DateTime TransactionDate { get; set; }
@@ -34,7 +34,7 @@ public class TransactionDTO
     public static TransactionDTO FromPoco(TransactionPoco poco) => new()
     {
         TransactionId = poco.TransactionId,
-        Category = poco.CategoryId,
+        CategoryId = poco.CategoryId,
         Confirmed = poco.Confirmed,
         Details = poco.Details,
         ImageReceiptId = poco.ImageReceiptId,

@@ -24,7 +24,7 @@ public class TransactionService
             ImageReceiptId = dto.ImageReceiptId,
             TransactionDate = dto.TransactionDate,
             Value = dto.Value,
-            CategoryId = dto.Category,
+            CategoryId = dto.CategoryId,
             UserId = dto.UserId
         };
 
