@@ -1,6 +1,7 @@
 ﻿using FinanceTrackerApi.Auth;
 using FinanceTrackerApi.DAL;
 using FinanceTrackerApi.Infrastructure;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceTrackerApi.Transaction;
@@ -51,19 +52,33 @@ public class TransactionController : ControllerBase
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
-        if (!validatorResult.IsValid)
+        if (!validatorResult.IsValid || !inputDto.TransactionId.HasValue)
         {
-            return new BadRequestResult();
+            return this.BadRequest();
         }
 
         var session = this.SessionService.Session;
 
         bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
 
-        if (!isValidSession || !inputDto.UserId.HasValue || inputDto.UserId != session.UserId)
+        if (!isValidSession)
         {
             return this.Unauthorized();
         }
+
+        var transaction = await this.TransactionService.GetById(inputDto.TransactionId.Value);
+
+        if (transaction == null)
+        {
+            return this.NotFound();
+        }
+
+        if (transaction.UserId!.Value != session.UserId!.Value)
+        {
+            return this.Unauthorized();
+        }
+
+        inputDto.UserId = session.UserId;
 
         await this.TransactionService.Update(TransactionService.PocoFromDto(inputDto));
 
