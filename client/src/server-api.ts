@@ -21,6 +21,15 @@ export interface Category {
   order: number;
 }
 
+export interface Transaction {
+  transactionId?: number;
+  label: string;
+  confirmed: boolean;
+  transactionDate: Date;
+  type: "expense" | "income";
+  value: number;
+}
+
 export interface User {
   username: string;
 }
@@ -75,4 +84,18 @@ export const deleteCategory = async (categoryId: number) => {
   return axios.delete<Category>(
     `${SERVER_URL}/category?categoryId=${categoryId}`
   );
+};
+
+export const createOrEditTransaction = async (transaction: Transaction) => {
+  const url = `${SERVER_URL}/transaction`;
+
+  if (
+    Number.isInteger(transaction.transactionId) &&
+    transaction.transactionId > 0
+  ) {
+    return axios.put<Transaction>(url, transaction);
+  }
+
+  //create
+  return axios.post<Transaction>(url, transaction);
 };

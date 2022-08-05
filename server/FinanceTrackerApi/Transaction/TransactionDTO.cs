@@ -17,8 +17,6 @@ public class TransactionDTO
     [Range(0, int.MaxValue)]
     public decimal Value { get; set; }
 
-    [Required]
-    [Range(0, int.MaxValue)]
     public int? Category { get; set; }
 
     [Required]
