@@ -1,4 +1,4 @@
-import { format, getDaysInMonth, parseJSON } from "date-fns";
+import { format, getDaysInMonth, isBefore, parseJSON } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
@@ -43,13 +43,21 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
     );
 
     setBalance(
-      transactions.reduce(
-        (state, transaction) =>
-          transaction.type === "expense"
-            ? state - transaction.value
-            : state + transaction.value,
-        0
-      )
+      transactions
+        .filter((transaction) => {
+          const transactionDate = parseJSON(transaction.transactionDate);
+          return (
+            isBefore(transactionDate, date) ||
+            DatesAreEqualWithoutTime(transactionDate, date)
+          );
+        })
+        .reduce(
+          (state, transaction) =>
+            transaction.type === "expense"
+              ? state - transaction.value
+              : state + transaction.value,
+          0
+        )
     );
   }, [transactions, date]);
 
