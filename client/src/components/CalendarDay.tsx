@@ -1,14 +1,17 @@
 import { format, getDaysInMonth } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { DatesAreEqualWithoutTime } from "../infrastructure/CustomDateUtils";
+import {
+  DatesAreEqualWithoutTime,
+  fromUnixTimeMs,
+} from "../infrastructure/CustomDateUtils";
 import { Transaction } from "../server-api";
+import { useAppSelector } from "../state/hooks";
 import CalendarDayStyled from "./styles/CalendarDay.styled";
 
 export type CalendarDayProps = {
   date: Date;
   transactions: Transaction[];
   month: number;
-  selected: Date;
   isToday: boolean;
   onClick: (date: Date) => void;
 };
@@ -17,7 +20,6 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   date,
   transactions,
   month,
-  selected,
   isToday,
   onClick,
 }) => {
@@ -30,6 +32,9 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   );
 
   const [isSelected, setIsSelected] = useState(false);
+  const selected = fromUnixTimeMs(
+    useAppSelector((state) => state.calendarReducer.selected)
+  );
 
   useEffect(() => {
     setIsSelected(DatesAreEqualWithoutTime(date, selected));
