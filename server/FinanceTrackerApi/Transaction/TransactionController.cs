@@ -112,8 +112,23 @@ public class TransactionController : ControllerBase
         return this.Ok(transaction);
     }
 
-    [HttpGet("/transaction/getall")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAll([FromQuery] DateTime? transactionDate)
+    [HttpGet("/transaction/all")]
+    public async Task<ActionResult<TransactionDTO[]>> GetAll()
+    {
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !session.UserId.HasValue)
+        {
+            return this.Unauthorized();
+        }
+
+        return this.Ok(await this.TransactionService.GetAllByUserId(session.UserId.Value));
+    }
+
+    [HttpGet("/transaction/all/date")]
+    public async Task<ActionResult<TransactionDTO[]>> GetAllByDate([FromQuery] DateTime? transactionDate)
     {
         var session = this.SessionService.Session;
 
@@ -130,6 +145,21 @@ public class TransactionController : ControllerBase
         }
 
         return this.Ok(await this.TransactionService.GetAllByDate(DateOnly.FromDateTime(transactionDate!.Value), session.UserId.Value));
+    }
+
+    [HttpGet("/transaction/all/month")]
+    public async Task<ActionResult<TransactionDTO[]>> GetAllByMonth([FromQuery] int month)
+    {
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !session.UserId.HasValue)
+        {
+            return this.Unauthorized();
+        }
+
+        return this.Ok(await this.TransactionService.GetAllByMonth(month, session.UserId.Value));
     }
 
     [HttpPost]

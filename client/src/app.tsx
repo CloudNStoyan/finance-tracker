@@ -5,6 +5,7 @@ import { useAppDispatch } from "./state/hooks";
 import { getMe } from "./server-api";
 import { setUser } from "./state/authSlice";
 import TransactionPage from "./pages/TransactionPage";
+import CalendarPage from "./pages/CalendarPage";
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const ManageCategoriesPage = lazy(() => import("./pages/ManageCategoriesPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -41,7 +42,7 @@ const App = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<h1>Home</h1>} />
+      <Route path="/" element={<CalendarPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route>

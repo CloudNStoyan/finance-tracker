@@ -26,7 +26,7 @@ export interface Transaction {
   categoryId?: number;
   label: string;
   confirmed: boolean;
-  transactionDate: Date;
+  transactionDate: string;
   type: "expense" | "income";
   value: number;
 }
@@ -110,5 +110,17 @@ export const getTransactionById = async (transactionId: number) => {
 export const deleteTransaction = async (transactionId: number) => {
   return axios.delete<Transaction>(
     `${SERVER_URL}/transaction?transactionId=${transactionId}`
+  );
+};
+
+export const getTransactionsByMonth = async (month: number) => {
+  return axios.get<Transaction[]>(
+    `${SERVER_URL}/transaction/all/month?month=${month}`
+  );
+};
+
+export const getTransactionsByDate = async (date: Date) => {
+  return axios.get<Transaction[]>(
+    `${SERVER_URL}/transaction/all/date?transactionDate=${date.toJSON()}`
   );
 };
