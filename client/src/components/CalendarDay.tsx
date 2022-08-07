@@ -4,13 +4,11 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
-import { Transaction } from "../server-api";
 import { useAppSelector } from "../state/hooks";
 import CalendarDayStyled from "./styles/CalendarDay.styled";
 
 export type CalendarDayProps = {
   date: Date;
-  transactions: Transaction[];
   month: number;
   isToday: boolean;
   onClick: (date: Date) => void;
@@ -18,29 +16,42 @@ export type CalendarDayProps = {
 
 const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   date,
-  transactions,
   month,
   isToday,
   onClick,
 }) => {
-  const total = transactions
-    .filter((transaction) =>
-      DatesAreEqualWithoutTime(parseJSON(transaction.transactionDate), date)
-    )
-    .reduce(
-      (state, transaction) =>
-        transaction.type === "expense"
-          ? state - transaction.value
-          : state + transaction.value,
-      0
-    );
-  const balance = transactions.reduce(
-    (state, transaction) =>
-      transaction.type === "expense"
-        ? state - transaction.value
-        : state + transaction.value,
-    0
+  const transactions = useAppSelector(
+    (state) => state.calendarReducer.transactions
   );
+
+  const [total, setTotal] = useState(0);
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    setTotal(
+      transactions
+        .filter((transaction) =>
+          DatesAreEqualWithoutTime(parseJSON(transaction.transactionDate), date)
+        )
+        .reduce(
+          (state, transaction) =>
+            transaction.type === "expense"
+              ? state - transaction.value
+              : state + transaction.value,
+          0
+        )
+    );
+
+    setBalance(
+      transactions.reduce(
+        (state, transaction) =>
+          transaction.type === "expense"
+            ? state - transaction.value
+            : state + transaction.value,
+        0
+      )
+    );
+  }, [transactions, date]);
 
   const [isSelected, setIsSelected] = useState(false);
   const selected = fromUnixTimeMs(
@@ -79,8 +90,8 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
           !show && !isSelected ? "invisible" : ""
         }`}
       >
-        <div>{total.toFixed(2)}</div>
-        <div>{balance.toFixed(2)}</div>
+        <div>{`${total > 0 ? "+" : ""}${total.toFixed(2)}`}</div>
+        <div>{`${balance > 0 ? "+" : ""}${balance.toFixed(2)}`}</div>
       </div>
     </CalendarDayStyled>
   );

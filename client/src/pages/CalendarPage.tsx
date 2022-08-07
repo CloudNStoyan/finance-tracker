@@ -1,3 +1,5 @@
+import { Fab } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { addMonths, subMonths, format, getTime } from "date-fns";
 import React, { useEffect, useState } from "react";
@@ -17,15 +19,16 @@ import {
 } from "../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
+import { useNavigate } from "react-router-dom";
 
 const initialNow = new Date();
 
 const CalendarPage = () => {
   const dispatch = useAppDispatch();
 
-  const transactions = useAppSelector(
-    (state) => state.calendarReducer.transactions
-  );
+  const navigate = useNavigate();
+
+  const selected = useAppSelector((state) => state.calendarReducer.selected);
 
   const transactionCache = useAppSelector(
     (state) => state.calendarReducer.transactionCache
@@ -44,8 +47,13 @@ const CalendarPage = () => {
   }, [now]);
 
   useEffect(() => {
-    dispatch(setNow(getTime(initialNow)));
-    dispatch(setSelected(getTime(initialNow)));
+    if (!selected) {
+      dispatch(setSelected(getTime(initialNow)));
+    }
+
+    if (!now) {
+      dispatch(setNow(getTime(initialNow)));
+    }
 
     const fetchApi = async () => {
       try {
@@ -64,6 +72,7 @@ const CalendarPage = () => {
     };
 
     void fetchApi();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   useEffect(() => {
@@ -129,13 +138,21 @@ const CalendarPage = () => {
                 }}
                 month={parsedNow.getMonth()}
                 key={idx}
-                transactions={transactions}
                 date={day}
                 isToday={DatesAreEqualWithoutTime(day, initialNow)}
               />
             ))}
         </CalendarPageStyled>
       </div>
+
+      <Fab
+        onClick={() => navigate("/transaction")}
+        color="primary"
+        aria-label="Add Transaction"
+        className="absolute bottom-4 right-4"
+      >
+        <AddIcon />
+      </Fab>
       <CalendarTransactionList />
     </div>
   );

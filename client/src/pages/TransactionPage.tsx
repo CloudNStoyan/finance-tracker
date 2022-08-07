@@ -35,11 +35,13 @@ import {
 } from "../server-api";
 import axios from "axios";
 import { setNotification } from "../state/notificationSlice";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
 import { format, parseJSON } from "date-fns";
+import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import { addTransaction, editTransaction } from "../state/calendarSlice";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -62,12 +64,18 @@ const CustomTextField = styled(TextField)({
 const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   hasTransactionId,
 }) => {
+  const calendarSelected = useAppSelector(
+    (state) => state.calendarReducer.selected
+  );
+
   const [transactionType, setTransactionType] = useState("expense");
   const [value, setValue] = useState("");
   const [label, setLabel] = useState("");
   const [confirmed, setConfirmed] = useState(true);
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
-  const [date, setDate] = useState<Date | null>(new Date());
+  const [date, setDate] = useState<Date | null>(
+    fromUnixTimeMs(calendarSelected) ?? new Date()
+  );
   const [repeat, setRepeat] = useState("none");
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<Category | undefined>();
@@ -75,6 +83,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
   const { transactionId } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -158,7 +167,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     const transaction: Transaction = {
       label: label.trim(),
       value: Number(value),
-      transactionDate: format(date, "yyyy-MM-DD"),
+      transactionDate: format(date, "yyyy-MM-dd") + "T00:00:00",
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
     };
@@ -172,14 +181,21 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     }
 
     try {
-      await createOrEditTransaction(transaction);
+      const resp = await createOrEditTransaction(transaction);
+
+      if (resp.status === 201) {
+        dispatch(addTransaction(resp.data));
+      } else if (resp.status === 200) {
+        dispatch(editTransaction(transaction));
+      }
+
+      navigate("/");
+      return;
     } catch (error) {
       if (!axios.isAxiosError(error)) {
         return;
       }
     }
-
-    console.log(transaction);
   };
 
   const onDelete = async () => {

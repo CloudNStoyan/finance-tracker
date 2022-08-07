@@ -84,12 +84,35 @@ const calendarSlice = createSlice({
       state.transactionCache[key] = action.payload;
       state.transactions = action.payload;
     },
+    addTransaction(state, action: PayloadAction<Transaction>) {
+      const key = format(fromUnixTimeMs(state.now), "yyyy-MMMM");
+
+      state.transactions.push(action.payload);
+      state.transactionCache[key] = state.transactions;
+    },
+    editTransaction(state, action: PayloadAction<Transaction>) {
+      const key = format(fromUnixTimeMs(state.now), "yyyy-MMMM");
+
+      state.transactions = [
+        action.payload,
+        ...state.transactions.filter(
+          (x) => x.transactionId !== action.payload.transactionId
+        ),
+      ];
+      state.transactionCache[key] = state.transactions;
+    },
     setCategories(state, action: PayloadAction<Category[]>) {
       state.categories = action.payload;
     },
   },
 });
 
-export const { setNow, setTransactions, setSelected, setCategories } =
-  calendarSlice.actions;
+export const {
+  setNow,
+  setTransactions,
+  setSelected,
+  setCategories,
+  addTransaction,
+  editTransaction,
+} = calendarSlice.actions;
 export default calendarSlice.reducer;
