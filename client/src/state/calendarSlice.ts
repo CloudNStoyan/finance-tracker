@@ -9,7 +9,7 @@ import {
   subDays,
 } from "date-fns";
 import { FindDays, fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
-import { Transaction } from "../server-api";
+import { Category, Transaction } from "../server-api";
 
 export type TransactionCache = {
   [cacheKey: string]: Transaction[];
@@ -21,6 +21,7 @@ export type CalendarState = {
   selected: number;
   transactions: Transaction[];
   transactionCache: TransactionCache;
+  categories: Category[];
 };
 
 const initialState: CalendarState = {
@@ -29,6 +30,7 @@ const initialState: CalendarState = {
   selected: null,
   transactions: [],
   transactionCache: {},
+  categories: [],
 };
 
 const calendarSlice = createSlice({
@@ -82,8 +84,12 @@ const calendarSlice = createSlice({
       state.transactionCache[key] = action.payload;
       state.transactions = action.payload;
     },
+    setCategories(state, action: PayloadAction<Category[]>) {
+      state.categories = action.payload;
+    },
   },
 });
 
-export const { setNow, setTransactions, setSelected } = calendarSlice.actions;
+export const { setNow, setTransactions, setSelected, setCategories } =
+  calendarSlice.actions;
 export default calendarSlice.reducer;

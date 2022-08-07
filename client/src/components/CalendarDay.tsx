@@ -1,4 +1,4 @@
-import { format, getDaysInMonth } from "date-fns";
+import { format, getDaysInMonth, parseJSON } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
@@ -23,7 +23,18 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   isToday,
   onClick,
 }) => {
-  const total = transactions.reduce(
+  const total = transactions
+    .filter((transaction) =>
+      DatesAreEqualWithoutTime(parseJSON(transaction.transactionDate), date)
+    )
+    .reduce(
+      (state, transaction) =>
+        transaction.type === "expense"
+          ? state - transaction.value
+          : state + transaction.value,
+      0
+    );
+  const balance = transactions.reduce(
     (state, transaction) =>
       transaction.type === "expense"
         ? state - transaction.value
@@ -42,7 +53,11 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
 
   const notFromSameMonth = date.getMonth() !== month;
 
-  const show = date.getDate() === 1 || date.getDate() === getDaysInMonth(date);
+  const show =
+    date.getDate() === 1 ||
+    date.getDate() === getDaysInMonth(date) ||
+    total !== 0 ||
+    isToday;
 
   return (
     <CalendarDayStyled
@@ -65,7 +80,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
         }`}
       >
         <div>{total.toFixed(2)}</div>
-        <div>{total.toFixed(2)}</div>
+        <div>{balance.toFixed(2)}</div>
       </div>
     </CalendarDayStyled>
   );

@@ -2,13 +2,19 @@ import axios from "axios";
 import { addMonths, subMonths, format, getTime } from "date-fns";
 import React, { useEffect, useState } from "react";
 import CalendarDay from "../components/CalendarDay";
+import CalendarTransactionList from "../components/CalendarTransactionList";
 import DaysOfWeek from "../components/DaysOfWeek";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
-import { getTransactionsByMonth } from "../server-api";
-import { setNow, setSelected, setTransactions } from "../state/calendarSlice";
+import { getCategories, getTransactionsByMonth } from "../server-api";
+import {
+  setCategories,
+  setNow,
+  setSelected,
+  setTransactions,
+} from "../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 
@@ -40,6 +46,24 @@ const CalendarPage = () => {
   useEffect(() => {
     dispatch(setNow(getTime(initialNow)));
     dispatch(setSelected(getTime(initialNow)));
+
+    const fetchApi = async () => {
+      try {
+        const resp = await getCategories();
+
+        if (resp.status !== 200) {
+          return;
+        }
+
+        dispatch(setCategories(resp.data));
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
+          return;
+        }
+      }
+    };
+
+    void fetchApi();
   }, [dispatch]);
 
   useEffect(() => {
@@ -76,8 +100,8 @@ const CalendarPage = () => {
   }, [parsedNow, dispatch, transactionCache]);
 
   return (
-    <>
-      <div>
+    <div className="h-full flex flex-col bg-gray-100">
+      <div className="shadow bg-white">
         <div>
           <button
             onClick={() => dispatch(setNow(getTime(subMonths(parsedNow, 1))))}
@@ -112,8 +136,8 @@ const CalendarPage = () => {
             ))}
         </CalendarPageStyled>
       </div>
-      <div></div>
-    </>
+      <CalendarTransactionList />
+    </div>
   );
 };
 
