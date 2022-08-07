@@ -1,7 +1,7 @@
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import { addMonths, subMonths, format, getTime } from "date-fns";
+import { format, getTime } from "date-fns";
 import React, { useEffect, useState } from "react";
 import CalendarDay from "../components/CalendarDay";
 import CalendarTransactionList from "../components/CalendarTransactionList";
@@ -20,6 +20,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
+import CalendarNavigation from "../components/CalendarNavigation";
 
 const initialNow = new Date();
 
@@ -111,19 +112,7 @@ const CalendarPage = () => {
   return (
     <div className="h-full flex flex-col bg-gray-100">
       <div className="shadow bg-white">
-        <div>
-          <button
-            onClick={() => dispatch(setNow(getTime(subMonths(parsedNow, 1))))}
-          >
-            &lt;-Left
-          </button>
-          <span className="mx-5">{now && format(now, "MMMM yyyy")}</span>
-          <button
-            onClick={() => dispatch(setNow(getTime(addMonths(parsedNow, 1))))}
-          >
-            Right-&gt;
-          </button>
-        </div>
+        <CalendarNavigation />
         <CalendarPageStyled>
           <DaysOfWeek />
           {parsedNow &&
