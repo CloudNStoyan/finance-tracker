@@ -1,18 +1,31 @@
 import axios from "axios";
-import moment, { Moment } from "moment";
+import {
+  getDaysInMonth,
+  endOfMonth,
+  addDays,
+  startOfMonth,
+  addMonths,
+  subMonths,
+  format,
+  isBefore,
+} from "date-fns";
+import { isAfter, subDays } from "date-fns/esm";
 import React, { useEffect, useState } from "react";
 import CalendarDay from "../components/CalendarDay";
+import { DatesAreEqualWithoutTime } from "../infrastructure/CustomDateUtils";
 import { getTransactionsByMonth, Transaction } from "../server-api";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 
+const initialNow = new Date();
+
 const CalendarPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [days, setDays] = useState<Moment[]>([]);
-  const [now, setNow] = useState(moment());
-  const [selected, setSelected] = useState(moment());
+  const [days, setDays] = useState<Date[]>([]);
+  const [now, setNow] = useState(initialNow);
+  const [selected, setSelected] = useState(initialNow);
 
-  const findDays = (date: Moment) => {
-    const day = date.day();
+  const findDays = (date: Date) => {
+    const day = date.getDay();
 
     if (day === 0) {
       return {
@@ -28,24 +41,24 @@ const CalendarPage = () => {
   };
 
   useEffect(() => {
-    const afterResult = findDays(moment(now).endOf("month"));
+    const afterResult = findDays(endOfMonth(now));
 
-    const after: Moment[] = [];
+    const after: Date[] = [];
 
-    const afterLength = now.daysInMonth() - now.date() + afterResult.after;
-
+    const afterLength = getDaysInMonth(now) - now.getDate() + afterResult.after;
+    4;
     for (let i = 0; i < afterLength; i++) {
-      after.push(moment(now).add(i + 1, "d"));
+      after.push(addDays(now, i + 1));
     }
 
-    const before: Moment[] = [];
+    const before: Date[] = [];
 
-    const beforeResult = findDays(moment(now).startOf("month"));
+    const beforeResult = findDays(startOfMonth(now));
 
-    const beforeLength = now.date() - 1 + beforeResult.before;
+    const beforeLength = now.getDate() - 1 + beforeResult.before;
 
     for (let i = 0; i < beforeLength; i++) {
-      before.push(moment(now).subtract(i + 1, "d"));
+      before.push(subDays(now, i + 1));
     }
 
     before.reverse();
@@ -54,7 +67,7 @@ const CalendarPage = () => {
 
     if (newDays.length === 35) {
       for (let i = 0; i < 7; i++) {
-        newDays.push(moment(newDays[newDays.length - 1]).add(1, "d"));
+        newDays.push(addDays(newDays[newDays.length - 1], 1));
       }
     }
 
@@ -62,10 +75,14 @@ const CalendarPage = () => {
   }, [now]);
 
   useEffect(() => {
-    if (selected.month() > now.month() || selected.year() > now.year()) {
-      setNow(moment(now.add(1, "M")));
-    } else if (selected.month() < now.month() || selected.year() < now.year()) {
-      setNow(moment(now.subtract(1, "M")));
+    if (selected.getMonth() === now.getMonth()) {
+      return;
+    }
+
+    if (isAfter(selected, now)) {
+      setNow(addMonths(now, 1));
+    } else if (isBefore(selected, now)) {
+      setNow(subMonths(now, 1));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
@@ -73,7 +90,7 @@ const CalendarPage = () => {
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsByMonth(now.month() + 1);
+        const resp = await getTransactionsByMonth(now.getMonth() + 1);
 
         if (resp.status !== 200) {
           return;
@@ -94,13 +111,9 @@ const CalendarPage = () => {
     <>
       <div>
         <div>
-          <button onClick={() => setNow(moment(now.subtract(1, "M")))}>
-            &lt;-Left
-          </button>
-          <span className="mx-5">{now.format("MMMM YYYY")}</span>
-          <button onClick={() => setNow(moment(now.add(1, "M")))}>
-            Right-&gt;
-          </button>
+          <button onClick={() => setNow(subMonths(now, 1))}>&lt;-Left</button>
+          <span className="mx-5">{format(now, "MMMM yyyy")}</span>
+          <button onClick={() => setNow(addMonths(now, 1))}>Right-&gt;</button>
         </div>
         <CalendarPageStyled>
           {["MON", "TUE", "WED", "THU", "FRI"].map((day, idx) => (
@@ -122,13 +135,11 @@ const CalendarPage = () => {
           {days.map((day, idx) => (
             <CalendarDay
               onClick={setSelected}
-              month={now.month()}
+              month={now.getMonth()}
               key={idx}
               transactions={transactions}
               date={day}
-              isToday={
-                moment().format("YYYY-MM-DD") === day.format("YYYY-MM-DD")
-              }
+              isToday={DatesAreEqualWithoutTime(day, initialNow)}
               selected={selected}
             />
           ))}

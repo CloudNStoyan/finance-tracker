@@ -1,8 +1,8 @@
 import { Add, Delete, Remove } from "@mui/icons-material";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
-import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import { MobileDatePicker } from "@mui/x-date-pickers/";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
 import {
   Button,
@@ -39,6 +39,7 @@ import { Link, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
+import { format, parseJSON } from "date-fns";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -129,7 +130,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       setLabel(transaction.label);
       setConfirmed(transaction.confirmed);
       setTransactionType(transaction.type);
-      setDate(transaction.transactionDate);
+      setDate(parseJSON(transaction.transactionDate));
     };
 
     void fetchTransaction();
@@ -157,7 +158,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     const transaction: Transaction = {
       label: label.trim(),
       value: Number(value),
-      transactionDate: date,
+      transactionDate: format(date, "yyyy-MM-DD"),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
     };
@@ -299,10 +300,10 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           {category != undefined ? category.name : "Uncategorized"}
         </Button>
         <div>
-          <LocalizationProvider dateAdapter={AdapterMoment}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
             <MobileDatePicker
               className="border-none"
-              inputFormat="DD MMM yyyy"
+              inputFormat="dd MMM yyyy"
               value={date}
               onChange={handleDateChange}
               renderInput={(params) => (

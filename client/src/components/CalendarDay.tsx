@@ -1,15 +1,16 @@
-import { Moment } from "moment";
+import { format, getDaysInMonth } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
+import { DatesAreEqualWithoutTime } from "../infrastructure/CustomDateUtils";
 import { Transaction } from "../server-api";
 import CalendarDayStyled from "./styles/CalendarDay.styled";
 
 export type CalendarDayProps = {
-  date: Moment;
+  date: Date;
   transactions: Transaction[];
   month: number;
-  selected: Moment;
+  selected: Date;
   isToday: boolean;
-  onClick: (date: Moment) => void;
+  onClick: (date: Date) => void;
 };
 
 const CalendarDay: FunctionComponent<CalendarDayProps> = ({
@@ -31,26 +32,27 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   const [isSelected, setIsSelected] = useState(false);
 
   useEffect(() => {
-    setIsSelected(selected.format("YYYY-MM-DD") === date.format("YYYY-MM-DD"));
+    setIsSelected(DatesAreEqualWithoutTime(date, selected));
   }, [selected, date]);
 
-  const notFromSameMonth = date.month() !== month;
+  const notFromSameMonth = date.getMonth() !== month;
 
-  const show = date.date() === 1 || date.date() === date.daysInMonth();
+  const show = date.getDate() === 1 || date.getDate() === getDaysInMonth(date);
 
   return (
     <CalendarDayStyled
       onClick={() => {
         onClick(date);
       }}
-      className={`${date.format(
-        "YYYY-MM-DD"
+      className={`${format(
+        date,
+        "yyyy-MM-dd"
       )} flex flex-col text-center font-semibold ${
         notFromSameMonth ? "opacity-50" : ""
       } ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} `}
     >
       <div className="text-md w-full text-gray-700 dark:text-white">
-        {date.date()}
+        {date.getDate()}
       </div>
       <div
         className={`text-xs text-gray-500 dark:text-gray-300 w-full ${
