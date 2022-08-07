@@ -65,12 +65,6 @@ const CalendarPage = () => {
 
     const newDays = [...before, now, ...after];
 
-    if (newDays.length === 35) {
-      for (let i = 0; i < 7; i++) {
-        newDays.push(addDays(newDays[newDays.length - 1], 1));
-      }
-    }
-
     setDays(newDays);
   }, [now]);
 
