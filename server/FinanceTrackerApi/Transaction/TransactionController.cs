@@ -112,8 +112,8 @@ public class TransactionController : ControllerBase
         return this.Ok(transaction);
     }
 
-    [HttpGet("/transaction/all")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAll()
+    [HttpGet("/transaction/all/search")]
+    public async Task<ActionResult<TransactionDTO[]>> GetAllBySearch([FromQuery] string searchQuery)
     {
         var session = this.SessionService.Session;
 
@@ -124,7 +124,7 @@ public class TransactionController : ControllerBase
             return this.Unauthorized();
         }
 
-        return this.Ok(await this.TransactionService.GetAllByUserId(session.UserId.Value));
+        return this.Ok(await this.TransactionService.GetAllBySearchQuery(searchQuery,session.UserId.Value));
     }
 
     [HttpGet("/transaction/all/date")]

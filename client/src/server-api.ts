@@ -128,3 +128,9 @@ export const getTransactionsByDate = async (date: Date) => {
     `${SERVER_URL}/transaction/all/date?transactionDate=${date.toJSON()}`
   );
 };
+
+export const getTransactionsBySearch = async (searchQuery: string) => {
+  return axios.get<Transaction[]>(
+    `${SERVER_URL}/transaction/all/search?searchQuery=${searchQuery}`
+  );
+};

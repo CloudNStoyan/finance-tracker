@@ -71,6 +71,16 @@ public class TransactionService
         return pocos.Select(TransactionDTO.FromPoco).ToArray();
     }
 
+    public async Task<TransactionDTO[]> GetAllBySearchQuery(string searchQuery,int userId)
+    {
+        var pocos = await this.Database.Query<TransactionPoco>(
+            @"SELECT * FROM transaction t JOIN category c on t.category_id = c.category_id 
+                  WHERE t.user_id=@userId AND t.label ILIKE '%' || @searchQuery || '%' OR c.name ILIKE '%' || @searchQuery || '%' OR t.value::text ILIKE '%' || @searchQuery || '%';",
+            new NpgsqlParameter("userId", userId), new NpgsqlParameter("searchQuery", searchQuery));
+
+        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+    }
+
     public async Task<TransactionDTO> Create(TransactionDTO inputDto)
     {
         if (inputDto == null)
