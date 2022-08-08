@@ -113,6 +113,10 @@ export const deleteTransaction = async (transactionId: number) => {
   );
 };
 
+export const getTransactions = async () => {
+  return axios.get<Transaction[]>(`${SERVER_URL}/transaction/all`);
+};
+
 export const getTransactionsByMonth = async (month: number) => {
   return axios.get<Transaction[]>(
     `${SERVER_URL}/transaction/all/month?month=${month}`

@@ -4,7 +4,8 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { switchTheme } from "../state/themeSlice";
 import TopbarStyled from "./styles/Topbar.styled";
 import WestIcon from "@mui/icons-material/West";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import SearchIcon from "@mui/icons-material/Search";
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   width: 62,
@@ -61,6 +62,7 @@ declare let history: {
 
 const Topbar: FunctionComponent = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
@@ -72,6 +74,11 @@ const Topbar: FunctionComponent = () => {
       navigate(-1);
     }
   };
+
+  const showSearchIcon =
+    location.pathname !== "/search" &&
+    location.pathname !== "/login" &&
+    location.pathname !== "/register";
 
   return (
     <TopbarStyled
@@ -88,14 +95,26 @@ const Topbar: FunctionComponent = () => {
           <WestIcon />
         </IconButton>
       )}
-      <MaterialUISwitch
-        checked={isDarkMode}
-        onChange={() => {
-          const mode = isDarkMode ? "light" : "dark";
-          dispatch(switchTheme(mode));
-          localStorage.setItem("theme_preference", mode);
-        }}
-      />
+
+      <div>
+        {showSearchIcon && (
+          <IconButton
+            className="text-white"
+            size="small"
+            onClick={() => navigate("/search")}
+          >
+            <SearchIcon />
+          </IconButton>
+        )}
+        <MaterialUISwitch
+          checked={isDarkMode}
+          onChange={() => {
+            const mode = isDarkMode ? "light" : "dark";
+            dispatch(switchTheme(mode));
+            localStorage.setItem("theme_preference", mode);
+          }}
+        />
+      </div>
     </TopbarStyled>
   );
 };

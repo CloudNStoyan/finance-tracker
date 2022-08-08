@@ -10,6 +10,7 @@ const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const ManageCategoriesPage = lazy(() => import("./pages/ManageCategoriesPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
 
 axios.defaults.withCredentials = true;
 
@@ -66,6 +67,7 @@ const App = () => {
         />
       </Route>
       <Route path="/categories" element={<ManageCategoriesPage />} />
+      <Route path="/search" element={<SearchPage />} />
       <Route path="*" element={<h2>404</h2>} />
     </Routes>
   );
