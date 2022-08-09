@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { useAppDispatch } from "./state/hooks";
 import { getMe } from "./server-api";
 import { setUser } from "./state/authSlice";
+const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const TransactionPage = lazy(() => import("./pages/TransactionPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
@@ -68,6 +69,7 @@ const App = () => {
       </Route>
       <Route path="/categories" element={<ManageCategoriesPage />} />
       <Route path="/search" element={<SearchPage />} />
+      <Route path="/stats" element={<StatisticsPage />} />
       <Route path="*" element={<h2>404</h2>} />
     </Routes>
   );

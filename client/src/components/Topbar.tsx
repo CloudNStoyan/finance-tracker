@@ -4,8 +4,10 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { switchTheme } from "../state/themeSlice";
 import TopbarStyled from "./styles/Topbar.styled";
 import WestIcon from "@mui/icons-material/West";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
+import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   width: 62,
@@ -62,7 +64,6 @@ declare let history: {
 
 const Topbar: FunctionComponent = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
@@ -74,11 +75,6 @@ const Topbar: FunctionComponent = () => {
       navigate(-1);
     }
   };
-
-  const showSearchIcon =
-    location.pathname !== "/search" &&
-    location.pathname !== "/login" &&
-    location.pathname !== "/register";
 
   return (
     <TopbarStyled
@@ -97,15 +93,27 @@ const Topbar: FunctionComponent = () => {
       )}
 
       <div>
-        {showSearchIcon && (
-          <IconButton
-            className="text-white"
-            size="small"
-            onClick={() => navigate("/search")}
-          >
-            <SearchIcon />
-          </IconButton>
-        )}
+        <IconButton
+          className="text-white"
+          size="small"
+          onClick={() => navigate("/")}
+        >
+          <CalendarMonthRoundedIcon />
+        </IconButton>
+        <IconButton
+          className="text-white"
+          size="small"
+          onClick={() => navigate("/stats")}
+        >
+          <BarChartRoundedIcon />
+        </IconButton>
+        <IconButton
+          className="text-white"
+          size="small"
+          onClick={() => navigate("/search")}
+        >
+          <SearchIcon />
+        </IconButton>
         <MaterialUISwitch
           checked={isDarkMode}
           onChange={() => {
