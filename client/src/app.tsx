@@ -1,9 +1,6 @@
-import React, { lazy, useEffect } from "react";
+import React, { lazy } from "react";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
-import { useAppDispatch } from "./state/hooks";
-import { getMe } from "./server-api";
-import { setUser } from "./state/authSlice";
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const TransactionPage = lazy(() => import("./pages/TransactionPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
@@ -16,32 +13,6 @@ const SearchPage = lazy(() => import("./pages/SearchPage"));
 axios.defaults.withCredentials = true;
 
 const App = () => {
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    const fetchApi = async () => {
-      try {
-        const resp = await getMe();
-
-        if (resp.status === 404) {
-          return;
-        }
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setUser(resp.data));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch]);
-
   return (
     <Routes>
       <Route path="/" element={<CalendarPage />} />

@@ -67,6 +67,7 @@ const Topbar: FunctionComponent = () => {
 
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
+  const isLoggedIn = useAppSelector((state) => state.authReducer.isLoggedIn);
 
   const canGoBack = history.state.idx > 0;
 
@@ -79,10 +80,10 @@ const Topbar: FunctionComponent = () => {
   return (
     <TopbarStyled
       className={`flex ${
-        canGoBack ? "justify-between" : "justify-end"
+        canGoBack && isLoggedIn ? "justify-between" : "justify-end"
       } items-center py-2`}
     >
-      {canGoBack && (
+      {canGoBack && isLoggedIn && (
         <IconButton
           size="small"
           className="text-white ml-2"
@@ -93,27 +94,34 @@ const Topbar: FunctionComponent = () => {
       )}
 
       <div>
-        <IconButton
-          className="text-white"
-          size="small"
-          onClick={() => navigate("/")}
-        >
-          <CalendarMonthRoundedIcon />
-        </IconButton>
-        <IconButton
-          className="text-white"
-          size="small"
-          onClick={() => navigate("/stats")}
-        >
-          <BarChartRoundedIcon />
-        </IconButton>
-        <IconButton
-          className="text-white"
-          size="small"
-          onClick={() => navigate("/search")}
-        >
-          <SearchIcon />
-        </IconButton>
+        {isLoggedIn && (
+          <IconButton
+            className="text-white"
+            size="small"
+            onClick={() => navigate("/")}
+          >
+            <CalendarMonthRoundedIcon />
+          </IconButton>
+        )}
+
+        {isLoggedIn && (
+          <IconButton
+            className="text-white"
+            size="small"
+            onClick={() => navigate("/stats")}
+          >
+            <BarChartRoundedIcon />
+          </IconButton>
+        )}
+        {isLoggedIn && (
+          <IconButton
+            className="text-white"
+            size="small"
+            onClick={() => navigate("/search")}
+          >
+            <SearchIcon />
+          </IconButton>
+        )}
         <MaterialUISwitch
           checked={isDarkMode}
           onChange={() => {
