@@ -41,6 +41,13 @@ public class CategoryController : ControllerBase
             return this.Unauthorized();
         }
 
+        bool hasTransactions = await this.CategoryService.CategoryHasTransactions(categoryId.Value, session.UserId.Value);
+
+        if (hasTransactions)
+        {
+            await this.CategoryService.MoveAllTransactionsByCatId(categoryId.Value, session.UserId.Value);
+        }
+
         await this.CategoryService.Delete(category);
 
         return this.Ok();

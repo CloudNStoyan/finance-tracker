@@ -1,4 +1,5 @@
 ﻿using FinanceTrackerApi.DAL;
+using FinanceTrackerApi.Transaction;
 using Npgsql;
 
 namespace FinanceTrackerApi.Category;
@@ -35,6 +36,19 @@ public class CategoryService
         }
 
         return poco;
+    }
+
+    public async Task MoveAllTransactionsByCatId(int catId, int userId)
+    {
+        await this.Database.ExecuteNonQuery(
+            "UPDATE transaction SET category_id = null WHERE user_id=@userId AND category_id=@catId;",
+            new NpgsqlParameter("userId", userId), new NpgsqlParameter("catId", catId));
+    }
+
+    public async Task<bool> CategoryHasTransactions(int categoryId, int userId)
+    {
+        return await this.Database.Execute<bool>("SELECT EXISTS(SELECT * FROM transaction WHERE user_id=@userId AND category_id = @catId)",
+            new NpgsqlParameter("catId", categoryId), new NpgsqlParameter("userId", userId));
     }
 
     public async Task<CategoryDTO?> GetById(int catId)
