@@ -10,6 +10,7 @@ const PickCategoryStyled = styled.div<{ bgColor: string }>`
     background-color: ${({ bgColor }) => bgColor};
     border-radius: 5px;
     -webkit-tap-highlight-color: transparent;
+    gap: 5px;
 
     .icon {
       color: white;

@@ -1,5 +1,4 @@
 import { Add, Delete, Remove } from "@mui/icons-material";
-import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import { MobileDatePicker } from "@mui/x-date-pickers/";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -42,6 +41,7 @@ import PickCategoriesStyled from "../components/styles/PickCategories.styled";
 import { format, parseJSON } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 import { addTransaction, editTransaction } from "../state/calendarSlice";
+import DefaultCategory from "../state/DefaultCategory";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -225,7 +225,9 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
 
   return (
     <TransactionPageStyled
-      bgColor={category != undefined ? category.bgColor : "rgb(82, 188, 232)"}
+      bgColor={
+        category != undefined ? category.bgColor : DefaultCategory.bgColor
+      }
       isDarkMode={isDarkMode}
     >
       <div className="relative fields">
@@ -306,11 +308,9 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           className="label-button justify-start normal-case"
           size="large"
           startIcon={
-            category != undefined ? (
-              Icons[category.icon]
-            ) : (
-              <LocalOfferOutlinedIcon />
-            )
+            category != undefined
+              ? Icons[category.icon]
+              : Icons[DefaultCategory.icon]
           }
         >
           {category != undefined ? category.name : "Uncategorized"}
@@ -366,7 +366,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           onOpen={() => {}}
         >
           <PickCategoriesStyled>
-            {categories.map((cat, idx) => (
+            {[...categories, DefaultCategory].map((cat, idx) => (
               <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
                 <button
                   className="wrapper"
