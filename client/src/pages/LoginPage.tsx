@@ -83,6 +83,7 @@ const LoginPage = () => {
               className={`mr-1 icon ${usernameError ? "mb-6" : "mb-1"}`}
             />
             <TextField
+              data-testid="username-mui"
               className="w-full text-white"
               label="Username"
               variant="standard"
@@ -106,6 +107,7 @@ const LoginPage = () => {
               className={`mr-1 icon ${passwordError ? "mb-6" : "mb-1"}`}
             />
             <TextField
+              data-testid="password-mui"
               className="w-full"
               label="Password"
               type="password"
