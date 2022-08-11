@@ -92,7 +92,10 @@ const CalendarPage = () => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsByMonth(parsedNow.getMonth() + 1);
+        const resp = await getTransactionsByMonth(
+          parsedNow.getMonth() + 1,
+          parsedNow.getFullYear()
+        );
 
         if (resp.status !== 200) {
           return;

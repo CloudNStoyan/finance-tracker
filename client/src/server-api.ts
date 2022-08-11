@@ -117,9 +117,9 @@ export const getTransactions = async () => {
   return axios.get<Transaction[]>(`${SERVER_URL}/transaction/all`);
 };
 
-export const getTransactionsByMonth = async (month: number) => {
+export const getTransactionsByMonth = async (month: number, year: number) => {
   return axios.get<Transaction[]>(
-    `${SERVER_URL}/transaction/all/month?month=${month}`
+    `${SERVER_URL}/transaction/all/month?month=${month}&year=${year}`
   );
 };
 

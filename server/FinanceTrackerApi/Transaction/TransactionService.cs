@@ -57,8 +57,8 @@ public class TransactionService
     public async Task<TransactionDTO[]> GetAllByMonth(int month, int year, int userId)
     {
         var pocos = await this.Database.Query<TransactionPoco>(
-            "SELECT * FROM transaction WHERE user_id=@userId AND EXTRACT(MONTH FROM transaction_date)=@month AND EXTRACT(YEAR FROM transaction_date)=@year;;",
-            new NpgsqlParameter("userId", userId), new NpgsqlParameter("month", month));
+            "SELECT * FROM transaction WHERE user_id=@userId AND EXTRACT(MONTH FROM transaction_date)=@month AND EXTRACT(YEAR FROM transaction_date)=@year;",
+            new NpgsqlParameter("userId", userId), new NpgsqlParameter("month", month), new NpgsqlParameter("year", year));
 
         return pocos.Select(TransactionDTO.FromPoco).ToArray();
     }
