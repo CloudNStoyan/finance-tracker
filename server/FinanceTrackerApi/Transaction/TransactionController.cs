@@ -148,7 +148,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("/transaction/all/month")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAllByMonth([FromQuery] int month)
+    public async Task<ActionResult<TransactionDTO[]>> GetAllByMonth([FromQuery] int month, [FromQuery] int year)
     {
         var session = this.SessionService.Session;
 
@@ -159,7 +159,7 @@ public class TransactionController : ControllerBase
             return this.Unauthorized();
         }
 
-        return this.Ok(await this.TransactionService.GetAllByMonth(month, session.UserId.Value));
+        return this.Ok(await this.TransactionService.GetAllByMonth(month,year, session.UserId.Value));
     }
 
     [HttpPost]
