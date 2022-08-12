@@ -4,7 +4,7 @@ import DesktopTransaction from "../../components/desktop/DesktopTransaction";
 import { getTransactionsByMonth, Transaction } from "../../server-api";
 
 const DesktopCalendarPage = () => {
-  const [showTransactionModal, setShowTransactionModal] = useState(true);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {

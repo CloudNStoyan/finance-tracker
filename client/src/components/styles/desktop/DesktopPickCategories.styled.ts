@@ -6,7 +6,6 @@ const DesktopPickCategoriesStyled = styled.div`
     flex-flow: column;
     gap: 5px;
     padding: 10px;
-    min-width: 300px;
     max-height: 300px;
     overflow: hidden;
     overflow-y: scroll;

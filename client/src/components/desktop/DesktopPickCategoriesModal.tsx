@@ -1,0 +1,53 @@
+import { Add, Settings, West } from "@mui/icons-material";
+import { Button, IconButton } from "@mui/material";
+import React, { FunctionComponent } from "react";
+import { Category } from "../../server-api";
+import DesktopPickCategoriesStyled from "../styles/desktop/DesktopPickCategories.styled";
+import PickCategoryStyled from "../styles/PickCategory.styled";
+import DefaultCategory from "../../state/DefaultCategory";
+import Icons from "../../infrastructure/Icons";
+
+export type DesktopPickCategoriesModalProps = {
+  categories: Category[];
+  onClose: () => void;
+  setCategory: (cat: Category) => void;
+};
+
+const DesktopPickCategoriesModal: FunctionComponent<
+  DesktopPickCategoriesModalProps
+> = ({ categories, onClose, setCategory }) => {
+  return (
+    <DesktopPickCategoriesStyled>
+      <div className="flex items-center justify-between mx-2 mt-1">
+        <IconButton onClick={() => onClose()}>
+          <West />
+        </IconButton>
+        <h2>Select Category</h2>
+        <IconButton>
+          <Settings />
+        </IconButton>
+      </div>
+      <div className="cats">
+        {[...categories, DefaultCategory].map((cat, idx) => (
+          <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
+            <button
+              className="wrapper"
+              onClick={() => {
+                setCategory(cat);
+                onClose();
+              }}
+            >
+              <div className="icon">{Icons[cat.icon]}</div>
+              <h4>{cat.name}</h4>
+            </button>
+          </PickCategoryStyled>
+        ))}
+      </div>
+      <Button className="ml-3 mb-1" startIcon={<Add />}>
+        Add Category
+      </Button>
+    </DesktopPickCategoriesStyled>
+  );
+};
+
+export default DesktopPickCategoriesModal;
