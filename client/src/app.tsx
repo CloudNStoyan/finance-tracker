@@ -1,6 +1,7 @@
 import React, { lazy } from "react";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
+import DesktopCalendarPage from "./pages/desktop/DesktopCalendarPage";
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const TransactionPage = lazy(() => import("./pages/TransactionPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
@@ -41,6 +42,7 @@ const App = () => {
       <Route path="/categories" element={<ManageCategoriesPage />} />
       <Route path="/search" element={<SearchPage />} />
       <Route path="/stats" element={<StatisticsPage />} />
+      <Route path="test" element={<DesktopCalendarPage />} />
       <Route path="*" element={<h2>404</h2>} />
     </Routes>
   );

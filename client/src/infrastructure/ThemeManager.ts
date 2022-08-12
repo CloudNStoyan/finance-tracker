@@ -18,6 +18,7 @@ export type StyledTheme = {
     accentText: string;
     background: string;
     topbarBg: string;
+    scrollBar: string;
   };
 };
 
@@ -33,6 +34,7 @@ export const styledLightTheme: StyledTheme = {
     text: "#333",
     background: "white",
     topbarBg: "#0066ff",
+    scrollBar: "rgb(0 102 255 / 50%)",
   },
 };
 
@@ -46,6 +48,7 @@ export const styledDarkTheme: StyledTheme = {
     text: "white",
     background: "#333",
     topbarBg: "#7b1fa2",
+    scrollBar: "rgb(186 104 200 / 50%)",
   },
 };
 
