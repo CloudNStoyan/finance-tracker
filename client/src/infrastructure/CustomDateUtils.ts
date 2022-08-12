@@ -38,3 +38,6 @@ export const FindDays = (date: Date) => {
 
 export const fromUnixTimeMs = (unix: number | null) =>
   unix === null ? null : fromUnixTime(unix / 1000);
+
+export const isValidDate = (d: Date) =>
+  d instanceof Date && !isNaN(d.getTime());

@@ -8,7 +8,11 @@ import {
   startOfMonth,
   subDays,
 } from "date-fns";
-import { FindDays, fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import {
+  FindDays,
+  fromUnixTimeMs,
+  isValidDate,
+} from "../infrastructure/CustomDateUtils";
 import { Category, Transaction } from "../server-api";
 
 export type TransactionCache = {
@@ -85,13 +89,23 @@ const calendarSlice = createSlice({
       state.transactions = action.payload;
     },
     addTransaction(state, action: PayloadAction<Transaction>) {
-      const key = format(fromUnixTimeMs(state.now), "yyyy-MMMM");
+      let now = fromUnixTimeMs(state.now);
+      if (!isValidDate(now)) {
+        now = new Date();
+      }
+
+      const key = format(now, "yyyy-MMMM");
 
       state.transactions.push(action.payload);
       state.transactionCache[key] = state.transactions;
     },
     editTransaction(state, action: PayloadAction<Transaction>) {
-      const key = format(fromUnixTimeMs(state.now), "yyyy-MMMM");
+      let now = fromUnixTimeMs(state.now);
+      if (!isValidDate(now)) {
+        now = new Date();
+      }
+
+      const key = format(now, "yyyy-MMMM");
 
       state.transactions = [
         action.payload,
