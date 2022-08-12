@@ -11,11 +11,13 @@ export type DesktopPickCategoriesModalProps = {
   categories: Category[];
   onClose: () => void;
   setCategory: (cat: Category) => void;
+  onSettings: () => void;
+  onAddCategory: () => void;
 };
 
 const DesktopPickCategoriesModal: FunctionComponent<
   DesktopPickCategoriesModalProps
-> = ({ categories, onClose, setCategory }) => {
+> = ({ categories, onClose, setCategory, onSettings, onAddCategory }) => {
   return (
     <DesktopPickCategoriesStyled>
       <div className="flex items-center justify-between mx-2 mt-1">
@@ -23,7 +25,7 @@ const DesktopPickCategoriesModal: FunctionComponent<
           <West />
         </IconButton>
         <h2>Select Category</h2>
-        <IconButton>
+        <IconButton onClick={onSettings}>
           <Settings />
         </IconButton>
       </div>
@@ -43,7 +45,7 @@ const DesktopPickCategoriesModal: FunctionComponent<
           </PickCategoryStyled>
         ))}
       </div>
-      <Button className="ml-3 mb-1" startIcon={<Add />}>
+      <Button onClick={onAddCategory} className="ml-3 mb-1" startIcon={<Add />}>
         Add Category
       </Button>
     </DesktopPickCategoriesStyled>

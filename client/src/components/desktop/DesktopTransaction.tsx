@@ -37,12 +37,20 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
 import DesktopModalContainerStyled from "../styles/desktop/DesktopModalContainer.styled";
 import DesktopPickCategoriesModal from "./DesktopPickCategoriesModal";
+import DesktopManageCategoriesModal from "./DesktopManageCategoriesModal";
+import DesktopCategoryModal from "./DesktopCategoryModal";
 
 export type DesktopTransactionProps = {
   open: boolean;
   onClose: () => void;
   transaction?: Transaction;
 };
+
+export type ModalType =
+  | "transaction"
+  | "select-category"
+  | "manage-categories"
+  | "category";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -75,9 +83,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [value, setValue] = useState("");
   const [label, setLabel] = useState("");
   const [confirmed, setConfirmed] = useState(true);
-  const [currentModal, setCurrentModal] = useState<
-    "transaction" | "select-category"
-  >("transaction");
+  const [currentModal, setCurrentModal] = useState<ModalType>("transaction");
+  const [modalHistory, setModalHistory] = useState<ModalType[]>([]);
   const [date, setDate] = useState<Date | null>(
     fromUnixTimeMs(calendarSelected) ?? new Date()
   );
@@ -85,9 +92,15 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [repeat, setRepeat] = useState("none");
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<Category | undefined>();
+  const [editCategory, setEditCategory] = useState<Category>(null);
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
+
+  useEffect(() => {
+    setModalHistory([currentModal, ...modalHistory.slice(0, 4)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentModal]);
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -218,9 +231,35 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
             onClose={() => setCurrentModal("transaction")}
             categories={categories}
             setCategory={setCategory}
+            onSettings={() => setCurrentModal("manage-categories")}
+            onAddCategory={() => {
+              setEditCategory(null);
+              setCurrentModal("category");
+            }}
           />
         )}
-
+        {currentModal === "manage-categories" && (
+          <DesktopManageCategoriesModal
+            onClose={() => setCurrentModal("select-category")}
+            categories={categories}
+            selectedCat={(cat) => {
+              setEditCategory(cat);
+              setCurrentModal("category");
+            }}
+            onAddCategory={() => {
+              setEditCategory(null);
+              setCurrentModal("category");
+            }}
+          />
+        )}
+        {currentModal === "category" && (
+          <DesktopCategoryModal
+            onClose={() => {
+              setCurrentModal(modalHistory[1]);
+            }}
+            category={editCategory}
+          />
+        )}
         {currentModal === "transaction" && (
           <DesktopTransactionStyled
             bgColor={

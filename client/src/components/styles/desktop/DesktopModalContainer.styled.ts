@@ -1,7 +1,7 @@
 import { styled } from "../../../infrastructure/ThemeManager";
 
 const DesktopModalContainerStyled = styled.div`
-  width: 300px;
+  width: 350px;
 `;
 
 export default DesktopModalContainerStyled;
