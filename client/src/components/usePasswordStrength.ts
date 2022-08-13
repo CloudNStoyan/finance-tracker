@@ -15,29 +15,15 @@ const usePasswordStrength = (password: string): [number, string, string] => {
   useEffect(() => {
     const passwordLength = password.trim().length;
 
-    if (passwordLength < 6) {
-      setScore(0);
-      setText("too short");
-      setColor("");
-      return;
-    }
-
-    if (passwordLength < 7) {
-      setScore(1);
-      setText("weak");
-      setColor("#d32f2f");
-      return;
-    }
-
-    if (passwordLength < 10 && ALL_CASE_LETTERS_REGEX.test(password)) {
-      setScore(2);
-      setText("okay");
-      setColor("#ffc107");
+    if (passwordLength >= 12 && VERY_STRONG_PASSWORD_REGEX.test(password)) {
+      setScore(4);
+      setText("strong");
+      setColor("#2e7d32");
       return;
     }
 
     if (
-      passwordLength < 12 &&
+      passwordLength >= 10 &&
       ALL_CASE_LETTERS_AND_NUMBERS_REGEX.test(password)
     ) {
       setScore(3);
@@ -46,10 +32,24 @@ const usePasswordStrength = (password: string): [number, string, string] => {
       return;
     }
 
-    if (passwordLength >= 12 && VERY_STRONG_PASSWORD_REGEX.test(password)) {
-      setScore(4);
-      setText("strong");
-      setColor("#2e7d32");
+    if (passwordLength >= 8 && ALL_CASE_LETTERS_REGEX.test(password)) {
+      setScore(2);
+      setText("okay");
+      setColor("#ffc107");
+      return;
+    }
+
+    if (passwordLength >= 8) {
+      setScore(1);
+      setText("weak");
+      setColor("#d32f2f");
+      return;
+    }
+
+    if (passwordLength < 8) {
+      setScore(0);
+      setText("too short");
+      setColor("");
       return;
     }
   }, [password]);

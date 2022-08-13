@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import DesktopCalendarPage from "./pages/desktop/DesktopCalendarPage";
 import { useMediaQuery } from "@mui/material";
 import DesktopLoginPage from "./pages/desktop/DesktopLoginPage";
+import DesktopRegisterPage from "./pages/desktop/DesktopRegisterPage";
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const TransactionPage = lazy(() => import("./pages/TransactionPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
@@ -27,7 +28,10 @@ const App = () => {
         path="/login"
         element={isDesktop ? <DesktopLoginPage /> : <LoginPage />}
       />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/register"
+        element={isDesktop ? <DesktopRegisterPage /> : <RegisterPage />}
+      />
       <Route>
         <Route
           path="/transaction/:transactionId"
