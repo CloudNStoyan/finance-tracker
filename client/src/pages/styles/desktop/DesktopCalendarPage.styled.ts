@@ -5,7 +5,6 @@ const DesktopCalendarPageStyled = styled.div`
   padding: 10px;
   margin: 0 auto;
   height: 100%;
-  gap: 5px;
   max-height: 100%;
   flex-flow: row wrap;
   align-content: flex-start;
@@ -16,6 +15,7 @@ const DesktopCalendarPageStyled = styled.div`
     height: fit-content;
     min-height: fit-content;
     background-color: white;
+    text-align: center;
   }
 
   > * {
@@ -23,6 +23,10 @@ const DesktopCalendarPageStyled = styled.div`
     flex: 0 0 14%;
     height: 16%;
     min-height: 125px;
+
+    :not(.days-of-week) {
+      padding: 5px;
+    }
   }
 
   .action-bar {
