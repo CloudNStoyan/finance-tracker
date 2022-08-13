@@ -124,6 +124,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
   useEffect(() => {
     if (!transaction) {
+      setValue("");
+      setLabel("");
+      setConfirmed(false);
+      setTransactionType("expense");
+      setDate(new Date());
+      setCategory(DefaultCategory);
       return;
     }
 
@@ -136,6 +142,11 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
   }, [transaction, categories]);
+
+  useEffect(
+    () => setDate(fromUnixTimeMs(calendarSelected)),
+    [calendarSelected]
+  );
 
   const handleDateChange = (newDate: Date | null) => {
     setDate(newDate);
