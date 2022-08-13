@@ -29,6 +29,7 @@ export interface Transaction {
   transactionDate: string;
   type: "expense" | "income";
   value: number;
+  details?: string;
 }
 
 export interface User {

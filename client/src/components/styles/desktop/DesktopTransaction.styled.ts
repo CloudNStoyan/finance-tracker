@@ -9,6 +9,14 @@ const DesktopTransactionStyled = styled.div<{
   display: flex;
   flex-flow: column nowrap;
 
+  .description-btn-text {
+    text-align: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 200px;
+    white-space: nowrap;
+  }
+
   .transaction-info {
     flex-grow: 1;
     margin-top: 20px;

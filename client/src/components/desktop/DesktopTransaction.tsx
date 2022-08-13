@@ -15,6 +15,7 @@ import {
   Remove,
   ScheduleOutlined,
   LoopOutlined,
+  DescriptionOutlined,
 } from "@mui/icons-material";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import DesktopTransactionStyled from "../styles/desktop/DesktopTransaction.styled";
@@ -39,6 +40,7 @@ import DesktopModalContainerStyled from "../styles/desktop/DesktopModalContainer
 import DesktopPickCategoriesModal from "./DesktopPickCategoriesModal";
 import DesktopManageCategoriesModal from "./DesktopManageCategoriesModal";
 import DesktopCategoryModal from "./DesktopCategoryModal";
+import DesktopDescriptionModal from "./DesktopDescriptionModal";
 
 export type DesktopTransactionProps = {
   open: boolean;
@@ -50,7 +52,8 @@ export type ModalType =
   | "transaction"
   | "select-category"
   | "manage-categories"
-  | "category";
+  | "category"
+  | "description";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -93,6 +96,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<Category | undefined>();
   const [editCategory, setEditCategory] = useState<Category>(null);
+  const [description, setDescription] = useState("");
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -130,6 +134,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       setTransactionType("expense");
       setDate(new Date());
       setCategory(DefaultCategory);
+      setDescription("");
       return;
     }
 
@@ -141,6 +146,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setCategory(
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
+    setDescription(transaction.details ?? "");
   }, [transaction, categories]);
 
   useEffect(
@@ -174,6 +180,10 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
     };
+
+    if (description.trim().length > 0) {
+      newTransaction.details = description.trim();
+    }
 
     if (transaction) {
       newTransaction.transactionId = Number(transaction.transactionId);
@@ -269,6 +279,16 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
               setCurrentModal(modalHistory[1]);
             }}
             category={editCategory}
+          />
+        )}
+        {currentModal === "description" && (
+          <DesktopDescriptionModal
+            description={description}
+            onClose={() => setCurrentModal("transaction")}
+            onDone={(descrp) => {
+              setDescription(descrp);
+              setCurrentModal("transaction");
+            }}
           />
         )}
         {currentModal === "transaction" && (
@@ -400,6 +420,18 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   <MenuItem value={"year"}>Repeat every year</MenuItem>
                 </Select>
               </div>
+              <Button
+                onClick={() => setCurrentModal("description")}
+                size="large"
+                className="label-button justify-start normal-case"
+                startIcon={<DescriptionOutlined />}
+              >
+                <span className="description-btn-text">
+                  {description.trim().length === 0
+                    ? "Add description"
+                    : description}
+                </span>
+              </Button>
             </div>
             <div className="p-2 w-full flex">
               {transaction && (
