@@ -17,7 +17,7 @@ const DesktopCalendarTransaction: FunctionComponent<
       bgColor={category.bgColor}
       className="flex px-1 shadow rounded"
     >
-      <div className="grow text-left">{transaction.label}</div>
+      <div className="grow text-left label">{transaction.label}</div>
       <div>
         {transaction.type === "expense" ? "-" : "+"}
         {transaction.value}

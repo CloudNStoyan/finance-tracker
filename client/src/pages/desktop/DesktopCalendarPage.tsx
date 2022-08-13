@@ -118,7 +118,7 @@ const DesktopCalendarPage = () => {
     <div className="h-full flex flex-col bg-gray-100">
       <div className="shadow bg-white h-full flex flex-col">
         <CalendarNavigation />
-        <DesktopCalendarPageStyled>
+        <DesktopCalendarPageStyled hasSixRows={days.length === 42}>
           <DesktopDaysOfWeek />
           {parsedNow &&
             days.map((day, idx) => (
@@ -129,7 +129,6 @@ const DesktopCalendarPage = () => {
                 }}
                 onClick={(newSelected) => {
                   dispatch(setSelected(getTime(newSelected)));
-                  console.log("meow???");
                   setCurrentTransaction(null);
                   setShowTransactionModal(true);
                 }}

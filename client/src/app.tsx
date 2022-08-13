@@ -15,7 +15,7 @@ const SearchPage = lazy(() => import("./pages/SearchPage"));
 axios.defaults.withCredentials = true;
 
 const App = () => {
-  const isDesktop = useMediaQuery("(min-width:800px)");
+  const isDesktop = useMediaQuery("(min-width:1024px)");
   return (
     <Routes>
       <Route

@@ -101,7 +101,11 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         notFromSameMonth ? "opacity-50" : ""
       } ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} `}
     >
-      <div className="text-md w-full action-bar text-left text-gray-700 dark:text-white pl-1 pt-1 flex justify-between">
+      <div
+        className={`text-md w-full action-bar text-left ${
+          isToday ? "text-white" : "text-gray-700"
+        } dark:text-white pl-1 pt-1 flex justify-between`}
+      >
         <div className="date-number">{date.getDate()}</div>
         <div className="stats flex mr-1 relative items-center">
           {isHovered ? (

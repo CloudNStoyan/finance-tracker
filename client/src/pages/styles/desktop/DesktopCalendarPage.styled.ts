@@ -1,6 +1,6 @@
 import { styled } from "../../../infrastructure/ThemeManager";
 
-const DesktopCalendarPageStyled = styled.div`
+const DesktopCalendarPageStyled = styled.div<{ hasSixRows: boolean }>`
   display: flex;
   padding: 10px;
   margin: 0 auto;
@@ -9,6 +9,12 @@ const DesktopCalendarPageStyled = styled.div`
   flex-flow: row wrap;
   align-content: flex-start;
   justify-content: center;
+
+  .today {
+    .action-bar {
+      background-color: ${({ theme }) => theme.colors.accentText};
+    }
+  }
 
   .days-of-week {
     flex: 100%;
@@ -21,7 +27,7 @@ const DesktopCalendarPageStyled = styled.div`
   > * {
     min-width: 100px;
     flex: 0 0 14%;
-    height: 16%;
+    height: ${({ hasSixRows }) => (hasSixRows ? "16%" : "19%")};
     min-height: 125px;
 
     :not(.days-of-week) {
