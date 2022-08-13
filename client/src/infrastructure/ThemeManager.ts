@@ -6,12 +6,17 @@ import bottomWavesFlipped from "../assets/bottom-waves-v-flipped.svg";
 
 import bottomWavesSecondary from "../assets/bottom-waves-secondary.svg";
 import bottomWavesFlippedSecondary from "../assets/bottom-waves-v-flipped-secondary.svg";
+
+import bgSteps from "../assets/bg-steps.svg";
+import bgStepsSecondary from "../assets/bg-steps-secondary.svg";
+
 import { purple } from "@mui/material/colors";
 
 export type StyledTheme = {
   svgs: {
     bottomWaves: string;
     bottomWavesFlipped: string;
+    bgSteps: string;
   };
   colors: {
     text: string;
@@ -28,6 +33,7 @@ export const styledLightTheme: StyledTheme = {
   svgs: {
     bottomWaves: bottomWaves,
     bottomWavesFlipped: bottomWavesFlipped,
+    bgSteps: bgSteps,
   },
   colors: {
     accentText: "#4facf7",
@@ -42,6 +48,7 @@ export const styledDarkTheme: StyledTheme = {
   svgs: {
     bottomWaves: bottomWavesSecondary,
     bottomWavesFlipped: bottomWavesFlippedSecondary,
+    bgSteps: bgStepsSecondary,
   },
   colors: {
     accentText: "#ba68c8",

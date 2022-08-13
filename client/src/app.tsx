@@ -3,6 +3,7 @@ import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 import DesktopCalendarPage from "./pages/desktop/DesktopCalendarPage";
 import { useMediaQuery } from "@mui/material";
+import DesktopLoginPage from "./pages/desktop/DesktopLoginPage";
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const TransactionPage = lazy(() => import("./pages/TransactionPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
@@ -22,7 +23,10 @@ const App = () => {
         path="/"
         element={isDesktop ? <DesktopCalendarPage /> : <CalendarPage />}
       />
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/login"
+        element={isDesktop ? <DesktopLoginPage /> : <LoginPage />}
+      />
       <Route path="/register" element={<RegisterPage />} />
       <Route>
         <Route
