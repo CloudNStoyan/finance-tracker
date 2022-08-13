@@ -127,7 +127,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
           )}
         </div>
       </div>
-      <div className="flex flex-col">
+      <div className="transactions flex flex-col">
         {transactions.map((transaction, idx) => (
           <DesktopCalendarTransaction
             onClick={() => onTransactionClick(transaction)}
