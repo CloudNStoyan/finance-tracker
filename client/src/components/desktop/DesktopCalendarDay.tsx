@@ -1,5 +1,10 @@
 import { format, isBefore, parseJSON } from "date-fns";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
@@ -18,6 +23,7 @@ export type DesktopCalendarDayProps = {
   isToday: boolean;
   onClick: (date: Date) => void;
   onTransactionClick: (transaction: Transaction) => void;
+  searchInputValue: string;
 };
 
 const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
@@ -26,6 +32,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   isToday,
   onClick,
   onTransactionClick,
+  searchInputValue,
 }) => {
   const allTransactions = useAppSelector(
     (state) => state.calendarReducer.transactions
@@ -39,6 +46,62 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [notSearchRelevant, setNotSearchRelevant] = useState(false);
+
+  const compareTransactionToSearchValue = useCallback(
+    (transaction: Transaction) => {
+      if (
+        transaction.label.toLowerCase().includes(searchInputValue.toLowerCase())
+      ) {
+        return transaction;
+      }
+
+      if (
+        transaction.details &&
+        transaction.details
+          .toLowerCase()
+          .includes(searchInputValue.toLowerCase())
+      ) {
+        return transaction;
+      }
+
+      if (transaction.value.toFixed(2).includes(searchInputValue)) {
+        return transaction;
+      }
+
+      const transactionCategory =
+        categories.find((cat) => cat.categoryId === transaction.categoryId) ??
+        DefaultCategory;
+
+      if (
+        transactionCategory?.name
+          .toLowerCase()
+          .includes(searchInputValue.toLowerCase())
+      ) {
+        return transaction;
+      }
+    },
+    [categories, searchInputValue]
+  );
+
+  useEffect(() => {
+    if (searchInputValue.trim().length === 0) {
+      setNotSearchRelevant(false);
+      return;
+    }
+
+    const foundTransaction = transactions.findIndex(
+      compareTransactionToSearchValue
+    );
+
+    if (foundTransaction === -1) {
+      setNotSearchRelevant(true);
+      return;
+    }
+
+    setNotSearchRelevant(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInputValue]);
 
   useEffect(() => {
     if (transactions.length === 0) {
@@ -99,7 +162,9 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       className={`${format(date, "yyyy-MM-dd")} flex flex-col text-center ${
         notFromSameMonth ? "opacity-50" : ""
-      } ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} `}
+      } ${notSearchRelevant ? "opacity-25" : ""} ${
+        isSelected ? "selected" : ""
+      } ${isToday ? "today" : ""} `}
     >
       <div
         className={`text-md w-full action-bar text-left ${
@@ -128,7 +193,10 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         </div>
       </div>
       <div className="transactions flex flex-col">
-        {transactions.map((transaction, idx) => (
+        {(searchInputValue.trim().length > 0
+          ? transactions.filter(compareTransactionToSearchValue)
+          : transactions
+        ).map((transaction, idx) => (
           <DesktopCalendarTransaction
             onClick={() => onTransactionClick(transaction)}
             category={

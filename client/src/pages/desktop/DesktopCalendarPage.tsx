@@ -1,6 +1,6 @@
 import axios from "axios";
 import { format, getTime } from "date-fns";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
@@ -22,6 +22,9 @@ import DesktopTransaction from "../../components/desktop/DesktopTransaction";
 import DesktopCalendarPageStyled from "../styles/desktop/DesktopCalendarPage.styled";
 import DesktopCalendarDay from "../../components/desktop/DesktopCalendarDay";
 import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
+import { IconButton, InputAdornment, TextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const initialNow = new Date();
 
@@ -38,12 +41,23 @@ const DesktopCalendarPage = () => {
   );
 
   const [parsedNow, setParsedNow] = useState<Date>(null);
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [showSearchInput, setShowSearchInput] = useState(false);
+  const searchInputRef = useRef<HTMLDivElement>();
 
   const now = useAppSelector((state) => state.calendarReducer.now);
 
   const days: Date[] = useAppSelector(
     (state) => state.calendarReducer.days
   ).map(fromUnixTimeMs);
+
+  useEffect(() => {
+    if (!showSearchInput) {
+      return;
+    }
+
+    searchInputRef.current.querySelector("input").focus();
+  }, [showSearchInput, searchInputValue]);
 
   useEffect(() => {
     setParsedNow(fromUnixTimeMs(now));
@@ -117,7 +131,46 @@ const DesktopCalendarPage = () => {
   return (
     <div className="h-full flex flex-col bg-gray-100">
       <div className="shadow bg-white h-full flex flex-col">
-        <CalendarNavigation />
+        <div className="flex justify-end mt-1">
+          {showSearchInput && (
+            <TextField
+              placeholder="e.g. car or 19.99"
+              value={searchInputValue}
+              ref={searchInputRef}
+              variant="standard"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setSearchInputValue("")}
+                      className={`${
+                        searchInputValue.trim().length === 0 ? "invisible" : ""
+                      }`}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              onChange={(e) => {
+                setSearchInputValue(e.target.value);
+              }}
+              onBlur={(e) => {
+                setSearchInputValue(e.target.value);
+
+                if (e.target.value.trim().length > 0) {
+                  return;
+                }
+
+                setShowSearchInput(false);
+              }}
+            />
+          )}
+          <IconButton onClick={() => setShowSearchInput(true)}>
+            <SearchIcon />
+          </IconButton>
+          <CalendarNavigation />
+        </div>
         <DesktopCalendarPageStyled hasSixRows={days.length === 42}>
           <DesktopDaysOfWeek />
           {parsedNow &&
@@ -136,6 +189,7 @@ const DesktopCalendarPage = () => {
                 key={idx}
                 date={day}
                 isToday={DatesAreEqualWithoutTime(day, initialNow)}
+                searchInputValue={searchInputValue}
               />
             ))}
         </DesktopCalendarPageStyled>
