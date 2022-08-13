@@ -6,8 +6,11 @@ import useReCaptcha from "../useReCaptcha";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../server-api";
 import axios from "axios";
+import { useAppDispatch } from "../state/hooks";
+import { setUser } from "../state/authSlice";
 
 const LoginPage = () => {
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState(false);
@@ -48,6 +51,8 @@ const LoginPage = () => {
         const session = resp.data;
 
         document.cookie = `__session__=${session.sessionKey}`;
+
+        dispatch(setUser({ username }));
 
         navigate("/");
       } catch (error) {

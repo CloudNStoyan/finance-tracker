@@ -6,8 +6,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../server-api";
 import axios from "axios";
 import DesktopLoginPageStyled from "../styles/desktop/DesktopLoginPage.styled";
+import { useAppDispatch } from "../../state/hooks";
+import { setUser } from "../../state/authSlice";
 
 const DesktopLoginPage = () => {
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState(false);
@@ -49,8 +52,11 @@ const DesktopLoginPage = () => {
 
         document.cookie = `__session__=${session.sessionKey}`;
 
+        dispatch(setUser({ username }));
+
         navigate("/");
       } catch (error) {
+        console.log(error);
         if (!axios.isAxiosError(error)) {
           return;
         }
