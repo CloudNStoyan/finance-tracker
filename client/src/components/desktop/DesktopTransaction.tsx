@@ -32,7 +32,11 @@ import {
 import axios from "axios";
 import { format, parseJSON } from "date-fns";
 import { setNotification } from "../../state/notificationSlice";
-import { addTransaction, editTransaction } from "../../state/calendarSlice";
+import {
+  addTransaction,
+  editTransaction,
+  removeTransaction,
+} from "../../state/calendarSlice";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
 import DesktopModalContainerStyled from "../styles/desktop/DesktopModalContainer.styled";
@@ -102,20 +106,31 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     (state) => state.calendarReducer.categories
   );
 
+  const clearFields = () => {
+    setValue("");
+    setLabel("");
+    setConfirmed(true);
+    setTransactionType("expense");
+    setDate(new Date());
+    setCategory(DefaultCategory);
+    setDescription("");
+  };
+
   useEffect(() => {
     setModalHistory([currentModal, ...modalHistory.slice(0, 4)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentModal]);
 
   useEffect(() => {
-    if (!transaction) {
-      setValue("");
-      setLabel("");
-      setConfirmed(false);
-      setTransactionType("expense");
-      setDate(new Date());
-      setCategory(DefaultCategory);
-      setDescription("");
+    if (open) {
+      return;
+    }
+
+    clearFields();
+  }, [open]);
+
+  useEffect(() => {
+    if (!transaction || !open) {
       return;
     }
 
@@ -128,7 +143,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
     setDescription(transaction.details ?? "");
-  }, [transaction, categories]);
+  }, [transaction, categories, open]);
 
   useEffect(
     () => setDate(fromUnixTimeMs(calendarSelected)),
@@ -202,6 +217,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       if (resp.status !== 200) {
         return;
       }
+
+      dispatch(removeTransaction(transaction.transactionId));
 
       dispatch(
         setNotification({

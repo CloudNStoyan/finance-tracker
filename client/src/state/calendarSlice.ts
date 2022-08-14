@@ -88,6 +88,19 @@ const calendarSlice = createSlice({
       state.transactionCache[key] = action.payload;
       state.transactions = action.payload;
     },
+    removeTransaction(state, action: PayloadAction<number>) {
+      let now = fromUnixTimeMs(state.now);
+      if (!isValidDate(now)) {
+        now = new Date();
+      }
+
+      const key = format(now, "yyyy-MMMM");
+
+      state.transactions = state.transactions.filter(
+        (t) => t.transactionId !== action.payload
+      );
+      state.transactionCache[key] = state.transactions;
+    },
     addTransaction(state, action: PayloadAction<Transaction>) {
       let now = fromUnixTimeMs(state.now);
       if (!isValidDate(now)) {
@@ -128,5 +141,6 @@ export const {
   setCategories,
   addTransaction,
   editTransaction,
+  removeTransaction,
 } = calendarSlice.actions;
 export default calendarSlice.reducer;

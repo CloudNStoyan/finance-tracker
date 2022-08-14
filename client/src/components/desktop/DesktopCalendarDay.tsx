@@ -169,20 +169,18 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       <div
         className={`text-md w-full action-bar text-left ${
           isToday ? "text-white" : "text-gray-700"
-        } dark:text-white pl-1 pt-1 flex justify-between`}
+        } dark:text-white p-1 pl-2 flex justify-between`}
       >
         <div className="date-number">{date.getDate()}</div>
         <div className="stats flex mr-1 relative items-center">
           {isHovered ? (
-            <>
-              <IconButton
-                onClick={() => onClick(date)}
-                size="small"
-                className="absolute bottom-0 right-0 bg-blue-500 text-white"
-              >
-                <Add />
-              </IconButton>
-            </>
+            <IconButton
+              onClick={() => onClick(date)}
+              size="large"
+              className="absolute right-0 bg-blue-500 dark:bg-purple-500 dark:text-gray-200 text-white"
+            >
+              <Add />
+            </IconButton>
           ) : (
             <div className="flex gap-1">
               <div>{total.toFixed(2)}</div>

@@ -46,6 +46,7 @@ const DesktopCalendarPage = () => {
   const searchInputRef = useRef<HTMLDivElement>();
 
   const now = useAppSelector((state) => state.calendarReducer.now);
+  const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
   const days: Date[] = useAppSelector(
     (state) => state.calendarReducer.days
@@ -129,8 +130,11 @@ const DesktopCalendarPage = () => {
   }, [parsedNow, dispatch, transactionCache]);
 
   return (
-    <div className="h-full flex flex-col bg-gray-100">
-      <div className="shadow bg-white h-full flex flex-col">
+    <DesktopCalendarPageStyled
+      isDarkMode={isDarkMode}
+      hasSixRows={days.length === 42}
+    >
+      <div className="shadow h-full flex flex-col">
         <div className="flex justify-end mt-1">
           {showSearchInput && (
             <TextField
@@ -171,7 +175,7 @@ const DesktopCalendarPage = () => {
           </IconButton>
           <CalendarNavigation />
         </div>
-        <DesktopCalendarPageStyled hasSixRows={days.length === 42}>
+        <div className="calendar-wrapper">
           <DesktopDaysOfWeek />
           {parsedNow &&
             days.map((day, idx) => (
@@ -192,14 +196,14 @@ const DesktopCalendarPage = () => {
                 searchInputValue={searchInputValue}
               />
             ))}
-        </DesktopCalendarPageStyled>
+        </div>
       </div>
       <DesktopTransaction
         open={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
         transaction={currentTransaction}
       />
-    </div>
+    </DesktopCalendarPageStyled>
   );
 };
 

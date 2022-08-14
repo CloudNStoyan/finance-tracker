@@ -6,6 +6,7 @@ const DesktopDescriptionModalStyled = styled.div`
   flex-flow: column wrap;
 
   textarea {
+    background-color: ${({ theme }) => theme.colors.background};
     padding: 5px;
     flex-grow: 1;
     resize: none;
