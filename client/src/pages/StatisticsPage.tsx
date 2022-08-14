@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Chart, ArcElement, ChartData, Tooltip, Legend } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
 import {
   Category,
@@ -15,7 +16,7 @@ import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { addMonths, format, isBefore, subMonths } from "date-fns";
 import SearchTransaction from "../components/SearchTransaction";
 
-Chart.register(ArcElement, Tooltip, Legend);
+Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 const GenerateData = (
   transactions: Transaction[],
@@ -104,7 +105,10 @@ const StatisticsPage = () => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsByMonth(now.getMonth() + 1);
+        const resp = await getTransactionsByMonth(
+          now.getMonth() + 1,
+          now.getFullYear()
+        );
 
         if (resp.status !== 200) {
           return;
@@ -185,6 +189,25 @@ const StatisticsPage = () => {
             options={{
               maintainAspectRatio: false,
               plugins: {
+                datalabels: {
+                  labels: {
+                    value: {
+                      font: {
+                        weight: "bold",
+                      },
+                      color: "#fff",
+                    },
+                  },
+                  formatter: (value: number, ctx) => {
+                    let sum = 0;
+                    const dataArr = ctx.chart.data.datasets[0].data;
+                    dataArr.map((data: number) => {
+                      sum += data;
+                    });
+                    const percentage = ((value * 100) / sum).toFixed(2) + "%";
+                    return percentage;
+                  },
+                },
                 legend: {
                   display: true,
                   labels: {
@@ -205,7 +228,7 @@ const StatisticsPage = () => {
         </div>
       )}
       {transactions && (
-        <div className="flex flex-col p-2 gap-2">
+        <div className="transaction-list flex flex-col p-2 gap-2">
           {transactions
             .filter((transaction) => {
               if (transaction.type !== chart) {
