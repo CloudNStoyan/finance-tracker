@@ -27,7 +27,6 @@ import {
   Category,
   createOrEditTransaction,
   deleteTransaction,
-  getCategories,
   Transaction,
 } from "../../server-api";
 import axios from "axios";
@@ -93,38 +92,20 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   );
   const [dateInputOpen, setDateInputOpen] = useState(false);
   const [repeat, setRepeat] = useState("none");
-  const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<Category | undefined>();
   const [editCategory, setEditCategory] = useState<Category>(null);
   const [description, setDescription] = useState("");
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
+  const categories = useAppSelector(
+    (state) => state.calendarReducer.categories
+  );
 
   useEffect(() => {
     setModalHistory([currentModal, ...modalHistory.slice(0, 4)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentModal]);
-
-  useEffect(() => {
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        setCategories(resp.data);
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, []);
 
   useEffect(() => {
     if (!transaction) {
