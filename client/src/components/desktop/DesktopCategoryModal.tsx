@@ -13,6 +13,11 @@ import { setNotification } from "../../state/notificationSlice";
 import ColorComponent from "../ColorComponent";
 import { Delete, West } from "@mui/icons-material";
 import DesktopCategoryModalStyled from "../styles/desktop/DesktopCategoryModal.styled";
+import {
+  addCategory,
+  editCategory,
+  removeCategory,
+} from "../../state/calendarSlice";
 
 export type DesktopCategoryModalProps = {
   category?: Category;
@@ -146,17 +151,33 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         newCategory.categoryId = category.categoryId;
       }
 
-      await createOrEditCategory(newCategory);
+      const resp = await createOrEditCategory(newCategory);
 
-      dispatch(
-        setNotification({
-          message: "Category created.",
-          color: "success",
-        })
-      );
+      if (resp.status === 201) {
+        dispatch(addCategory(resp.data));
+        dispatch(
+          setNotification({
+            message: "Category created.",
+            color: "success",
+          })
+        );
+      } else if (resp.status === 200) {
+        dispatch(editCategory(resp.data));
+        dispatch(
+          setNotification({
+            message: "Category edited.",
+            color: "success",
+          })
+        );
+      } else {
+        return;
+      }
+
       onClose();
     } catch (error) {
-      console.log(error);
+      if (!axios.isAxiosError(error)) {
+        return;
+      }
     }
   };
 
@@ -172,12 +193,15 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         return;
       }
 
+      dispatch(removeCategory(category));
+
       dispatch(
         setNotification({
           message: "Category deleted.",
           color: "success",
         })
       );
+      onClose();
     } catch (error) {
       if (!axios.isAxiosError(error)) {
         return;

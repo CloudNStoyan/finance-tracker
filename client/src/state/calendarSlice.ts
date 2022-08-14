@@ -131,12 +131,29 @@ const calendarSlice = createSlice({
     setCategories(state, action: PayloadAction<Category[]>) {
       state.categories = action.payload;
     },
+    editCategory(state, action: PayloadAction<Category>) {
+      state.categories = state.categories.filter(
+        (cat) => cat.categoryId !== action.payload.categoryId
+      );
+      state.categories.push(action.payload);
+    },
+    addCategory(state, action: PayloadAction<Category>) {
+      state.categories.push(action.payload);
+    },
+    removeCategory(state, action: PayloadAction<Category>) {
+      state.categories = state.categories.filter(
+        (cat) => cat.categoryId !== action.payload.categoryId
+      );
+    },
   },
 });
 
 export const {
   setNow,
   setTransactions,
+  editCategory,
+  addCategory,
+  removeCategory,
   setSelected,
   setCategories,
   addTransaction,
