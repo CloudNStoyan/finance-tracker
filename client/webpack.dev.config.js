@@ -56,7 +56,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: "Hello world",
+      title: "Finance Tracker",
       inject: "body",
       template: "./src/template.html",
     }),
