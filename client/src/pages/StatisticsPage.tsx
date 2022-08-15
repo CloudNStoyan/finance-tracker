@@ -13,10 +13,15 @@ import DefaultCategory from "../state/DefaultCategory";
 import StatisticsPageStyled from "./styles/StatisticsPage.styled";
 import { IconButton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { addMonths, format, isBefore, subMonths } from "date-fns";
+import { addMonths, format, getTime, isBefore, subMonths } from "date-fns";
 import SearchTransaction from "../components/SearchTransaction";
-import { useAppSelector } from "../state/hooks";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CategoryStat from "../components/CategoryStat";
+import {
+  setCategories,
+  setTransactions,
+  setNow as setNowCalendar,
+} from "../state/calendarSlice";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -75,8 +80,6 @@ const GenerateData = (
 
 const StatisticsPage = () => {
   const [now, setNow] = useState(new Date());
-  const [transactions, setTransactions] = useState<Transaction[]>();
-  const [categories, setCategories] = useState<Category[]>([]);
   const [expenses, setExpenses] = useState<CategoryData>();
   const [incomes, setIncomes] = useState<CategoryData>();
   const [expensesChartData, setExpensesChartData] =
@@ -88,10 +91,18 @@ const StatisticsPage = () => {
   const [bottomView, setBottomView] = useState<"transactions" | "categories">(
     "categories"
   );
+  const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
+  const { categories, transactions, transactionCache } = useAppSelector(
+    (state) => state.calendarReducer
+  );
   const chartRef = useRef();
 
   useEffect(() => {
+    if (categories.length > 0) {
+      return;
+    }
+
     const fetchApi = async () => {
       try {
         const resp = await getCategories();
@@ -100,7 +111,7 @@ const StatisticsPage = () => {
           return;
         }
 
-        setCategories(resp.data);
+        dispatch(setCategories(resp.data));
       } catch (error) {
         if (!axios.isAxiosError(error)) {
           return;
@@ -109,7 +120,7 @@ const StatisticsPage = () => {
     };
 
     void fetchApi();
-  }, []);
+  }, [categories, dispatch]);
 
   useEffect(() => {
     if (!expenses || categories.length === 0) {
@@ -117,7 +128,6 @@ const StatisticsPage = () => {
     }
 
     const dataset = GenerateChartDataset(expenses, categories);
-    console.log(dataset);
     setExpensesChartData(dataset);
   }, [expenses, categories]);
 
@@ -127,14 +137,27 @@ const StatisticsPage = () => {
     }
 
     const dataset = GenerateChartDataset(incomes, categories);
-    console.log(dataset);
     setIncomesChartData(dataset);
   }, [incomes, categories]);
 
   useEffect(() => setSelectedCatId(null), [chart]);
 
   useEffect(() => {
-    if (categories.length === 0) {
+    setIncomes(GenerateData(transactions, "income"));
+    setExpenses(GenerateData(transactions, "expense"));
+  }, [transactions]);
+
+  useEffect(() => {
+    dispatch(setNowCalendar(getTime(now)));
+  }, [now, dispatch]);
+
+  useEffect(() => {
+    const key = format(now, "yyyy-MMMM");
+
+    const cachedTransactions = transactionCache[key];
+
+    if (Array.isArray(cachedTransactions)) {
+      dispatch(setTransactions(cachedTransactions));
       return;
     }
 
@@ -156,10 +179,7 @@ const StatisticsPage = () => {
             : -1
         );
 
-        setTransactions(transactions.length === 0 ? null : transactions);
-
-        setIncomes(GenerateData(transactions, "income"));
-        setExpenses(GenerateData(transactions, "expense"));
+        dispatch(setTransactions(transactions));
       } catch (error) {
         if (!axios.isAxiosError(error)) {
           return;
@@ -168,7 +188,7 @@ const StatisticsPage = () => {
     };
 
     void fetchApi();
-  }, [now, categories]);
+  }, [now, dispatch, transactions, transactionCache]);
 
   return (
     <StatisticsPageStyled>
@@ -269,7 +289,7 @@ const StatisticsPage = () => {
           month
         </div>
       )}
-      {expensesChartData && incomesChartData && (
+      {(expensesChartData || incomesChartData) && (
         <div className="mt-4 flex justify-end mr-2">
           <ToggleButtonGroup
             color="primary"
@@ -289,7 +309,7 @@ const StatisticsPage = () => {
           </ToggleButtonGroup>
         </div>
       )}
-      {bottomView === "categories" && expensesChartData && incomesChartData && (
+      {bottomView === "categories" && (expensesChartData || incomesChartData) && (
         <div className="categories-list flex flex-col p-2 pt-0 gap-2 mt-2">
           {Object.keys(chart === "income" ? incomes : expenses).map((catId) => {
             const chartData = chart === "income" ? incomes : expenses;

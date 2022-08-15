@@ -83,7 +83,12 @@ const calendarSlice = createSlice({
       state.selected = action.payload;
     },
     setTransactions(state, action: PayloadAction<Transaction[]>) {
-      const key = format(fromUnixTimeMs(state.now), "yyyy-MMMM");
+      let now = fromUnixTimeMs(state.now);
+      if (!isValidDate(now)) {
+        now = new Date();
+      }
+
+      const key = format(now, "yyyy-MMMM");
 
       state.transactionCache[key] = action.payload;
       state.transactions = action.payload;
