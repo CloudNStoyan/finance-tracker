@@ -15,7 +15,9 @@ const DesktopCalendarTransaction: FunctionComponent<
     <DesktopCalendarTransactionStyled
       onClick={onClick}
       bgColor={category.bgColor}
-      className="flex px-1 shadow rounded"
+      className={`flex px-1 shadow rounded-sm ${
+        !transaction.confirmed ? "opacity-50" : ""
+      }`}
     >
       <div className="grow text-left label">{transaction.label}</div>
       <div>

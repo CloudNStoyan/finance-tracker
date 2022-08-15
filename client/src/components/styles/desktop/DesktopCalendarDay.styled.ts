@@ -11,6 +11,8 @@ const DesktopCalendarDayStyled = styled.div`
   }
 
   .transactions {
+    padding-left: 0.4em;
+    margin-top: 5px;
     overflow: hidden;
     overflow-y: scroll;
 

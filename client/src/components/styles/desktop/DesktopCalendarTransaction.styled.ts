@@ -4,7 +4,9 @@ const DesktopCalendarTransactionStyled = styled.button<{ bgColor: string }>`
   font-size: 12px;
   background-color: ${({ bgColor }) => bgColor};
   color: white;
-  margin: 5px;
+  width: 100%;
+  margin-bottom: 2px;
+  margin-top: 2px;
 
   .label {
     text-overflow: ellipsis;
