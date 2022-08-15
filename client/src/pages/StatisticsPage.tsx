@@ -269,24 +269,26 @@ const StatisticsPage = () => {
           month
         </div>
       )}
-      <div className="mt-4 flex justify-end mr-2">
-        <ToggleButtonGroup
-          color="primary"
-          size="small"
-          value={bottomView}
-          exclusive
-          onChange={(e, v: "transactions" | "categories") => {
-            if (v === null) {
-              return;
-            }
+      {expensesChartData && incomesChartData && (
+        <div className="mt-4 flex justify-end mr-2">
+          <ToggleButtonGroup
+            color="primary"
+            size="small"
+            value={bottomView}
+            exclusive
+            onChange={(e, v: "transactions" | "categories") => {
+              if (v === null) {
+                return;
+              }
 
-            setBottomView(v);
-          }}
-        >
-          <ToggleButton value="transactions">Transactions</ToggleButton>
-          <ToggleButton value="categories">Categories</ToggleButton>
-        </ToggleButtonGroup>
-      </div>
+              setBottomView(v);
+            }}
+          >
+            <ToggleButton value="transactions">Transactions</ToggleButton>
+            <ToggleButton value="categories">Categories</ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+      )}
       {bottomView === "categories" && expensesChartData && incomesChartData && (
         <div className="categories-list flex flex-col p-2 pt-0 gap-2 mt-2">
           {Object.keys(chart === "income" ? incomes : expenses).map((catId) => {
