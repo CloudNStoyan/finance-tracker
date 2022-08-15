@@ -28,7 +28,6 @@ import {
   createOrEditTransaction,
   deleteTransaction,
   getCategories,
-  getCategoryById,
   getTransactionById,
   Transaction,
 } from "../server-api";
@@ -40,7 +39,12 @@ import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
 import { format, parseJSON } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
-import { addTransaction, editTransaction } from "../state/calendarSlice";
+import {
+  addTransaction,
+  editTransaction,
+  removeTransaction,
+  setCategories,
+} from "../state/calendarSlice";
 import DefaultCategory from "../state/DefaultCategory";
 
 const CustomTextField = styled(TextField)({
@@ -68,24 +72,36 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     (state) => state.calendarReducer.selected
   );
 
+  const [isFetchingTransaction, setIsFetchingTransaction] = useState(false);
+  const [transactionIsLoaded, setTransactionIsLoaded] = useState(false);
   const [transactionType, setTransactionType] = useState("expense");
   const [value, setValue] = useState("");
   const [label, setLabel] = useState("");
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(true);
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
   const [date, setDate] = useState<Date | null>(
     fromUnixTimeMs(calendarSelected) ?? new Date()
   );
   const [repeat, setRepeat] = useState("none");
-  const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<Category | undefined>();
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
+  const categories = useAppSelector(
+    (state) => state.calendarReducer.categories
+  );
+  const transactions = useAppSelector(
+    (state) => state.calendarReducer.transactions
+  );
   const { transactionId } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (categories.length > 0) {
+      return;
+    }
+
     const fetchApi = async () => {
       try {
         const resp = await getCategories();
@@ -94,7 +110,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           return;
         }
 
-        setCategories(resp.data);
+        dispatch(setCategories(resp.data));
       } catch (error) {
         if (!axios.isAxiosError(error)) {
           return;
@@ -103,47 +119,88 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     };
 
     void fetchApi();
-  }, []);
+  }, [categories, dispatch]);
 
   useEffect(() => {
-    if (!hasTransactionId) {
+    if (categories.length === 0) {
       return;
     }
 
-    const fetchTransaction = async () => {
-      const resp = await getTransactionById(Number(transactionId));
+    setCategory(
+      categories.find((c) => c.categoryId === categoryId) ?? DefaultCategory
+    );
+  }, [categories, categoryId]);
 
-      if (resp.status !== 200) {
-        return;
-      }
+  useEffect(() => {
+    if (!hasTransactionId || transactionIsLoaded || isFetchingTransaction) {
+      return;
+    }
 
-      const transaction = resp.data;
+    setIsFetchingTransaction(true);
 
-      if (transaction.categoryId !== null) {
-        try {
-          const catResp = await getCategoryById(transaction.categoryId);
-
-          if (catResp.status !== 200) {
-            return;
-          }
-
-          setCategory(catResp.data);
-        } catch (error) {
-          if (!axios.isAxiosError(error)) {
-            return;
-          }
-        }
-      }
-
+    const handleTransaction = (transaction: Transaction) => {
       setValue(transaction.value.toString());
       setLabel(transaction.label);
       setConfirmed(transaction.confirmed);
       setTransactionType(transaction.type);
       setDate(parseJSON(transaction.transactionDate));
+      setCategoryId(transaction.categoryId);
+      setTransactionIsLoaded(true);
     };
 
-    void fetchTransaction();
-  }, [hasTransactionId, transactionId]);
+    const fetchTransaction = async () => {
+      try {
+        const resp = await getTransactionById(Number(transactionId));
+
+        if (resp.status !== 200) {
+          return;
+        }
+
+        const transaction = resp.data;
+
+        handleTransaction(transaction);
+        if (transactions.length > 0) {
+          dispatch(addTransaction(transaction));
+        }
+      } catch (error) {
+        if (!axios.isAxiosError(error)) {
+          return;
+        }
+
+        if (error.response.status === 404) {
+          dispatch(
+            setNotification({
+              message: "No transaction with that ID.",
+              color: "error",
+            })
+          );
+          navigate("/transaction");
+        }
+      } finally {
+        setIsFetchingTransaction(false);
+      }
+    };
+
+    const transaction = transactions.find(
+      (t) => t.transactionId === Number(transactionId)
+    );
+
+    if (!transaction) {
+      void fetchTransaction();
+      return;
+    }
+
+    handleTransaction(transaction);
+  }, [
+    hasTransactionId,
+    transactionId,
+    transactions,
+    categories,
+    transactionIsLoaded,
+    isFetchingTransaction,
+    dispatch,
+    navigate,
+  ]);
 
   const handleDateChange = (newDate: Date | null) => {
     setDate(newDate);
@@ -210,6 +267,8 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
         return;
       }
 
+      dispatch(removeTransaction(Number(transactionId)));
+      navigate("/");
       dispatch(
         setNotification({
           message: "Transaction deleted.",

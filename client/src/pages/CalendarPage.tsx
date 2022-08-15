@@ -36,6 +36,10 @@ const CalendarPage = () => {
     (state) => state.calendarReducer.transactionCache
   );
 
+  const categories = useAppSelector(
+    (state) => state.calendarReducer.categories
+  );
+
   const [parsedNow, setParsedNow] = useState<Date>(null);
 
   const now = useAppSelector((state) => state.calendarReducer.now);
@@ -56,6 +60,12 @@ const CalendarPage = () => {
     if (!now) {
       dispatch(setNow(getTime(initialNow)));
     }
+  }, [selected, now, dispatch]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      return;
+    }
 
     const fetchApi = async () => {
       try {
@@ -74,8 +84,7 @@ const CalendarPage = () => {
     };
 
     void fetchApi();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, [dispatch, categories]);
 
   useEffect(() => {
     if (parsedNow === null) {

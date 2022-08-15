@@ -102,6 +102,15 @@ const calendarSlice = createSlice({
       state.transactionCache[key] = state.transactions;
     },
     addTransaction(state, action: PayloadAction<Transaction>) {
+      const stateHasTransaction =
+        state.transactions.findIndex(
+          (t) => t.transactionId === action.payload.transactionId
+        ) !== -1;
+
+      if (stateHasTransaction) {
+        return;
+      }
+
       let now = fromUnixTimeMs(state.now);
       if (!isValidDate(now)) {
         now = new Date();
