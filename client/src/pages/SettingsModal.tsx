@@ -73,7 +73,13 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
           color="primary"
           exclusive
           value={selectedTheme}
-          onChange={(e, v: "light" | "dark" | "system") => setSelectedTheme(v)}
+          onChange={(e, v: "light" | "dark" | "system") => {
+            if (v === null) {
+              return;
+            }
+
+            setSelectedTheme(v);
+          }}
           className="w-full justify-center"
         >
           <ToggleButton value="light">
