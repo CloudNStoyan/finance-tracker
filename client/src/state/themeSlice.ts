@@ -13,8 +13,17 @@ export interface ThemeState {
   isDarkMode: boolean;
 }
 
+const getSystemPrefColorScheme = () => {
+  const prefDarkMode = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+  ).matches;
+
+  return prefDarkMode ? "dark" : "light";
+};
+
 const getInitState = (): ThemeState => {
-  const themePref = localStorage.getItem("theme_preference");
+  const themePref =
+    localStorage.getItem("theme_preference") ?? getSystemPrefColorScheme();
 
   if (themePref === "dark") {
     return {
@@ -37,14 +46,19 @@ const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
-    switchTheme(state, action: PayloadAction<"light" | "dark">) {
-      if (action.payload === "light") {
+    switchTheme(state, action: PayloadAction<"light" | "dark" | "system">) {
+      const mode =
+        action.payload === "system"
+          ? getSystemPrefColorScheme()
+          : action.payload;
+
+      if (mode === "light") {
         state.styledTheme = styledLightTheme;
         state.muiTheme = muiLightTheme;
         state.isDarkMode = false;
       }
 
-      if (action.payload === "dark") {
+      if (mode === "dark") {
         state.styledTheme = styledDarkTheme;
         state.muiTheme = muiDarkTheme;
         state.isDarkMode = true;

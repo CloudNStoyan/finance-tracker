@@ -64,6 +64,10 @@ export const getMe = async () => {
   return axios.get<User>(`${SERVER_URL}/auth/me`);
 };
 
+export const logout = async () => {
+  return axios.post<User>(`${SERVER_URL}/auth/logout`);
+};
+
 export const getCategories = async () => {
   return axios.get<Category[]>(`${SERVER_URL}/category/getAll`);
 };

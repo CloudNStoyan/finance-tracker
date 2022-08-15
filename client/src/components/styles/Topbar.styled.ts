@@ -6,6 +6,7 @@ const TopbarStyled = styled.div`
   left: 0;
   width: 100%;
   background-color: ${({ theme }) => theme.colors.topbarBg};
+  height: 50px;
 
   .MuiSwitch-root {
     z-index: 100;
