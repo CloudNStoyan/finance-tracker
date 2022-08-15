@@ -11,6 +11,10 @@ const StatisticsPageStyled = styled.div`
     margin: 10px 0;
   }
 
+  .categories-list {
+    max-width: 100vw;
+  }
+
   .chart {
     flex: 0 0 250px;
     box-shadow: 0 6px 7px rgb(0 0 0 / 5%);

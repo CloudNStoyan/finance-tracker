@@ -11,23 +11,51 @@ import {
 import axios from "axios";
 import DefaultCategory from "../state/DefaultCategory";
 import StatisticsPageStyled from "./styles/StatisticsPage.styled";
-import { Button, ButtonGroup, IconButton } from "@mui/material";
+import { IconButton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { addMonths, format, isBefore, subMonths } from "date-fns";
 import SearchTransaction from "../components/SearchTransaction";
+import { useAppSelector } from "../state/hooks";
+import CategoryStat from "../components/CategoryStat";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
+export type CategoryData = { [name: string]: number };
+
+const GenerateChartDataset = (data: CategoryData, categories: Category[]) => {
+  if (Object.keys(data).length === 0) {
+    return null;
+  }
+
+  return {
+    labels: Object.keys(data).map((catId) =>
+      catId !== "default"
+        ? categories.find((c) => c.categoryId === Number(catId)).name
+        : DefaultCategory.name
+    ),
+    datasets: [
+      {
+        data: Object.values(data),
+        backgroundColor: Object.keys(data).map((catId) =>
+          catId !== "default"
+            ? categories.find((c) => c.categoryId === Number(catId)).bgColor
+            : DefaultCategory.bgColor
+        ),
+        hoverOffset: 4,
+      },
+    ],
+  };
+};
+
 const GenerateData = (
   transactions: Transaction[],
-  categories: Category[],
   type: "income" | "expense"
 ) => {
   if (transactions === null) {
     return null;
   }
 
-  const catTotals: { [key: string]: number } = {};
+  const catTotals: CategoryData = {};
 
   transactions.forEach((transaction) => {
     if (transaction.type !== type) {
@@ -42,38 +70,25 @@ const GenerateData = (
     }
   });
 
-  if (Object.keys(catTotals).length === 0) {
-    return null;
-  }
-
-  return {
-    labels: Object.keys(catTotals).map((catId) =>
-      catId !== "default"
-        ? categories.find((c) => c.categoryId === Number(catId)).name
-        : DefaultCategory.name
-    ),
-    datasets: [
-      {
-        data: Object.values(catTotals),
-        backgroundColor: Object.keys(catTotals).map((catId) =>
-          catId !== "default"
-            ? categories.find((c) => c.categoryId === Number(catId)).bgColor
-            : DefaultCategory.bgColor
-        ),
-        hoverOffset: 4,
-      },
-    ],
-  };
+  return catTotals;
 };
 
 const StatisticsPage = () => {
   const [now, setNow] = useState(new Date());
   const [transactions, setTransactions] = useState<Transaction[]>();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [expenses, setExpenses] = useState<ChartData<"doughnut">>();
-  const [incomes, setIncomes] = useState<ChartData<"doughnut">>();
+  const [expenses, setExpenses] = useState<CategoryData>();
+  const [incomes, setIncomes] = useState<CategoryData>();
+  const [expensesChartData, setExpensesChartData] =
+    useState<ChartData<"doughnut">>();
+  const [incomesChartData, setIncomesChartData] =
+    useState<ChartData<"doughnut">>();
   const [chart, setChart] = useState<"income" | "expense">("expense");
   const [selectedCatId, setSelectedCatId] = useState<number | null>();
+  const [bottomView, setBottomView] = useState<"transactions" | "categories">(
+    "categories"
+  );
+  const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
   const chartRef = useRef();
 
   useEffect(() => {
@@ -95,6 +110,26 @@ const StatisticsPage = () => {
 
     void fetchApi();
   }, []);
+
+  useEffect(() => {
+    if (!expenses || categories.length === 0) {
+      return;
+    }
+
+    const dataset = GenerateChartDataset(expenses, categories);
+    console.log(dataset);
+    setExpensesChartData(dataset);
+  }, [expenses, categories]);
+
+  useEffect(() => {
+    if (!incomes || categories.length === 0) {
+      return;
+    }
+
+    const dataset = GenerateChartDataset(incomes, categories);
+    console.log(dataset);
+    setIncomesChartData(dataset);
+  }, [incomes, categories]);
 
   useEffect(() => setSelectedCatId(null), [chart]);
 
@@ -123,8 +158,8 @@ const StatisticsPage = () => {
 
         setTransactions(transactions.length === 0 ? null : transactions);
 
-        setIncomes(GenerateData(transactions, categories, "income"));
-        setExpenses(GenerateData(transactions, categories, "expense"));
+        setIncomes(GenerateData(transactions, "income"));
+        setExpenses(GenerateData(transactions, "expense"));
       } catch (error) {
         if (!axios.isAxiosError(error)) {
           return;
@@ -147,26 +182,28 @@ const StatisticsPage = () => {
             <ChevronRight />
           </IconButton>
         </div>
-        <div className="">
-          <ButtonGroup disableElevation size="small">
-            <Button
-              onClick={() => setChart("expense")}
-              variant={chart === "expense" ? "contained" : "outlined"}
-            >
-              Expenses
-            </Button>
-            <Button
-              onClick={() => setChart("income")}
-              variant={chart === "income" ? "contained" : "outlined"}
-            >
-              Incomes
-            </Button>
-          </ButtonGroup>
+        <div>
+          <ToggleButtonGroup
+            color="primary"
+            size="small"
+            value={chart}
+            exclusive
+            onChange={(e, v: "expense" | "income") => {
+              if (v === null) {
+                return;
+              }
+
+              setChart(v);
+            }}
+          >
+            <ToggleButton value="expense">Expenses</ToggleButton>
+            <ToggleButton value="income">Incomes</ToggleButton>
+          </ToggleButtonGroup>
         </div>
       </div>
-      {((incomes && expenses) ||
-        (incomes && chart === "income") ||
-        (expenses && chart === "expense")) && (
+      {((expensesChartData && incomesChartData) ||
+        (incomesChartData && chart === "income") ||
+        (expensesChartData && chart === "expense")) && (
         <div className="relative chart" onBlur={(e) => console.log(e)}>
           <Doughnut
             onClick={(e) => {
@@ -175,8 +212,9 @@ const StatisticsPage = () => {
                 setSelectedCatId(null);
                 return;
               }
-              const selectedCatName = (chart === "expense" ? expenses : incomes)
-                .labels[selectedEl[0].index];
+              const selectedCatName = (
+                chart === "expense" ? expensesChartData : expensesChartData
+              ).labels[selectedEl[0].index];
 
               const catId =
                 categories.find((cat) => cat.name === selectedCatName)
@@ -185,7 +223,7 @@ const StatisticsPage = () => {
               setSelectedCatId(selectedCatId !== catId ? catId : null);
             }}
             ref={chartRef}
-            data={chart === "income" ? incomes : expenses}
+            data={chart === "income" ? expensesChartData : expensesChartData}
             options={{
               maintainAspectRatio: false,
               plugins: {
@@ -204,14 +242,18 @@ const StatisticsPage = () => {
                     dataArr.map((data: number) => {
                       sum += data;
                     });
-                    const percentage = ((value * 100) / sum).toFixed(2) + "%";
+                    const percentage =
+                      Math.round((value * 100) / sum).toString() + "%";
                     return percentage;
                   },
                 },
                 legend: {
                   display: true,
                   labels: {
-                    color: "#333",
+                    font: {
+                      weight: "bold",
+                    },
+                    color: isDarkMode ? "white" : "#333",
                   },
                 },
               },
@@ -219,16 +261,65 @@ const StatisticsPage = () => {
           />
         </div>
       )}
-      {((incomes === null && expenses === null) ||
+      {((incomesChartData === null && expensesChartData === null) ||
         (incomes === null && chart === "income") ||
-        (expenses === null && chart === "expense")) && (
+        (expensesChartData === null && chart === "expense")) && (
         <div className="text-center">
           No data for {chart === "income" ? "Incomes" : "Expenses"} from this
           month
         </div>
       )}
-      {transactions && (
-        <div className="transaction-list flex flex-col p-2 gap-2">
+      <div className="mt-4 flex justify-end mr-2">
+        <ToggleButtonGroup
+          color="primary"
+          size="small"
+          value={bottomView}
+          exclusive
+          onChange={(e, v: "transactions" | "categories") => {
+            if (v === null) {
+              return;
+            }
+
+            setBottomView(v);
+          }}
+        >
+          <ToggleButton value="transactions">Transactions</ToggleButton>
+          <ToggleButton value="categories">Categories</ToggleButton>
+        </ToggleButtonGroup>
+      </div>
+      {bottomView === "categories" && expensesChartData && incomesChartData && (
+        <div className="categories-list flex flex-col p-2 pt-0 gap-2 mt-2">
+          {Object.keys(chart === "income" ? incomes : expenses).map((catId) => {
+            const chartData = chart === "income" ? incomes : expenses;
+
+            const catTotalValues = Object.values(chartData).reduce(
+              (a, b) => a + b,
+              0
+            );
+
+            const totalValue = chartData[catId];
+
+            const percentage = Math.round(
+              (totalValue / catTotalValues) * 100
+            ).toString();
+
+            const category =
+              categories.find((c) => c.categoryId === Number(catId)) ??
+              DefaultCategory;
+
+            return (
+              <CategoryStat
+                total={totalValue}
+                percentage={percentage}
+                category={category}
+                key={category.categoryId ?? -1}
+              />
+            );
+          })}
+        </div>
+      )}
+      {bottomView === "transactions" && transactions && (
+        <div className="transaction-list flex flex-col p-2 pt-0 gap-2">
           {transactions
             .filter((transaction) => {
               if (transaction.type !== chart) {
