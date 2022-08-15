@@ -135,7 +135,7 @@ const DesktopCalendarPage = () => {
       hasSixRows={days.length === 42}
     >
       <div className="shadow h-full flex flex-col">
-        <div className="flex justify-end mt-1">
+        <div className="flex justify-end mt-1 mr-1">
           {showSearchInput && (
             <TextField
               placeholder="e.g. car or 19.99"

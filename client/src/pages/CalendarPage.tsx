@@ -118,7 +118,7 @@ const CalendarPage = () => {
       isDarkMode={isDarkMode}
       className="h-full flex flex-col"
     >
-      <div className="shadow calendar-container">
+      <div className="shadow calendar-container pt-1">
         <CalendarNavigation />
         <div className="calendar-wrapper">
           <DaysOfWeek />

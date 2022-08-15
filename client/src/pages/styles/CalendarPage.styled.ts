@@ -4,6 +4,13 @@ const CalendarPageStyled = styled.div<{ isDarkMode: boolean }>`
   background-color: ${({ isDarkMode }) => (isDarkMode ? "#444" : "#f3f4f6")};
   max-height: calc(100vh - 50px);
 
+  .calendar-nav {
+    .today-btn {
+      position: absolute;
+      right: 0;
+    }
+  }
+
   .calendar-container {
     background-color: ${({ theme }) => theme.colors.background};
   }
