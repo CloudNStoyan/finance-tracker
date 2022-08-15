@@ -14,7 +14,7 @@ const CalendarTransactionList = () => {
   );
 
   return (
-    <div className="flex flex-col gap-1 p-1 h-full mt-2">
+    <div className="flex flex-col gap-1 p-1 h-full mt-2 w-screen mb-2 overflow-hidden overflow-y-scroll">
       {transactions
         .filter((transaction) =>
           DatesAreEqualWithoutTime(

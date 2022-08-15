@@ -30,6 +30,7 @@ const CalendarPage = () => {
   const navigate = useNavigate();
 
   const selected = useAppSelector((state) => state.calendarReducer.selected);
+  const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
   const transactionCache = useAppSelector(
     (state) => state.calendarReducer.transactionCache
@@ -113,10 +114,13 @@ const CalendarPage = () => {
   }, [parsedNow, dispatch, transactionCache]);
 
   return (
-    <div className="h-full flex flex-col bg-gray-100">
-      <div className="shadow bg-white">
+    <CalendarPageStyled
+      isDarkMode={isDarkMode}
+      className="h-full flex flex-col"
+    >
+      <div className="shadow calendar-container">
         <CalendarNavigation />
-        <CalendarPageStyled>
+        <div className="calendar-wrapper">
           <DaysOfWeek />
           {parsedNow &&
             days.map((day, idx) => (
@@ -134,7 +138,7 @@ const CalendarPage = () => {
                 isToday={DatesAreEqualWithoutTime(day, initialNow)}
               />
             ))}
-        </CalendarPageStyled>
+        </div>
       </div>
 
       <Fab
@@ -146,7 +150,7 @@ const CalendarPage = () => {
         <AddIcon />
       </Fab>
       <CalendarTransactionList />
-    </div>
+    </CalendarPageStyled>
   );
 };
 

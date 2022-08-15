@@ -26,7 +26,7 @@ const TransactionInline: FunctionComponent<TransactionInlineProps> = ({
         {transaction.type === "expense" ? "-" : "+"}
         {transaction.value}
       </div>
-      <div>{transaction.label}</div>
+      <div className="label">{transaction.label}</div>
       <div className="ml-auto mr-2">{category.name}</div>
     </TransactionInlineStyled>
   );

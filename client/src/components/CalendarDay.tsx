@@ -23,6 +23,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   const transactions = useAppSelector(
     (state) => state.calendarReducer.transactions
   );
+  const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState(0);
@@ -80,6 +81,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
 
   return (
     <CalendarDayStyled
+      isDarkMode={isDarkMode}
       onClick={() => {
         onClick(date);
       }}
@@ -90,7 +92,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
         notFromSameMonth ? "opacity-50" : ""
       } ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} `}
     >
-      <div className="text-md w-full text-gray-700 dark:text-white">
+      <div className="text-md w-full text-gray-700 dark:text-gray-200">
         {date.getDate()}
       </div>
       <div

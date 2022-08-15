@@ -6,6 +6,13 @@ export type TransactionInlineStyledProps = {
 
 const TransactionInlineStyled = styled.button<TransactionInlineStyledProps>`
   background-color: ${({ bgColor }) => bgColor};
+
+  .label {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 `;
 
 export default TransactionInlineStyled;
