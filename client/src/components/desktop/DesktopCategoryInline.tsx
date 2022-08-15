@@ -17,20 +17,16 @@ const DesktopCategoryInlineComponent: FunctionComponent<
     <CategoryInlineComponentStyled
       bgColor={category.bgColor}
       className="
-      flex flex-nowrap items-center wrapper m-2 
-      rounded p-2 justify-between text-white dark:text-gray-300 shadow-lg"
+      flex flex-nowrap items-center wrapper p-3
+      rounded justify-between text-white dark:text-gray-300 shadow-lg"
     >
-      <div className="flex flex-nowrap items-center">
-        <IconButton
-          size="small"
-          className="text-white dark:text-gray-300 border-dashed border-white border-2"
-        >
-          {Icons[category.icon]}
-        </IconButton>
+      <div className="flex flex-nowrap items-center text-white dark:text-gray-300">
+        {Icons[category.icon]}
         <div className="ml-2 font-bold">{category.name}</div>
       </div>
       <IconButton
-        className="text-white dark:text-gray-300"
+        size="small"
+        className="text-white dark:text-gray-300 p-0"
         onClick={() => onSelected(category)}
       >
         <EditIcon />

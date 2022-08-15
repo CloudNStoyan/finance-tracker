@@ -9,6 +9,7 @@ const DesktopManageCategoriesStlyed = styled.div`
     overflow: hidden;
     overflow-y: scroll;
     margin: 5px;
+    gap: 5px;
 
     &::-webkit-scrollbar {
       width: 0.4em;
