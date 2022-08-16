@@ -21,7 +21,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   onClick,
 }) => {
   const transactions = useAppSelector(
-    (state) => state.calendarReducer.transactions
+    (state) => state.transactionsReducer.transactions
   );
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 

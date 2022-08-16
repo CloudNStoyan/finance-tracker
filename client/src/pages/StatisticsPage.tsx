@@ -13,15 +13,13 @@ import DefaultCategory from "../state/DefaultCategory";
 import StatisticsPageStyled from "./styles/StatisticsPage.styled";
 import { IconButton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { addMonths, format, getTime, isBefore, subMonths } from "date-fns";
+import { addMonths, format, getTime, subMonths } from "date-fns";
 import SearchTransaction from "../components/SearchTransaction";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CategoryStat from "../components/CategoryStat";
-import {
-  setCategories,
-  setTransactions,
-  setNow as setNowCalendar,
-} from "../state/calendarSlice";
+import { setNow as setNowCalendar } from "../state/calendarSlice";
+import { categoriesWereFetched, setCategories } from "../state/categorySlice";
+import { addQuery, addTransactions } from "../state/transactionSlice";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -80,6 +78,9 @@ const GenerateData = (
 
 const StatisticsPage = () => {
   const [now, setNow] = useState(new Date());
+  const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>(
+    []
+  );
   const [expenses, setExpenses] = useState<CategoryData>();
   const [incomes, setIncomes] = useState<CategoryData>();
   const [expensesChartData, setExpensesChartData] =
@@ -93,34 +94,16 @@ const StatisticsPage = () => {
   );
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
-  const { categories, transactions, transactionCache } = useAppSelector(
-    (state) => state.calendarReducer
+  const completedTansactionQueries = useAppSelector(
+    (state) => state.transactionsReducer.completedTansactionQueries
+  );
+  const allTransactions = useAppSelector(
+    (state) => state.transactionsReducer.transactions
+  );
+  const { categories, categoriesAreFetched } = useAppSelector(
+    (state) => state.categoriesReducer
   );
   const chartRef = useRef();
-
-  useEffect(() => {
-    if (categories.length > 0) {
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [categories, dispatch]);
 
   useEffect(() => {
     if (!expenses || categories.length === 0) {
@@ -143,21 +126,56 @@ const StatisticsPage = () => {
   useEffect(() => setSelectedCatId(null), [chart]);
 
   useEffect(() => {
-    setIncomes(GenerateData(transactions, "income"));
-    setExpenses(GenerateData(transactions, "expense"));
-  }, [transactions]);
+    setIncomes(GenerateData(currentTransactions, "income"));
+    setExpenses(GenerateData(currentTransactions, "expense"));
+  }, [currentTransactions]);
+
+  useEffect(() => {
+    setCurrentTransactions(
+      allTransactions.filter(
+        (transaction) =>
+          new Date(transaction.transactionDate).getMonth() === now.getMonth()
+      )
+    );
+  }, [allTransactions, now]);
 
   useEffect(() => {
     dispatch(setNowCalendar(getTime(now)));
   }, [now, dispatch]);
 
   useEffect(() => {
-    const key = format(now, "yyyy-MMMM");
+    if (categoriesAreFetched) {
+      return;
+    }
 
-    const cachedTransactions = transactionCache[key];
+    const fetchApi = async () => {
+      try {
+        const resp = await getCategories();
 
-    if (Array.isArray(cachedTransactions)) {
-      dispatch(setTransactions(cachedTransactions));
+        if (resp.status !== 200) {
+          return;
+        }
+
+        dispatch(setCategories(resp.data));
+        dispatch(categoriesWereFetched());
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
+          return;
+        }
+      }
+    };
+
+    void fetchApi();
+  }, [dispatch, categoriesAreFetched]);
+
+  useEffect(() => {
+    if (now === null) {
+      return;
+    }
+
+    const query = format(now, "yyyy-MMMM");
+
+    if (completedTansactionQueries.includes(query)) {
       return;
     }
 
@@ -172,23 +190,17 @@ const StatisticsPage = () => {
           return;
         }
 
-        const transactions = resp.data;
-        transactions.sort((a, b) =>
-          isBefore(new Date(a.transactionDate), new Date(b.transactionDate))
-            ? 1
-            : -1
-        );
-
-        dispatch(setTransactions(transactions));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
+        dispatch(addTransactions(resp.data));
+        dispatch(addQuery(query));
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
           return;
         }
       }
     };
 
     void fetchApi();
-  }, [now, dispatch, transactions, transactionCache]);
+  }, [now, dispatch, completedTansactionQueries]);
 
   return (
     <StatisticsPageStyled>
@@ -340,9 +352,9 @@ const StatisticsPage = () => {
           })}
         </div>
       )}
-      {bottomView === "transactions" && transactions && (
+      {bottomView === "transactions" && currentTransactions && (
         <div className="transaction-list flex flex-col p-2 pt-0 gap-2">
-          {transactions
+          {currentTransactions
             .filter((transaction) => {
               if (transaction.type !== chart) {
                 return;

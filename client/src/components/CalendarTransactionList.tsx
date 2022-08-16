@@ -9,8 +9,14 @@ import {
 import { parseJSON } from "date-fns";
 
 const CalendarTransactionList = () => {
-  const { transactions, categories, selected } = useAppSelector(
-    (state) => state.calendarReducer
+  const selected = useAppSelector((state) => state.calendarReducer.selected);
+
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
+
+  const transactions = useAppSelector(
+    (state) => state.transactionsReducer.transactions
   );
 
   return (

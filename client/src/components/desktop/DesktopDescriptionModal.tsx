@@ -29,9 +29,8 @@ const DesktopDescriptionModal: FunctionComponent<
       <textarea
         onChange={(e) => setDescrp(e.target.value)}
         onBlur={(e) => setDescrp(e.target.value)}
-      >
-        {descrp}
-      </textarea>
+        value={descrp}
+      ></textarea>
       <div className="m-3">
         <Button
           onClick={() => onDone(descrp)}

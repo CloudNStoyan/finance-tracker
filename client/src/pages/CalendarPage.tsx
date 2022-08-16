@@ -11,16 +11,13 @@ import {
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
 import { getCategories, getTransactionsByMonth } from "../server-api";
-import {
-  setCategories,
-  setNow,
-  setSelected,
-  setTransactions,
-} from "../state/calendarSlice";
+import { setNow, setSelected } from "../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
 import CalendarNavigation from "../components/CalendarNavigation";
+import { categoriesWereFetched, setCategories } from "../state/categorySlice";
+import { addQuery, addTransactions } from "../state/transactionSlice";
 
 const initialNow = new Date();
 
@@ -32,12 +29,12 @@ const CalendarPage = () => {
   const selected = useAppSelector((state) => state.calendarReducer.selected);
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
-  const transactionCache = useAppSelector(
-    (state) => state.calendarReducer.transactionCache
+  const { completedTansactionQueries } = useAppSelector(
+    (state) => state.transactionsReducer
   );
 
-  const categories = useAppSelector(
-    (state) => state.calendarReducer.categories
+  const { categoriesAreFetched } = useAppSelector(
+    (state) => state.categoriesReducer
   );
 
   const [parsedNow, setParsedNow] = useState<Date>(null);
@@ -63,7 +60,7 @@ const CalendarPage = () => {
   }, [selected, now, dispatch]);
 
   useEffect(() => {
-    if (categories.length > 0) {
+    if (categoriesAreFetched) {
       return;
     }
 
@@ -76,6 +73,7 @@ const CalendarPage = () => {
         }
 
         dispatch(setCategories(resp.data));
+        dispatch(categoriesWereFetched());
       } catch (err) {
         if (!axios.isAxiosError(err)) {
           return;
@@ -84,19 +82,16 @@ const CalendarPage = () => {
     };
 
     void fetchApi();
-  }, [dispatch, categories]);
+  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (parsedNow === null) {
       return;
     }
 
-    const key = format(parsedNow, "yyyy-MMMM");
+    const query = format(parsedNow, "yyyy-MMMM");
 
-    const cachedTransactions = transactionCache[key];
-
-    if (Array.isArray(cachedTransactions)) {
-      dispatch(setTransactions(cachedTransactions));
+    if (completedTansactionQueries.includes(query)) {
       return;
     }
 
@@ -111,7 +106,8 @@ const CalendarPage = () => {
           return;
         }
 
-        dispatch(setTransactions(resp.data));
+        dispatch(addTransactions(resp.data));
+        dispatch(addQuery(query));
       } catch (err) {
         if (!axios.isAxiosError(err)) {
           return;
@@ -120,7 +116,7 @@ const CalendarPage = () => {
     };
 
     void fetchApi();
-  }, [parsedNow, dispatch, transactionCache]);
+  }, [parsedNow, dispatch, completedTansactionQueries]);
 
   return (
     <CalendarPageStyled

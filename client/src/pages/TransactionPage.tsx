@@ -39,13 +39,13 @@ import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
 import { format, parseJSON } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import DefaultCategory from "../state/DefaultCategory";
+import { setCategories } from "../state/categorySlice";
 import {
   addTransaction,
   editTransaction,
   removeTransaction,
-  setCategories,
-} from "../state/calendarSlice";
-import DefaultCategory from "../state/DefaultCategory";
+} from "../state/transactionSlice";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -89,11 +89,12 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
   const categories = useAppSelector(
-    (state) => state.calendarReducer.categories
+    (state) => state.categoriesReducer.categories
   );
   const transactions = useAppSelector(
-    (state) => state.calendarReducer.transactions
+    (state) => state.transactionsReducer.transactions
   );
+
   const { transactionId } = useParams();
   const navigate = useNavigate();
 

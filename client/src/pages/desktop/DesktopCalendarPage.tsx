@@ -10,12 +10,7 @@ import {
   getTransactionsByMonth,
   Transaction,
 } from "../../server-api";
-import {
-  setCategories,
-  setNow,
-  setSelected,
-  setTransactions,
-} from "../../state/calendarSlice";
+import { setNow, setSelected } from "../../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import CalendarNavigation from "../../components/CalendarNavigation";
 import DesktopTransaction from "../../components/desktop/DesktopTransaction";
@@ -25,6 +20,11 @@ import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
 import { IconButton, InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import {
+  categoriesWereFetched,
+  setCategories,
+} from "../../state/categorySlice";
+import { addQuery, addTransactions } from "../../state/transactionSlice";
 
 const initialNow = new Date();
 
@@ -36,10 +36,6 @@ const DesktopCalendarPage = () => {
 
   const selected = useAppSelector((state) => state.calendarReducer.selected);
 
-  const transactionCache = useAppSelector(
-    (state) => state.calendarReducer.transactionCache
-  );
-
   const [parsedNow, setParsedNow] = useState<Date>(null);
   const [searchInputValue, setSearchInputValue] = useState("");
   const [showSearchInput, setShowSearchInput] = useState(false);
@@ -47,6 +43,13 @@ const DesktopCalendarPage = () => {
 
   const now = useAppSelector((state) => state.calendarReducer.now);
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
+  const categoriesAreFetched = useAppSelector(
+    (state) => state.categoriesReducer.categoriesAreFetched
+  );
+
+  const { completedTansactionQueries } = useAppSelector(
+    (state) => state.transactionsReducer
+  );
 
   const days: Date[] = useAppSelector(
     (state) => state.calendarReducer.days
@@ -63,7 +66,7 @@ const DesktopCalendarPage = () => {
   useEffect(() => {
     setParsedNow(fromUnixTimeMs(now));
   }, [now]);
-  2;
+
   useEffect(() => {
     if (!selected) {
       dispatch(setSelected(getTime(initialNow)));
@@ -71,6 +74,12 @@ const DesktopCalendarPage = () => {
 
     if (!now) {
       dispatch(setNow(getTime(initialNow)));
+    }
+  }, [dispatch, now, selected]);
+
+  useEffect(() => {
+    if (categoriesAreFetched) {
+      return;
     }
 
     const fetchApi = async () => {
@@ -82,6 +91,7 @@ const DesktopCalendarPage = () => {
         }
 
         dispatch(setCategories(resp.data));
+        dispatch(categoriesWereFetched());
       } catch (err) {
         if (!axios.isAxiosError(err)) {
           return;
@@ -90,20 +100,16 @@ const DesktopCalendarPage = () => {
     };
 
     void fetchApi();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (parsedNow === null) {
       return;
     }
 
-    const key = format(parsedNow, "yyyy-MMMM");
+    const query = format(parsedNow, "yyyy-MMMM");
 
-    const cachedTransactions = transactionCache[key];
-
-    if (Array.isArray(cachedTransactions)) {
-      dispatch(setTransactions(cachedTransactions));
+    if (completedTansactionQueries.includes(query)) {
       return;
     }
 
@@ -118,7 +124,8 @@ const DesktopCalendarPage = () => {
           return;
         }
 
-        dispatch(setTransactions(resp.data));
+        dispatch(addTransactions(resp.data));
+        dispatch(addQuery(query));
       } catch (err) {
         if (!axios.isAxiosError(err)) {
           return;
@@ -127,7 +134,7 @@ const DesktopCalendarPage = () => {
     };
 
     void fetchApi();
-  }, [parsedNow, dispatch, transactionCache]);
+  }, [parsedNow, dispatch, completedTansactionQueries]);
 
   return (
     <DesktopCalendarPageStyled

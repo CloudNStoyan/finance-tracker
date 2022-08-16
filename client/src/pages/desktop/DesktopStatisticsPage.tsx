@@ -10,20 +10,21 @@ import axios from "axios";
 import DefaultCategory from "../../state/DefaultCategory";
 import { IconButton } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { addMonths, format, getTime, isBefore, subMonths } from "date-fns";
+import { addMonths, format, getTime, subMonths } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import {
-  setCategories,
-  setTransactions,
-  setNow as setNowCalendar,
-} from "../../state/calendarSlice";
+import { setNow as setNowCalendar } from "../../state/calendarSlice";
 import DesktopStatisticsPageStyled from "../styles/desktop/DesktopStatisticsPage.styled";
 import DesktopStatsPanel from "../../components/desktop/DesktopStatsPanel";
+import {
+  categoriesWereFetched,
+  setCategories,
+} from "../../state/categorySlice";
+import { addQuery, addTransactions } from "../../state/transactionSlice";
 
 export type CategoryData = { [name: string]: number };
 
 const GenerateChartDataset = (data: CategoryData, categories: Category[]) => {
-  if (Object.keys(data).length === 0) {
+  if (!data) {
     return null;
   }
 
@@ -70,25 +71,73 @@ const GenerateData = (
     }
   });
 
-  return catTotals;
+  return Object.keys(catTotals).length === 0 ? null : catTotals;
 };
 
 const DesktopStatisticsPage = () => {
   const [now, setNow] = useState(new Date());
+  const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>(
+    []
+  );
   const [expenses, setExpenses] = useState<CategoryData>();
   const [incomes, setIncomes] = useState<CategoryData>();
   const [expensesChartData, setExpensesChartData] =
     useState<ChartData<"doughnut">>();
   const [incomesChartData, setIncomesChartData] =
     useState<ChartData<"doughnut">>();
+
   const dispatch = useAppDispatch();
-  const { categories, transactions, transactionCache } = useAppSelector(
-    (state) => state.calendarReducer
-  );
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
+  const completedTansactionQueries = useAppSelector(
+    (state) => state.transactionsReducer.completedTansactionQueries
+  );
+
+  const allTransactions = useAppSelector(
+    (state) => state.transactionsReducer.transactions
+  );
+
+  const { categories, categoriesAreFetched } = useAppSelector(
+    (state) => state.categoriesReducer
+  );
 
   useEffect(() => {
-    if (categories.length > 0) {
+    if (categories.length === 0) {
+      return;
+    }
+
+    const dataset = GenerateChartDataset(expenses, categories);
+    setExpensesChartData(dataset);
+  }, [expenses, categories]);
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      return;
+    }
+
+    const dataset = GenerateChartDataset(incomes, categories);
+    setIncomesChartData(dataset);
+  }, [incomes, categories]);
+
+  useEffect(() => {
+    setIncomes(GenerateData(currentTransactions, "income"));
+    setExpenses(GenerateData(currentTransactions, "expense"));
+  }, [currentTransactions]);
+
+  useEffect(() => {
+    dispatch(setNowCalendar(getTime(now)));
+  }, [now, dispatch]);
+
+  useEffect(() => {
+    setCurrentTransactions(
+      allTransactions.filter(
+        (transaction) =>
+          new Date(transaction.transactionDate).getMonth() === now.getMonth()
+      )
+    );
+  }, [allTransactions, now]);
+
+  useEffect(() => {
+    if (categoriesAreFetched) {
       return;
     }
 
@@ -101,50 +150,25 @@ const DesktopStatisticsPage = () => {
         }
 
         dispatch(setCategories(resp.data));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
+        dispatch(categoriesWereFetched());
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
           return;
         }
       }
     };
 
     void fetchApi();
-  }, [categories, dispatch]);
+  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
-    if (!expenses || categories.length === 0) {
+    if (now === null) {
       return;
     }
 
-    const dataset = GenerateChartDataset(expenses, categories);
-    setExpensesChartData(dataset);
-  }, [expenses, categories]);
+    const query = format(now, "yyyy-MMMM");
 
-  useEffect(() => {
-    if (!incomes || categories.length === 0) {
-      return;
-    }
-
-    const dataset = GenerateChartDataset(incomes, categories);
-    setIncomesChartData(dataset);
-  }, [incomes, categories]);
-
-  useEffect(() => {
-    setIncomes(GenerateData(transactions, "income"));
-    setExpenses(GenerateData(transactions, "expense"));
-  }, [transactions]);
-
-  useEffect(() => {
-    dispatch(setNowCalendar(getTime(now)));
-  }, [now, dispatch]);
-
-  useEffect(() => {
-    const key = format(now, "yyyy-MMMM");
-
-    const cachedTransactions = transactionCache[key];
-
-    if (Array.isArray(cachedTransactions)) {
-      dispatch(setTransactions(cachedTransactions));
+    if (completedTansactionQueries.includes(query)) {
       return;
     }
 
@@ -159,23 +183,17 @@ const DesktopStatisticsPage = () => {
           return;
         }
 
-        const transactions = resp.data;
-        transactions.sort((a, b) =>
-          isBefore(new Date(a.transactionDate), new Date(b.transactionDate))
-            ? 1
-            : -1
-        );
-
-        dispatch(setTransactions(transactions));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
+        dispatch(addTransactions(resp.data));
+        dispatch(addQuery(query));
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
           return;
         }
       }
     };
 
     void fetchApi();
-  }, [now, dispatch, transactions, transactionCache]);
+  }, [now, dispatch, completedTansactionQueries]);
 
   return (
     <DesktopStatisticsPageStyled isDarkMode={isDarkMode}>
@@ -194,6 +212,7 @@ const DesktopStatisticsPage = () => {
         <DesktopStatsPanel
           chartData={expensesChartData}
           categoryData={expenses}
+          allTransactions={currentTransactions}
           chartType="expense"
         />
         <div className="splitter"></div>
@@ -201,6 +220,7 @@ const DesktopStatisticsPage = () => {
           chartData={incomesChartData}
           categoryData={incomes}
           chartType="income"
+          allTransactions={currentTransactions}
         />
       </div>
     </DesktopStatisticsPageStyled>

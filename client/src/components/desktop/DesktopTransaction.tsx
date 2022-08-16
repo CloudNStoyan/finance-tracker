@@ -36,7 +36,7 @@ import {
   addTransaction,
   editTransaction,
   removeTransaction,
-} from "../../state/calendarSlice";
+} from "../../state/transactionSlice";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
 import DesktopModalContainerStyled from "../styles/desktop/DesktopModalContainer.styled";
@@ -103,7 +103,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
   const categories = useAppSelector(
-    (state) => state.calendarReducer.categories
+    (state) => state.categoriesReducer.categories
   );
 
   const clearFields = () => {

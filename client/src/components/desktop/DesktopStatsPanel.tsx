@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useRef, useState } from "react";
+import React, { FunctionComponent, useEffect, useRef, useState } from "react";
 import { Chart, ArcElement, ChartData, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
@@ -8,6 +8,7 @@ import CategoryStat from "../../components/CategoryStat";
 import { useAppSelector } from "../../state/hooks";
 import { CategoryData } from "../../pages/StatisticsPage";
 import DesktopStatsTransaction from "./DesktopStatsTransaction";
+import { Transaction } from "../../server-api";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -15,18 +16,21 @@ export type DesktopStatsPanelProps = {
   chartType: "income" | "expense";
   chartData: ChartData<"doughnut">;
   categoryData: CategoryData;
+  allTransactions: Transaction[];
 };
 
 const DesktopStatsPanel: FunctionComponent<DesktopStatsPanelProps> = ({
   chartData,
   categoryData,
   chartType,
+  allTransactions,
 }) => {
   const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const chartRef = useRef();
 
-  const { categories, transactions } = useAppSelector(
-    (state) => state.calendarReducer
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
   );
 
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
@@ -34,6 +38,26 @@ const DesktopStatsPanel: FunctionComponent<DesktopStatsPanelProps> = ({
   const [bottomView, setBottomView] = useState<"transactions" | "categories">(
     "transactions"
   );
+
+  useEffect(() => {
+    const filteredTransactions = allTransactions.filter((transaction) => {
+      if (transaction.type !== chartType) {
+        return;
+      }
+
+      if (selectedCatId === -1 && transaction.categoryId === null) {
+        return transaction;
+      }
+
+      if (selectedCatId && transaction.categoryId !== selectedCatId) {
+        return;
+      }
+
+      return transaction;
+    });
+
+    setTransactions(filteredTransactions);
+  }, [allTransactions, chartType, selectedCatId]);
 
   return (
     <div className="chart-wrapper">
@@ -159,33 +183,17 @@ const DesktopStatsPanel: FunctionComponent<DesktopStatsPanelProps> = ({
       )}
       {bottomView === "transactions" && transactions && (
         <div className="transaction-list flex flex-col p-2 pt-0 gap-2">
-          {transactions
-            .filter((transaction) => {
-              if (transaction.type !== chartType) {
-                return;
+          {transactions.map((transaction, idx) => (
+            <DesktopStatsTransaction
+              key={idx}
+              transaction={transaction}
+              category={
+                categories.find(
+                  (cat) => cat.categoryId === transaction.categoryId
+                ) ?? DefaultCategory
               }
-
-              if (selectedCatId === -1 && transaction.categoryId === null) {
-                return transaction;
-              }
-
-              if (selectedCatId && transaction.categoryId !== selectedCatId) {
-                return;
-              }
-
-              return transaction;
-            })
-            .map((transaction, idx) => (
-              <DesktopStatsTransaction
-                key={idx}
-                transaction={transaction}
-                category={
-                  categories.find(
-                    (cat) => cat.categoryId === transaction.categoryId
-                  ) ?? DefaultCategory
-                }
-              />
-            ))}
+            />
+          ))}
         </div>
       )}
     </div>

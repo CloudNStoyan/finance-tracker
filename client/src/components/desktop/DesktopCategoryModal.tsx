@@ -17,7 +17,7 @@ import {
   addCategory,
   editCategory,
   removeCategory,
-} from "../../state/calendarSlice";
+} from "../../state/categorySlice";
 
 export type DesktopCategoryModalProps = {
   category?: Category;

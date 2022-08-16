@@ -35,12 +35,12 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   searchInputValue,
 }) => {
   const allTransactions = useAppSelector(
-    (state) => state.calendarReducer.transactions
+    (state) => state.transactionsReducer.transactions
   );
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const categories = useAppSelector(
-    (state) => state.calendarReducer.categories
+    (state) => state.categoriesReducer.categories
   );
 
   const [total, setTotal] = useState(0);
