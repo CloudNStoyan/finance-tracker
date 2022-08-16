@@ -1,4 +1,5 @@
 import { AttachMoney } from "@mui/icons-material";
+import { Button, styled } from "@mui/material";
 import { format } from "date-fns";
 import React, { FunctionComponent } from "react";
 import Icons from "../../infrastructure/Icons";
@@ -11,6 +12,14 @@ export type DesktopStatsTransactionProps = {
   category: Category;
 };
 
+const CustomButton = styled(Button)<{ props: { hoverColor: string } }>(
+  ({ props }) => ({
+    "&:hover": {
+      backgroundColor: props.hoverColor,
+    },
+  })
+);
+
 const DesktopStatsTransaction: FunctionComponent<
   DesktopStatsTransactionProps
 > = ({ transaction, category }) => {
@@ -22,29 +31,30 @@ const DesktopStatsTransaction: FunctionComponent<
     <DesktopStatsTransactionStyled
       bgColor={category.bgColor}
       isDarkMode={isDarkMode}
-      className="flex flex-col p-2"
+      className="flex items-center p-2"
     >
-      <div className="flex w-full justify-between">
-        <div className="flex items-center text-gray-700">
-          <div className="text-gray-500 dark:text-white flex items-center value">
-            <AttachMoney />
-            <div className="w-20">
-              {transaction.type === "expense" ? "-" : "+"}
-              {transaction.value.toFixed(2)}
-            </div>
+      <div className="">
+        <div className="text-gray-500 dark:text-white flex items-center value">
+          <AttachMoney />
+          <div className="w-20">
+            {transaction.type === "expense" ? "-" : "+"}
+            {transaction.value.toFixed(2)}
           </div>
-          <div className="ml-3 dark:text-gray-100">{transaction.label}</div>
         </div>
-      </div>
-      <div className="flex justify-between">
         <div className="text-gray-500 dark:text-gray-100">
           {format(transactionDate, "dd MMM yyyy")}
         </div>
-        <div className="cats flex">
-          <div>{Icons[category.icon]}</div>
-          <div className="ml-2">{category.name}</div>
-        </div>
       </div>
+      <div className="ml-3 dark:text-gray-100 grow">{transaction.label}</div>
+      <CustomButton
+        props={{ hoverColor: category.bgColor }}
+        variant="text"
+        color="inherit"
+        className="cats flex"
+      >
+        <div>{Icons[category.icon]}</div>
+        <div className="ml-2">{category.name}</div>
+      </CustomButton>
     </DesktopStatsTransactionStyled>
   );
 };
