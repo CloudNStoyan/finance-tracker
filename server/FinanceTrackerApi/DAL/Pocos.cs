@@ -32,6 +32,9 @@ public class TransactionPoco
 
     [Column(Name = "details")]
     public string? Details { get; set; }
+
+    [Column(Name = "repeat")]
+    public string? Repeat { get; set; }
 }
 
 [Table(Name = "category", Schema = "public")]

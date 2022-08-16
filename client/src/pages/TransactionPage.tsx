@@ -146,6 +146,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       setTransactionType(transaction.type);
       setDate(parseJSON(transaction.transactionDate));
       setCategoryId(transaction.categoryId);
+      setRepeat(transaction.repeat ?? "none");
       setTransactionIsLoaded(true);
     };
 
@@ -222,12 +223,18 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       return;
     }
 
+    const transactionRepeat =
+      repeat === "weekly" || repeat === "monthly" || repeat === "yearly"
+        ? repeat
+        : null;
+
     const transaction: Transaction = {
       label: label.trim(),
       value: Number(value),
       transactionDate: format(date, "yyyy-MM-dd") + "T00:00:00",
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
+      repeat: transactionRepeat,
     };
 
     if (hasTransactionId) {
@@ -409,13 +416,12 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
             className="repeat-select"
             value={repeat}
             onChange={(e) => handleRepeatChange(e.target.value)}
-            label="Age"
             sx={{ border: 0 }}
           >
             <MenuItem value={"none"}>Does not repeat</MenuItem>
-            <MenuItem value={"week"}>Repeat every week</MenuItem>
-            <MenuItem value={"month"}>Repeat every month</MenuItem>
-            <MenuItem value={"year"}>Repeat every year</MenuItem>
+            <MenuItem value={"weekly"}>Repeat every week</MenuItem>
+            <MenuItem value={"monthly"}>Repeat every month</MenuItem>
+            <MenuItem value={"yearly"}>Repeat every year</MenuItem>
           </Select>
         </div>
 

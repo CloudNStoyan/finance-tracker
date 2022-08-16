@@ -1,4 +1,4 @@
-import { format, getDaysInMonth, isBefore, parseJSON } from "date-fns";
+import { format, getDaysInMonth, isAfter, isBefore, parseJSON } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
@@ -31,9 +31,23 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   useEffect(() => {
     setTotal(
       transactions
-        .filter((transaction) =>
-          DatesAreEqualWithoutTime(parseJSON(transaction.transactionDate), date)
-        )
+        .filter((transaction) => {
+          const transactionDate = parseJSON(transaction.transactionDate);
+          if (
+            (isAfter(date, transactionDate) &&
+              transaction.repeat === "weekly" &&
+              transactionDate.getDay() === date.getDay()) ||
+            (transaction.repeat === "monthly" &&
+              transactionDate.getDate() === date.getDate()) ||
+            (transaction.repeat === "yearly" &&
+              transactionDate.getDate() === date.getDate() &&
+              transactionDate.getMonth() === date.getMonth())
+          ) {
+            return true;
+          }
+
+          return DatesAreEqualWithoutTime(transactionDate, date);
+        })
         .reduce(
           (state, transaction) =>
             transaction.type === "expense"

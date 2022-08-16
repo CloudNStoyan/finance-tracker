@@ -30,6 +30,7 @@ export interface Transaction {
   type: "expense" | "income";
   value: number;
   details?: string;
+  repeat?: "weekly" | "monthly" | "yearly";
 }
 
 export interface User {

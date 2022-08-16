@@ -30,6 +30,7 @@ public class TransactionDTO
     public int? ImageReceiptId { get; set; }
 
     public string? Details { get; set; }
+    public string? Repeat { get; set; }
 
     public static TransactionDTO FromPoco(TransactionPoco poco) => new()
     {
@@ -43,5 +44,6 @@ public class TransactionDTO
         Type = poco.Type,
         TransactionDate = poco.TransactionDate,
         UserId = poco.UserId,
+        Repeat = poco.Repeat
     };
 }

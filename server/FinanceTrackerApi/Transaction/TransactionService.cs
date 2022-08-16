@@ -25,7 +25,8 @@ public class TransactionService
             TransactionDate = dto.TransactionDate,
             Value = dto.Value,
             CategoryId = dto.CategoryId,
-            UserId = dto.UserId
+            UserId = dto.UserId,
+            Repeat = dto.Repeat
         };
 
         if (dto.TransactionId.HasValue)
