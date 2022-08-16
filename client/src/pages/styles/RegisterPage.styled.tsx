@@ -18,7 +18,6 @@ const RegisterPageStyled = styled.div`
     background: url(${({ theme }) => theme.svgs.bottomWavesFlipped});
     background-repeat: no-repeat;
     background-size: cover;
-    background-position-y: 25px;
     z-index: -1;
   }
 

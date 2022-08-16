@@ -32,23 +32,23 @@ const Topbar: FunctionComponent = () => {
   };
 
   return (
-    <TopbarStyled
-      className={`flex ${
-        canGoBack && isLoggedIn ? "justify-between" : "justify-end"
-      } items-center py-2`}
-    >
-      {canGoBack && isLoggedIn && (
-        <IconButton
-          size="small"
-          className="text-white ml-2"
-          onClick={() => navigateBack()}
-        >
-          <WestIcon />
-        </IconButton>
-      )}
+    isLoggedIn && (
+      <TopbarStyled
+        className={`flex ${
+          canGoBack ? "justify-between" : "justify-end"
+        } items-center py-2`}
+      >
+        {canGoBack && (
+          <IconButton
+            size="small"
+            className="text-white ml-2"
+            onClick={() => navigateBack()}
+          >
+            <WestIcon />
+          </IconButton>
+        )}
 
-      <div>
-        {isLoggedIn && (
+        <div>
           <IconButton
             className="text-white"
             size="small"
@@ -56,9 +56,6 @@ const Topbar: FunctionComponent = () => {
           >
             <CalendarMonthRoundedIcon />
           </IconButton>
-        )}
-
-        {isLoggedIn && (
           <IconButton
             className="text-white"
             size="small"
@@ -66,8 +63,6 @@ const Topbar: FunctionComponent = () => {
           >
             <BarChartRoundedIcon />
           </IconButton>
-        )}
-        {isLoggedIn && (
           <IconButton
             className="text-white"
             size="small"
@@ -75,8 +70,6 @@ const Topbar: FunctionComponent = () => {
           >
             <SearchIcon />
           </IconButton>
-        )}
-        {isLoggedIn && (
           <IconButton
             className="text-white"
             size="small"
@@ -84,20 +77,20 @@ const Topbar: FunctionComponent = () => {
           >
             <SettingsOutlinedIcon />
           </IconButton>
-        )}
-      </div>
-      <Drawer
-        anchor="right"
-        open={settingsIsOpen}
-        onClose={() => setSettingsIsOpen(false)}
-        container={() => document.getElementById("app")}
-        PaperProps={{
-          style: { borderRadius: 0 },
-        }}
-      >
-        <SettingsModal onClose={() => setSettingsIsOpen(false)} />
-      </Drawer>
-    </TopbarStyled>
+        </div>
+        <Drawer
+          anchor="right"
+          open={settingsIsOpen}
+          onClose={() => setSettingsIsOpen(false)}
+          container={() => document.getElementById("app")}
+          PaperProps={{
+            style: { borderRadius: 0 },
+          }}
+        >
+          <SettingsModal onClose={() => setSettingsIsOpen(false)} />
+        </Drawer>
+      </TopbarStyled>
+    )
   );
 };
 
