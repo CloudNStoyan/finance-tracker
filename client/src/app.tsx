@@ -5,6 +5,7 @@ import DesktopCalendarPage from "./pages/desktop/DesktopCalendarPage";
 import { useMediaQuery } from "@mui/material";
 import DesktopLoginPage from "./pages/desktop/DesktopLoginPage";
 import DesktopRegisterPage from "./pages/desktop/DesktopRegisterPage";
+import DesktopStatisticsPage from "./pages/desktop/DesktopStatisticsPage";
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const TransactionPage = lazy(() => import("./pages/TransactionPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
@@ -54,7 +55,10 @@ const App = () => {
       </Route>
       <Route path="/categories" element={<ManageCategoriesPage />} />
       <Route path="/search" element={<SearchPage />} />
-      <Route path="/stats" element={<StatisticsPage />} />
+      <Route
+        path="/stats"
+        element={isDesktop ? <DesktopStatisticsPage /> : <StatisticsPage />}
+      />
       <Route path="*" element={<h2>404</h2>} />
     </Routes>
   );
