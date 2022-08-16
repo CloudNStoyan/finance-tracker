@@ -1,69 +1,15 @@
 import React, { lazy } from "react";
 import axios from "axios";
-import { Routes, Route } from "react-router-dom";
-import DesktopCalendarPage from "./pages/desktop/DesktopCalendarPage";
 import { useMediaQuery } from "@mui/material";
-import DesktopLoginPage from "./pages/desktop/DesktopLoginPage";
-import DesktopRegisterPage from "./pages/desktop/DesktopRegisterPage";
-const DesktopStatisticsPage = lazy(
-  () => import("./pages/desktop/DesktopStatisticsPage")
-);
-const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
-const TransactionPage = lazy(() => import("./pages/TransactionPage"));
-const CalendarPage = lazy(() => import("./pages/CalendarPage"));
-const CategoryPage = lazy(() => import("./pages/CategoryPage"));
-const ManageCategoriesPage = lazy(() => import("./pages/ManageCategoriesPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage"));
-const SearchPage = lazy(() => import("./pages/SearchPage"));
+const DesktopRoutes = lazy(() => import("./infrastructure/DesktopRoutes"));
+const MobileRoutes = lazy(() => import("./infrastructure/MobileRoutes"));
 
 axios.defaults.withCredentials = true;
 
 const App = () => {
   const isDesktop = useMediaQuery("(min-width:1024px)");
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={isDesktop ? <DesktopCalendarPage /> : <CalendarPage />}
-      />
-      <Route
-        path="/login"
-        element={isDesktop ? <DesktopLoginPage /> : <LoginPage />}
-      />
-      <Route
-        path="/register"
-        element={isDesktop ? <DesktopRegisterPage /> : <RegisterPage />}
-      />
-      <Route>
-        <Route
-          path="/transaction/:transactionId"
-          element={<TransactionPage hasTransactionId={true} />}
-        />
-        <Route
-          path="/transaction"
-          element={<TransactionPage hasTransactionId={false} />}
-        />
-      </Route>
-      <Route>
-        <Route
-          path="/category/:categoryId"
-          element={<CategoryPage hasCategoryId={true} />}
-        />
-        <Route
-          path="/category"
-          element={<CategoryPage hasCategoryId={false} />}
-        />
-      </Route>
-      <Route path="/categories" element={<ManageCategoriesPage />} />
-      <Route path="/search" element={<SearchPage />} />
-      <Route
-        path="/stats"
-        element={isDesktop ? <DesktopStatisticsPage /> : <StatisticsPage />}
-      />
-      <Route path="*" element={<h2>404</h2>} />
-    </Routes>
-  );
+
+  return isDesktop ? <DesktopRoutes /> : <MobileRoutes />;
 };
 
 export default App;
