@@ -10,6 +10,16 @@ const TransactionPageStyled = styled.div<{
   display: flex;
   flex-flow: column nowrap;
 
+  .type-selector {
+    background-color: ${({ isDarkMode }) => (isDarkMode ? "#222" : "#f3f4f6")};
+  }
+
+  .description-input {
+    background-color: ${({ theme }) => theme.colors.background};
+    resize: none;
+    border-color: ${({ isDarkMode }) => (isDarkMode ? "#444" : "#e1e2e2")};
+  }
+
   .transaction-info {
     flex-grow: 1;
     margin-top: 20px;

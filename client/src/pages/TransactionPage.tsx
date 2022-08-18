@@ -1,4 +1,10 @@
-import { Add, Delete, Remove } from "@mui/icons-material";
+import {
+  Add,
+  Close,
+  Delete,
+  DescriptionOutlined,
+  Remove,
+} from "@mui/icons-material";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import { MobileDatePicker } from "@mui/x-date-pickers/";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -11,12 +17,12 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
-  Radio,
-  RadioGroup,
   Select,
   styled,
   SwipeableDrawer,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import React, { FunctionComponent, useEffect, useState } from "react";
@@ -83,6 +89,9 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   const [date, setDate] = useState<Date | null>(
     fromUnixTimeMs(calendarSelected) ?? new Date()
   );
+  const [description, setDescription] = useState("");
+  const [editableDescription, setEditableDescription] = useState("");
+  const [openDescription, setOpenDescription] = useState(false);
   const [repeat, setRepeat] = useState("none");
   const [category, setCategory] = useState<Category | undefined>();
 
@@ -148,6 +157,8 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       setCategoryId(transaction.categoryId);
       setRepeat(transaction.repeat ?? "none");
       setTransactionIsLoaded(true);
+      setDescription(transaction.details ?? "");
+      setEditableDescription(transaction.details ?? "");
     };
 
     const fetchTransaction = async () => {
@@ -235,6 +246,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
       repeat: transactionRepeat,
+      details: description,
     };
 
     if (hasTransactionId) {
@@ -298,25 +310,24 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       isDarkMode={isDarkMode}
     >
       <div className="relative fields">
-        <FormControl className="w-full justify-center items-center mt-2">
-          <RadioGroup
-            row
-            name="transaction-type-group"
-            onChange={(e) => setTransactionType(e.target.value)}
+        <FormControl className="w-full justify-center items-end mt-2 pr-4">
+          <ToggleButtonGroup
+            className="type-selector"
+            color="primary"
+            size="small"
+            value={transactionType}
+            exclusive
+            onChange={(e, v: "expense" | "income") => {
+              if (v === null) {
+                return;
+              }
+
+              setTransactionType(v);
+            }}
           >
-            <FormControlLabel
-              value={"expense"}
-              control={<Radio hidden />}
-              label="Expense"
-              checked={transactionType === "expense"}
-            />
-            <FormControlLabel
-              value="income"
-              control={<Radio hidden />}
-              label="Income"
-              checked={transactionType === "income"}
-            />
-          </RadioGroup>
+            <ToggleButton value="expense">Expense</ToggleButton>
+            <ToggleButton value="income">Income</ToggleButton>
+          </ToggleButtonGroup>
         </FormControl>
         <IconButton
           onClick={() => void onSubmit()}
@@ -353,7 +364,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           <CustomTextField
             label="Label"
             variant="standard"
-            className="ml-4 transaction-label"
+            className="ml-4 transaction-label grow"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onBlur={(e) => setLabel(e.target.value)}
@@ -424,6 +435,47 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
             <MenuItem value={"yearly"}>Repeat every year</MenuItem>
           </Select>
         </div>
+
+        {!openDescription && (
+          <Button
+            onClick={() => setOpenDescription(true)}
+            size="large"
+            className="label-button justify-start normal-case"
+            startIcon={<DescriptionOutlined />}
+          >
+            <span className="description-btn-text">
+              {description.trim().length === 0
+                ? "Add description"
+                : description}
+            </span>
+          </Button>
+        )}
+
+        {openDescription && (
+          <div className="relative grow w-full flex flex-col mt-2">
+            <IconButton
+              color="primary"
+              className="absolute top-0 right-0"
+              onClick={() => setOpenDescription(false)}
+            >
+              <Close />
+            </IconButton>
+            <textarea
+              value={editableDescription}
+              onChange={(e) => setEditableDescription(e.target.value)}
+              className="description-input p-2 outline-0 w-full border-2 grow"
+            ></textarea>
+            <Button
+              className="mt-2"
+              onClick={() => {
+                setDescription(editableDescription);
+                setOpenDescription(false);
+              }}
+            >
+              Done
+            </Button>
+          </div>
+        )}
 
         <SwipeableDrawer
           anchor={"bottom"}
