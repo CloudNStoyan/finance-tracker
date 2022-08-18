@@ -1,4 +1,4 @@
-import { Drawer, IconButton } from "@mui/material";
+import { Drawer, IconButton, useMediaQuery } from "@mui/material";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useAppSelector } from "../state/hooks";
 import TopbarStyled from "./styles/Topbar.styled";
@@ -21,6 +21,8 @@ const Topbar: FunctionComponent = () => {
   const location = useLocation();
 
   const [history, setHistory] = useState<string[]>(["/"]);
+
+  const isDesktop = useMediaQuery("(min-width:1024px)");
 
   const canGoBack = history.length > 1;
 
@@ -75,13 +77,15 @@ const Topbar: FunctionComponent = () => {
           >
             <BarChartRoundedIcon />
           </IconButton>
-          <IconButton
-            className="text-white"
-            size="small"
-            onClick={() => navigate("/search")}
-          >
-            <SearchIcon />
-          </IconButton>
+          {!isDesktop && (
+            <IconButton
+              className="text-white"
+              size="small"
+              onClick={() => navigate("/search")}
+            >
+              <SearchIcon />
+            </IconButton>
+          )}
           <IconButton
             className="text-white"
             size="small"
