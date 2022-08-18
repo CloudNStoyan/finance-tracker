@@ -5,6 +5,8 @@ import { getMe } from "../server-api";
 import { setUser, triedToAuth } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 
+let isFetching = false;
+
 const AuthorizeHelper = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -17,6 +19,12 @@ const AuthorizeHelper = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    if (isFetching) {
+      return;
+    }
+
+    isFetching = true;
+
     const fetchApi = async () => {
       try {
         const resp = await getMe();
@@ -32,6 +40,7 @@ const AuthorizeHelper = () => {
         }
       } finally {
         dispatch(triedToAuth());
+        isFetching = false;
       }
     };
 

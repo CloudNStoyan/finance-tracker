@@ -4,6 +4,8 @@ import { getCategories } from "../server-api";
 import { categoriesWereFetched, setCategories } from "./categorySlice";
 import { useAppDispatch, useAppSelector } from "./hooks";
 
+let isFetching = false;
+
 const useCategories = () => {
   const dispatch = useAppDispatch();
   const { categoriesAreFetched, categories } = useAppSelector(
@@ -11,12 +13,13 @@ const useCategories = () => {
   );
 
   useEffect(() => {
-    if (categoriesAreFetched) {
+    if (categoriesAreFetched || isFetching) {
       return;
     }
 
     const fetchApi = async () => {
       try {
+        isFetching = true;
         const resp = await getCategories();
 
         if (resp.status !== 200) {
@@ -29,6 +32,8 @@ const useCategories = () => {
         if (!axios.isAxiosError(err)) {
           return;
         }
+      } finally {
+        isFetching = false;
       }
     };
 
