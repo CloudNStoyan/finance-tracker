@@ -1,20 +1,15 @@
 import { Drawer, IconButton } from "@mui/material";
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { useAppSelector } from "../state/hooks";
 import TopbarStyled from "./styles/Topbar.styled";
 import WestIcon from "@mui/icons-material/West";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SettingsModal from "../pages/SettingsModal";
-
-declare let history: {
-  state: {
-    idx: number;
-  };
-};
+import { RemoveDuplicates } from "../infrastructure/Utils";
 
 const Topbar: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -23,13 +18,30 @@ const Topbar: FunctionComponent = () => {
 
   const [settingsIsOpen, setSettingsIsOpen] = useState(false);
 
-  const canGoBack = history.state.idx > 0;
+  const location = useLocation();
+
+  const [history, setHistory] = useState<string[]>(["/"]);
+
+  const canGoBack = history.length > 1;
 
   const navigateBack = () => {
-    if (canGoBack) {
-      navigate(-1);
+    if (history.length > 0) {
+      navigate(history[1]);
+      history.shift();
+      setHistory(history);
     }
   };
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setHistory([location.pathname]);
+      return;
+    }
+
+    setHistory(RemoveDuplicates([location.pathname, ...history]));
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]);
 
   return (
     isLoggedIn && (
