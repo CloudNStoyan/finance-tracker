@@ -52,6 +52,7 @@ import {
   editTransaction,
   removeTransaction,
 } from "../state/transactionSlice";
+import useCategories from "../state/useCategories";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -97,9 +98,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
-  const categories = useAppSelector(
-    (state) => state.categoriesReducer.categories
-  );
+  const categories = useCategories();
   const transactions = useAppSelector(
     (state) => state.transactionsReducer.transactions
   );

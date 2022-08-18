@@ -6,16 +6,13 @@ import CheckIcon from "@mui/icons-material/Check";
 import Icons, { IconKey } from "../infrastructure/Icons";
 import IconComponent from "../components/IconComponent";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {
-  Category,
-  createOrEditCategory,
-  deleteCategory,
-  getCategoryById,
-} from "../server-api";
+import { Category, createOrEditCategory, deleteCategory } from "../server-api";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useAppDispatch } from "../state/hooks";
 import { setNotification } from "../state/notificationSlice";
+import useCategories from "../state/useCategories";
+import { addCategory, editCategory } from "../state/categorySlice";
 
 export type UseParamsCategoryType = { categoryId: number };
 
@@ -96,6 +93,8 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
   const [iconKey, setIconKey] = useState<IconKey>("money");
   const [iconIdx, setIconIdx] = useState(0);
 
+  const categories = useCategories();
+
   const [categoryName, setCategoryName] = useState("");
 
   const { categoryId } = useParams();
@@ -105,28 +104,20 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!hasCategoryId) {
+    if (!hasCategoryId || categories.length === 0) {
       return;
     }
 
-    const fetchCategory = async () => {
-      const resp = await getCategoryById(Number(categoryId));
+    const category = categories.find(
+      (c) => c.categoryId === Number(categoryId)
+    );
 
-      if (resp.status !== 200) {
-        return;
-      }
-
-      const category = resp.data;
-
-      setCategoryName(category.name);
-      setColor(category.bgColor);
-      setColorIdx(COLORS.indexOf(category.bgColor));
-      setIconKey(category.icon);
-      setIconIdx(categoryIcons.indexOf(category.icon));
-    };
-
-    void fetchCategory();
-  }, [hasCategoryId, categoryId]);
+    setCategoryName(category.name);
+    setColor(category.bgColor);
+    setColorIdx(COLORS.indexOf(category.bgColor));
+    setIconKey(category.icon);
+    setIconIdx(categoryIcons.indexOf(category.icon));
+  }, [hasCategoryId, categories, categoryId]);
 
   const onColorClick = (bgColor: string, idx: number) => {
     setColor(bgColor);
@@ -161,14 +152,27 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         category.categoryId = Number(categoryId);
       }
 
-      await createOrEditCategory(category);
+      const resp = await createOrEditCategory(category);
 
-      dispatch(
-        setNotification({
-          message: "Category created.",
-          color: "success",
-        })
-      );
+      if (resp.status === 200) {
+        dispatch(editCategory(resp.data));
+        dispatch(
+          setNotification({
+            message: "Category edited.",
+            color: "success",
+          })
+        );
+      }
+      if (resp.status === 201) {
+        dispatch(addCategory(resp.data));
+        dispatch(
+          setNotification({
+            message: "Category created.",
+            color: "success",
+          })
+        );
+      }
+
       navigate("/categories");
     } catch (error) {
       console.log(error);

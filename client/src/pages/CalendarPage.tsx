@@ -10,13 +10,12 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
-import { getCategories, getTransactionsByMonth } from "../server-api";
+import { getTransactionsByMonth } from "../server-api";
 import { setNow, setSelected } from "../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
 import CalendarNavigation from "../components/CalendarNavigation";
-import { categoriesWereFetched, setCategories } from "../state/categorySlice";
 import { addQuery, addTransactions } from "../state/transactionSlice";
 
 const initialNow = new Date();
@@ -31,10 +30,6 @@ const CalendarPage = () => {
 
   const { completedTansactionQueries } = useAppSelector(
     (state) => state.transactionsReducer
-  );
-
-  const { categoriesAreFetched } = useAppSelector(
-    (state) => state.categoriesReducer
   );
 
   const [parsedNow, setParsedNow] = useState<Date>(null);
@@ -58,31 +53,6 @@ const CalendarPage = () => {
       dispatch(setNow(getTime(initialNow)));
     }
   }, [selected, now, dispatch]);
-
-  useEffect(() => {
-    if (categoriesAreFetched) {
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-        dispatch(categoriesWereFetched());
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (parsedNow === null) {

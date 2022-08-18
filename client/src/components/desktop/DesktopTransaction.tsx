@@ -44,6 +44,7 @@ import DesktopPickCategoriesModal from "./DesktopPickCategoriesModal";
 import DesktopManageCategoriesModal from "./DesktopManageCategoriesModal";
 import DesktopCategoryModal from "./DesktopCategoryModal";
 import DesktopDescriptionModal from "./DesktopDescriptionModal";
+import useCategories from "../../state/useCategories";
 
 export type DesktopTransactionProps = {
   open: boolean;
@@ -102,9 +103,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
-  const categories = useAppSelector(
-    (state) => state.categoriesReducer.categories
-  );
+  const categories = useCategories();
 
   const clearFields = () => {
     setValue("");

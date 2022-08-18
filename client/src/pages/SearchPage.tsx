@@ -1,16 +1,12 @@
 import { InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import React, { useEffect, useState } from "react";
-import {
-  getCategories,
-  getTransactionsBySearch,
-  Transaction,
-} from "../server-api";
+import { getTransactionsBySearch, Transaction } from "../server-api";
 import axios from "axios";
 import DefaultCategory from "../state/DefaultCategory";
 import SearchTransaction from "../components/SearchTransaction";
-import { useAppDispatch, useAppSelector } from "../state/hooks";
-import { categoriesWereFetched, setCategories } from "../state/categorySlice";
+import { useAppDispatch } from "../state/hooks";
+import useCategories from "../state/useCategories";
 
 const SearchPage = () => {
   const [alreadySearched, setAlreadySearched] = useState<string[]>([]);
@@ -20,9 +16,7 @@ const SearchPage = () => {
   >([]);
   const [search, setSearch] = useState("");
   const dispatch = useAppDispatch();
-  const { categories, categoriesAreFetched } = useAppSelector(
-    (state) => state.categoriesReducer
-  );
+  const categories = useCategories();
 
   useEffect(() => {
     if (
@@ -60,31 +54,6 @@ const SearchPage = () => {
 
     void fetchApi();
   }, [search, dispatch, alreadySearched, transactions]);
-
-  useEffect(() => {
-    if (categoriesAreFetched) {
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-        dispatch(categoriesWereFetched());
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (search === null || search.trim().length === 0) {

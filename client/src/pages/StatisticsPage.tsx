@@ -2,12 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chart, ArcElement, ChartData, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
-import {
-  Category,
-  getCategories,
-  getTransactionsByMonth,
-  Transaction,
-} from "../server-api";
+import { Category, getTransactionsByMonth, Transaction } from "../server-api";
 import axios from "axios";
 import DefaultCategory from "../state/DefaultCategory";
 import StatisticsPageStyled from "./styles/StatisticsPage.styled";
@@ -18,8 +13,8 @@ import SearchTransaction from "../components/SearchTransaction";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CategoryStat from "../components/CategoryStat";
 import { setNow as setNowCalendar } from "../state/calendarSlice";
-import { categoriesWereFetched, setCategories } from "../state/categorySlice";
 import { addQuery, addTransactions } from "../state/transactionSlice";
+import useCategories from "../state/useCategories";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -100,9 +95,9 @@ const StatisticsPage = () => {
   const allTransactions = useAppSelector(
     (state) => state.transactionsReducer.transactions
   );
-  const { categories, categoriesAreFetched } = useAppSelector(
-    (state) => state.categoriesReducer
-  );
+
+  const categories = useCategories();
+
   const chartRef = useRef();
 
   useEffect(() => {
@@ -142,31 +137,6 @@ const StatisticsPage = () => {
   useEffect(() => {
     dispatch(setNowCalendar(getTime(now)));
   }, [now, dispatch]);
-
-  useEffect(() => {
-    if (categoriesAreFetched) {
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-        dispatch(categoriesWereFetched());
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (now === null) {

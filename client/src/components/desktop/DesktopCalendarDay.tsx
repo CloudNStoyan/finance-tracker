@@ -16,6 +16,7 @@ import DesktopCalendarDayStyled from "../styles/desktop/DesktopCalendarDay.style
 import DesktopCalendarTransaction from "./DesktopCalendarTransaction";
 import { IconButton } from "@mui/material";
 import { Add } from "@mui/icons-material";
+import useCategories from "../../state/useCategories";
 
 export type DesktopCalendarDayProps = {
   date: Date;
@@ -39,9 +40,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   );
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const categories = useAppSelector(
-    (state) => state.categoriesReducer.categories
-  );
+  const categories = useCategories();
 
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState(0);

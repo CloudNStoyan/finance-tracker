@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { ChartData } from "chart.js";
 import {
   Category,
-  getCategories,
   getTransactionsByMonth,
   Transaction,
 } from "../../server-api";
@@ -15,11 +14,8 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { setNow as setNowCalendar } from "../../state/calendarSlice";
 import DesktopStatisticsPageStyled from "../styles/desktop/DesktopStatisticsPage.styled";
 import DesktopStatsPanel from "../../components/desktop/DesktopStatsPanel";
-import {
-  categoriesWereFetched,
-  setCategories,
-} from "../../state/categorySlice";
 import { addQuery, addTransactions } from "../../state/transactionSlice";
+import useCategories from "../../state/useCategories";
 
 export type CategoryData = { [name: string]: number };
 
@@ -96,9 +92,7 @@ const DesktopStatisticsPage = () => {
     (state) => state.transactionsReducer.transactions
   );
 
-  const { categories, categoriesAreFetched } = useAppSelector(
-    (state) => state.categoriesReducer
-  );
+  const categories = useCategories();
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -135,31 +129,6 @@ const DesktopStatisticsPage = () => {
       )
     );
   }, [allTransactions, now]);
-
-  useEffect(() => {
-    if (categoriesAreFetched) {
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-        dispatch(categoriesWereFetched());
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (now === null) {

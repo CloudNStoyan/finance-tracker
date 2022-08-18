@@ -5,11 +5,7 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../../infrastructure/CustomDateUtils";
-import {
-  getCategories,
-  getTransactionsByMonth,
-  Transaction,
-} from "../../server-api";
+import { getTransactionsByMonth, Transaction } from "../../server-api";
 import { setNow, setSelected } from "../../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import CalendarNavigation from "../../components/CalendarNavigation";
@@ -20,10 +16,6 @@ import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
 import { IconButton, InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
-import {
-  categoriesWereFetched,
-  setCategories,
-} from "../../state/categorySlice";
 import { addQuery, addTransactions } from "../../state/transactionSlice";
 
 const initialNow = new Date();
@@ -43,9 +35,6 @@ const DesktopCalendarPage = () => {
 
   const now = useAppSelector((state) => state.calendarReducer.now);
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
-  const categoriesAreFetched = useAppSelector(
-    (state) => state.categoriesReducer.categoriesAreFetched
-  );
 
   const { completedTansactionQueries } = useAppSelector(
     (state) => state.transactionsReducer
@@ -76,31 +65,6 @@ const DesktopCalendarPage = () => {
       dispatch(setNow(getTime(initialNow)));
     }
   }, [dispatch, now, selected]);
-
-  useEffect(() => {
-    if (categoriesAreFetched) {
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-        dispatch(categoriesWereFetched());
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch, categoriesAreFetched]);
 
   useEffect(() => {
     if (parsedNow === null) {
