@@ -4,6 +4,7 @@ import CalendarPage from "../pages/CalendarPage";
 import CategoryPage from "../pages/CategoryPage";
 import LoginPage from "../pages/LoginPage";
 import ManageCategoriesPage from "../pages/ManageCategoriesPage";
+import NotFoundPage from "../pages/NotFoundPage";
 import RegisterPage from "../pages/RegisterPage";
 import SearchPage from "../pages/SearchPage";
 import StatisticsPage from "../pages/StatisticsPage";
@@ -38,7 +39,7 @@ const MobileRoutes = () => {
       <Route path="/categories" element={<ManageCategoriesPage />} />
       <Route path="/search" element={<SearchPage />} />
       <Route path="/stats" element={<StatisticsPage />} />
-      <Route path="*" element={<h2>404</h2>} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
