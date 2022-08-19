@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { ChartData } from "chart.js";
 import {
   Category,
-  getTransactionsByMonth,
+  getStartBalanceByMonth,
+  getTransactionsBeforeAndAfterDate,
   Transaction,
 } from "../../server-api";
 import axios from "axios";
@@ -11,11 +12,15 @@ import { IconButton } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { addMonths, format, getTime, subMonths } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { setNow as setNowCalendar } from "../../state/calendarSlice";
+import {
+  setNow as setNowCalendar,
+  setStartBalance,
+} from "../../state/calendarSlice";
 import DesktopStatisticsPageStyled from "../styles/desktop/DesktopStatisticsPage.styled";
 import DesktopStatsPanel from "../../components/desktop/DesktopStatsPanel";
 import { addQuery, addTransactions } from "../../state/transactionSlice";
 import useCategories from "../../state/useCategories";
+import { fromUnixTimeMs } from "../../infrastructure/CustomDateUtils";
 
 export type CategoryData = { [name: string]: number };
 
@@ -92,6 +97,10 @@ const DesktopStatisticsPage = () => {
     (state) => state.transactionsReducer.transactions
   );
 
+  const { days, startBalanceCache } = useAppSelector(
+    (state) => state.calendarReducer
+  );
+
   const categories = useCategories();
 
   useEffect(() => {
@@ -131,7 +140,49 @@ const DesktopStatisticsPage = () => {
   }, [allTransactions, now]);
 
   useEffect(() => {
-    if (now === null) {
+    if (now === null || days.length === 0) {
+      return;
+    }
+
+    const startDay = fromUnixTimeMs(days[0]);
+
+    const key = `${format(startDay, "dd/MM/yy")}-${format(
+      fromUnixTimeMs(days[days.length - 1]),
+      "dd/MM/yy"
+    )}`;
+
+    const cachedBalance = startBalanceCache[key];
+
+    if (cachedBalance) {
+      dispatch(setStartBalance(cachedBalance));
+      return;
+    }
+
+    const fetchForBalance = async () => {
+      try {
+        const resp = await getStartBalanceByMonth(
+          startDay.getDate(),
+          startDay.getMonth() + 1,
+          startDay.getFullYear()
+        );
+
+        if (resp.status !== 200) {
+          return;
+        }
+
+        dispatch(setStartBalance(resp.data.balance));
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
+          return;
+        }
+      }
+    };
+
+    void fetchForBalance();
+  }, [now, dispatch, startBalanceCache, days]);
+
+  useEffect(() => {
+    if (now === null || days.length === 0) {
       return;
     }
 
@@ -143,9 +194,9 @@ const DesktopStatisticsPage = () => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsByMonth(
-          now.getMonth() + 1,
-          now.getFullYear()
+        const resp = await getTransactionsBeforeAndAfterDate(
+          fromUnixTimeMs(days[0]),
+          fromUnixTimeMs(days[days.length - 1])
         );
 
         if (resp.status !== 200) {
@@ -162,7 +213,7 @@ const DesktopStatisticsPage = () => {
     };
 
     void fetchApi();
-  }, [now, dispatch, completedTansactionQueries]);
+  }, [now, dispatch, completedTansactionQueries, days]);
 
   return (
     <DesktopStatisticsPageStyled isDarkMode={isDarkMode}>
