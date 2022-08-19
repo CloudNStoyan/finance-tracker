@@ -26,12 +26,14 @@ const CalendarTransactionList = () => {
           .filter((transaction) => {
             const date = fromUnixTimeMs(selected);
             const transactionDate = parseJSON(transaction.transactionDate);
+
             if (
               (isAfter(date, transactionDate) &&
                 transaction.repeat === "weekly" &&
                 transactionDate.getDay() === date.getDay()) ||
               (transaction.repeat === "monthly" &&
-                transactionDate.getDate() === date.getDate()) ||
+                transactionDate.getDate() === date.getDate() &&
+                isAfter(date, transactionDate)) ||
               (transaction.repeat === "yearly" &&
                 transactionDate.getDate() === date.getDate() &&
                 transactionDate.getMonth() === date.getMonth())

@@ -80,14 +80,14 @@ public class TransactionService
             COALESCE(sum(
                 case when type = 'income' then
                     case when repeat = 'weekly' then ((((@fullDate - transaction_date) / 7) + 1) * value)
-                        else case when repeat = 'monthly' then ((DATE_PART('month', AGE(@fullDate, transaction_date)) + 1) * value)
-                            else case when repeat = 'yearly' then (GREATEST((@year - EXTRACT(year FROM transaction_date)), 1) * value)
+                        else case when repeat = 'monthly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) * 12) + DATE_PART('month', AGE(@fullDate, transaction_date)) + 1) * value)
+                            else case when repeat = 'yearly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) + 1)) * value)
                                 else value
                 end end end
             else
                 case when repeat = 'weekly' then ((((@fullDate - transaction_date) / 7) + 1) * value) * -1
-                    else case when repeat = 'monthly' then ((DATE_PART('month', AGE(@fullDate, transaction_date)) + 1) * value) * -1
-                        else case when repeat = 'yearly' then (GREATEST(((@year - EXTRACT(year FROM transaction_date))), 1) * value) * -1
+                    else case when repeat = 'monthly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) * 12) + DATE_PART('month', AGE(@fullDate, transaction_date)) + 1) * value) * -1
+                        else case when repeat = 'yearly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) + 1)) * value) * -1
                             else value * -1
                 end end end
             end
@@ -96,7 +96,7 @@ public class TransactionService
 
         return await this.Database.Execute<decimal>(
             sql,
-            new NpgsqlParameter("userId", userId), new NpgsqlParameter("fullDate", date), new NpgsqlParameter("year", date.Year));
+            new NpgsqlParameter("userId", userId), new NpgsqlParameter("fullDate", date));
     }
 
     public async Task<TransactionDTO[]> GetAllByUserId(int userId)

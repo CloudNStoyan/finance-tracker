@@ -2,28 +2,36 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   addDays,
   endOfMonth,
+  format,
   getDaysInMonth,
   getTime,
   startOfMonth,
   subDays,
 } from "date-fns";
-import { FindDays, fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
-import { Transaction } from "../server-api";
+import {
+  FindDays,
+  fromUnixTimeMs,
+  isValidDate,
+} from "../infrastructure/CustomDateUtils";
 
-export type TransactionCache = {
-  [cacheKey: string]: Transaction[];
+export type StartBalanceCache = {
+  [cacheKey: string]: number;
 };
 
 export type CalendarState = {
   days: number[];
   now: number;
   selected: number;
+  startBalance: number;
+  startBalanceCache: StartBalanceCache;
 };
 
 const initialState: CalendarState = {
   days: [],
   now: null,
   selected: null,
+  startBalance: null,
+  startBalanceCache: {},
 };
 
 const calendarSlice = createSlice({
@@ -71,8 +79,23 @@ const calendarSlice = createSlice({
     setSelected(state, action: PayloadAction<number>) {
       state.selected = action.payload;
     },
+    setStartBalance(state, action: PayloadAction<number>) {
+      const afterDate = fromUnixTimeMs(state.days[0]);
+      const beforeDate = fromUnixTimeMs(state.days[state.days.length - 1]);
+      if (!isValidDate(afterDate) || !isValidDate(beforeDate)) {
+        return;
+      }
+
+      const key = `${format(afterDate, "dd/MM/yy")}-${format(
+        beforeDate,
+        "dd/MM/yy"
+      )}`;
+
+      state.startBalanceCache[key] = action.payload;
+      state.startBalance = action.payload;
+    },
   },
 });
 
-export const { setNow, setSelected } = calendarSlice.actions;
+export const { setNow, setSelected, setStartBalance } = calendarSlice.actions;
 export default calendarSlice.reducer;

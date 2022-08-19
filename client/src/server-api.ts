@@ -37,6 +37,10 @@ export interface User {
   username: string;
 }
 
+export interface Balance {
+  balance: number;
+}
+
 export const login = async (
   username: string,
   password: string,
@@ -123,9 +127,24 @@ export const getTransactions = async () => {
   return axios.get<Transaction[]>(`${SERVER_URL}/transaction/all`);
 };
 
-export const getTransactionsByMonth = async (month: number, year: number) => {
+export const getTransactionsBeforeAndAfterDate = async (
+  afterDate: Date,
+  beforeDate: Date
+) => {
   return axios.get<Transaction[]>(
-    `${SERVER_URL}/transaction/all/month?month=${month}&year=${year}`
+    `${SERVER_URL}/transaction/all/range?afterDate=${afterDate.toJSON()}&beforeDate=${beforeDate.toJSON()}`
+  );
+};
+
+export const getStartBalanceByMonth = async (
+  date: number,
+  month: number,
+  year: number
+) => {
+  return axios.get<Balance>(
+    `${SERVER_URL}/transaction/balance?date=${year}-${month
+      .toString()
+      .padStart(2, "0")}-${date.toString().padStart(2, "0")}`
   );
 };
 
