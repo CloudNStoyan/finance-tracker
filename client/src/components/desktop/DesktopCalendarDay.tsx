@@ -1,4 +1,11 @@
-import { format, isBefore, parseJSON } from "date-fns";
+import {
+  differenceInDays,
+  format,
+  isAfter,
+  isBefore,
+  parseJSON,
+  setYear,
+} from "date-fns";
 import React, {
   FunctionComponent,
   useCallback,
@@ -37,6 +44,10 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
 }) => {
   const allTransactions = useAppSelector(
     (state) => state.transactionsReducer.transactions
+  );
+
+  const { days, startBalance } = useAppSelector(
+    (state) => state.calendarReducer
   );
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -104,6 +115,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
 
   useEffect(() => {
     if (transactions.length === 0) {
+      setTotal(0);
       return;
     }
 
@@ -120,29 +132,123 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
 
   useEffect(() => {
     setTransactions(
-      allTransactions.filter((transaction) =>
-        DatesAreEqualWithoutTime(parseJSON(transaction.transactionDate), date)
-      )
+      allTransactions.filter((transaction) => {
+        const transactionDate = parseJSON(transaction.transactionDate);
+
+        if (
+          (isAfter(date, transactionDate) &&
+            transaction.repeat === "weekly" &&
+            transactionDate.getDay() === date.getDay()) ||
+          (transaction.repeat === "monthly" &&
+            transactionDate.getDate() === date.getDate() &&
+            isAfter(date, transactionDate)) ||
+          (transaction.repeat === "yearly" &&
+            transactionDate.getDate() === date.getDate() &&
+            transactionDate.getMonth() === date.getMonth())
+        ) {
+          return true;
+        }
+
+        return DatesAreEqualWithoutTime(transactionDate, date);
+      })
     );
 
-    setBalance(
-      allTransactions
-        .filter((transaction) => {
-          const transactionDate = parseJSON(transaction.transactionDate);
-          return (
-            isBefore(transactionDate, date) ||
-            DatesAreEqualWithoutTime(transactionDate, date)
-          );
-        })
-        .reduce(
-          (state, transaction) =>
-            transaction.type === "expense"
-              ? state - transaction.value
-              : state + transaction.value,
-          0
-        )
+    const eligableTransactions = allTransactions
+      .filter((transaction) => {
+        const transactionDate = parseJSON(transaction.transactionDate);
+        const startDay = fromUnixTimeMs(days[0]);
+
+        if (DatesAreEqualWithoutTime(date, transactionDate)) {
+          return true;
+        }
+
+        if (
+          isBefore(transactionDate, date) &&
+          isAfter(transactionDate, startDay)
+        ) {
+          return true;
+        }
+
+        if (
+          (transaction.repeat === "monthly" ||
+            transaction.repeat === "weekly") &&
+          isBefore(transactionDate, date)
+        ) {
+          return true;
+        }
+
+        const futureYearlyDate = setYear(transactionDate, date.getFullYear());
+
+        if (DatesAreEqualWithoutTime(futureYearlyDate, date)) {
+          return true;
+        }
+
+        if (
+          transaction.repeat === "yearly" &&
+          isAfter(futureYearlyDate, startDay) &&
+          isAfter(date, futureYearlyDate) &&
+          isBefore(futureYearlyDate, fromUnixTimeMs(days[days.length - 1]))
+        ) {
+          return true;
+        }
+
+        return false;
+      })
+      .map((transaction) => {
+        let transactionValue = transaction.value;
+
+        if (transaction.repeat === null) {
+          return transaction.type === "expense"
+            ? transactionValue * -1
+            : transactionValue;
+        }
+
+        const transactionDate = parseJSON(transaction.transactionDate);
+
+        if (transaction.repeat === "monthly") {
+          if (
+            (transactionDate.getDate() <= date.getDate() &&
+              date.getMonth() === month) ||
+            (date.getMonth() > month &&
+              date.getDate() < transactionDate.getDate())
+          ) {
+            transactionValue = transaction.value;
+          } else if (
+            date.getMonth() > month &&
+            date.getDate() >= transactionDate.getDate()
+          ) {
+            transactionValue = transactionValue * 2;
+          } else {
+            return 0;
+          }
+        }
+
+        if (transaction.repeat === "weekly") {
+          const startDay = fromUnixTimeMs(days[transactionDate.getDay() - 1]);
+
+          let daysDiff = differenceInDays(date, transactionDate);
+
+          if (isAfter(startDay, transactionDate)) {
+            daysDiff = differenceInDays(date, startDay);
+          }
+
+          const multiplier = Math.floor(daysDiff / 7) + 1;
+
+          transactionValue = transactionValue * multiplier;
+        }
+
+        return transaction.type === "expense"
+          ? transactionValue * -1
+          : transactionValue;
+      });
+
+    const newBalance = eligableTransactions.reduce(
+      (state, value) => state + value,
+      0
     );
-  }, [allTransactions, date]);
+
+    setBalance(newBalance + startBalance);
+  }, [allTransactions, date, month, days, startBalance]);
 
   const [isSelected, setIsSelected] = useState(false);
   const selected = fromUnixTimeMs(

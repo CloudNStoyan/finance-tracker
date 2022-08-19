@@ -5,8 +5,16 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../../infrastructure/CustomDateUtils";
-import { getTransactionsByMonth, Transaction } from "../../server-api";
-import { setNow, setSelected } from "../../state/calendarSlice";
+import {
+  getStartBalanceByMonth,
+  getTransactionsBeforeAndAfterDate,
+  Transaction,
+} from "../../server-api";
+import {
+  setNow,
+  setSelected,
+  setStartBalance,
+} from "../../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import CalendarNavigation from "../../components/CalendarNavigation";
 import DesktopTransaction from "../../components/desktop/DesktopTransaction";
@@ -33,8 +41,11 @@ const DesktopCalendarPage = () => {
   const [showSearchInput, setShowSearchInput] = useState(false);
   const searchInputRef = useRef<HTMLDivElement>();
 
-  const now = useAppSelector((state) => state.calendarReducer.now);
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
+
+  const { now, startBalanceCache } = useAppSelector(
+    (state) => state.calendarReducer
+  );
 
   const { completedTansactionQueries } = useAppSelector(
     (state) => state.transactionsReducer
@@ -71,6 +82,46 @@ const DesktopCalendarPage = () => {
       return;
     }
 
+    const key = `${format(days[0], "dd/MM/yy")}-${format(
+      days[days.length - 1],
+      "dd/MM/yy"
+    )}`;
+
+    const cachedBalance = startBalanceCache[key];
+
+    if (cachedBalance) {
+      dispatch(setStartBalance(cachedBalance));
+      return;
+    }
+
+    const fetchForBalance = async () => {
+      try {
+        const resp = await getStartBalanceByMonth(
+          days[0].getDate(),
+          days[0].getMonth() + 1,
+          days[0].getFullYear()
+        );
+
+        if (resp.status !== 200) {
+          return;
+        }
+
+        dispatch(setStartBalance(resp.data.balance));
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
+          return;
+        }
+      }
+    };
+
+    void fetchForBalance();
+  }, [parsedNow, dispatch, startBalanceCache, days]);
+
+  useEffect(() => {
+    if (parsedNow === null) {
+      return;
+    }
+
     const query = format(parsedNow, "yyyy-MMMM");
 
     if (completedTansactionQueries.includes(query)) {
@@ -79,9 +130,9 @@ const DesktopCalendarPage = () => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsByMonth(
-          parsedNow.getMonth() + 1,
-          parsedNow.getFullYear()
+        const resp = await getTransactionsBeforeAndAfterDate(
+          days[0],
+          days[days.length - 1]
         );
 
         if (resp.status !== 200) {
@@ -98,7 +149,7 @@ const DesktopCalendarPage = () => {
     };
 
     void fetchApi();
-  }, [parsedNow, dispatch, completedTansactionQueries]);
+  }, [parsedNow, dispatch, completedTansactionQueries, days]);
 
   return (
     <DesktopCalendarPageStyled
