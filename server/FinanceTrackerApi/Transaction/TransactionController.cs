@@ -147,6 +147,52 @@ public class TransactionController : ControllerBase
         return this.Ok(await this.TransactionService.GetAllByDate(DateOnly.FromDateTime(transactionDate!.Value), session.UserId.Value));
     }
 
+    [HttpGet("/transaction/all/range")]
+    public async Task<ActionResult<TransactionDTO[]>> GetAllByDateRange([FromQuery] DateTime? beforeDate, [FromQuery] DateTime? afterDate)
+    {
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !session.UserId.HasValue)
+        {
+            return this.Unauthorized();
+        }
+
+        if (!beforeDate.HasValue || !afterDate.HasValue)
+        {
+            return this.BadRequest();
+        }
+
+        return this.Ok(await this.TransactionService.GetAllByDateRange(DateOnly.FromDateTime(beforeDate!.Value), DateOnly.FromDateTime(afterDate!.Value), session.UserId.Value));
+    }
+
+    [HttpGet("/transaction/balance")]
+    public async Task<ActionResult<BalanceDTO>> GetBalanceBeforeDate([FromQuery] DateTime? date)
+    {
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession || !session.UserId.HasValue)
+        {
+            return this.Unauthorized();
+        }
+
+        if (!date.HasValue)
+        {
+            return this.BadRequest();
+        }
+
+        var dto = new BalanceDTO
+        {
+            Balance = await this.TransactionService.GetBalanceBeforeDate(DateOnly.FromDateTime(date.Value),
+                session.UserId.Value)
+        };
+
+        return this.Ok(dto);
+    }
+
     [HttpGet("/transaction/all/month")]
     public async Task<ActionResult<TransactionDTO[]>> GetAllByMonth([FromQuery] int month, [FromQuery] int year)
     {
