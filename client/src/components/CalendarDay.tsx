@@ -160,8 +160,6 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
           : transactionValue;
       });
 
-    console.log(eligableTransactions, date);
-
     const newBalance = eligableTransactions.reduce(
       (state, value) => state + value,
       0
