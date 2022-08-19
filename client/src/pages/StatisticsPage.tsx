@@ -2,7 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chart, ArcElement, ChartData, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
-import { Category, getTransactionsByMonth, Transaction } from "../server-api";
+import {
+  Category,
+  getStartBalanceByMonth,
+  getTransactionsBeforeAndAfterDate,
+  Transaction,
+} from "../server-api";
 import axios from "axios";
 import DefaultCategory from "../state/DefaultCategory";
 import StatisticsPageStyled from "./styles/StatisticsPage.styled";
@@ -12,9 +17,13 @@ import { addMonths, format, getTime, subMonths } from "date-fns";
 import SearchTransaction from "../components/SearchTransaction";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CategoryStat from "../components/CategoryStat";
-import { setNow as setNowCalendar } from "../state/calendarSlice";
+import {
+  setNow as setNowCalendar,
+  setStartBalance,
+} from "../state/calendarSlice";
 import { addQuery, addTransactions } from "../state/transactionSlice";
 import useCategories from "../state/useCategories";
+import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -96,6 +105,10 @@ const StatisticsPage = () => {
     (state) => state.transactionsReducer.transactions
   );
 
+  const { days, startBalanceCache } = useAppSelector(
+    (state) => state.calendarReducer
+  );
+
   const categories = useCategories();
 
   const chartRef = useRef();
@@ -139,7 +152,49 @@ const StatisticsPage = () => {
   }, [now, dispatch]);
 
   useEffect(() => {
-    if (now === null) {
+    if (now === null || days.length === 0) {
+      return;
+    }
+
+    const startDay = fromUnixTimeMs(days[0]);
+
+    const key = `${format(startDay, "dd/MM/yy")}-${format(
+      fromUnixTimeMs(days[days.length - 1]),
+      "dd/MM/yy"
+    )}`;
+
+    const cachedBalance = startBalanceCache[key];
+
+    if (cachedBalance) {
+      dispatch(setStartBalance(cachedBalance));
+      return;
+    }
+
+    const fetchForBalance = async () => {
+      try {
+        const resp = await getStartBalanceByMonth(
+          startDay.getDate(),
+          startDay.getMonth() + 1,
+          startDay.getFullYear()
+        );
+
+        if (resp.status !== 200) {
+          return;
+        }
+
+        dispatch(setStartBalance(resp.data.balance));
+      } catch (err) {
+        if (!axios.isAxiosError(err)) {
+          return;
+        }
+      }
+    };
+
+    void fetchForBalance();
+  }, [now, dispatch, startBalanceCache, days]);
+
+  useEffect(() => {
+    if (now === null || days.length === 0) {
       return;
     }
 
@@ -151,9 +206,9 @@ const StatisticsPage = () => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsByMonth(
-          now.getMonth() + 1,
-          now.getFullYear()
+        const resp = await getTransactionsBeforeAndAfterDate(
+          fromUnixTimeMs(days[0]),
+          fromUnixTimeMs(days[days.length - 1])
         );
 
         if (resp.status !== 200) {
@@ -170,7 +225,7 @@ const StatisticsPage = () => {
     };
 
     void fetchApi();
-  }, [now, dispatch, completedTansactionQueries]);
+  }, [now, dispatch, completedTansactionQueries, days]);
 
   return (
     <StatisticsPageStyled>
