@@ -168,7 +168,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("/transaction/balance")]
-    public async Task<ActionResult<BalanceDTO>> GetBalanceBeforeDate([FromQuery] DateTime? date)
+    public async Task<ActionResult<decimal>> GetBalanceByDate([FromQuery] DateTime? date)
     {
         var session = this.SessionService.Session;
 
@@ -184,13 +184,46 @@ public class TransactionController : ControllerBase
             return this.BadRequest();
         }
 
-        var dto = new BalanceDTO
-        {
-            Balance = await this.TransactionService.GetBalanceBeforeDate(DateOnly.FromDateTime(date.Value),
-                session.UserId.Value)
-        };
+        var transactions = await this.TransactionService.GetTransactionsOnAndBeforeDate(
+            DateOnly.FromDateTime(date!.Value),
+            session.UserId.Value);
 
-        return this.Ok(dto);
+        decimal balance = 0;
+
+        foreach (var transaction in transactions)
+        {
+            int multiplier = 0;
+
+            var tillDate = (transaction.RepeatEnd != null && transaction.RepeatEnd < date) ? transaction.RepeatEnd.Value : date.Value;
+
+            if (transaction.Repeat == "weekly")
+            {
+                multiplier = DateUtils.WeeksDifference(tillDate, transaction.TransactionDate);
+            }
+
+            if (transaction.Repeat == "monthly")
+            {
+                multiplier = DateUtils.MonthsDifference(tillDate, transaction.TransactionDate);
+            }
+
+            if (transaction.Repeat == "yearly")
+            {
+                multiplier = DateUtils.YearsDifference(tillDate, transaction.TransactionDate);
+            }
+
+            decimal transactionValue = multiplier > 0 ? transaction.Value * (multiplier + 1) : transaction.Value;
+
+            if (transaction.Type == "expense")
+            {
+                balance -= transactionValue;
+            }
+            else
+            {
+                balance += transactionValue;
+            }
+        }
+
+        return this.Ok(new BalanceDTO {Balance = balance});
     }
 
     [HttpGet("/transaction/all/month")]

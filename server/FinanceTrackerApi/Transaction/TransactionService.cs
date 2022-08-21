@@ -73,30 +73,13 @@ public class TransactionService
         return pocos.Select(TransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<decimal> GetBalanceBeforeDate(DateOnly date, int userId)
+    public async Task<TransactionDTO[]> GetTransactionsOnAndBeforeDate(DateOnly date, int userId)
     {
-        const string sql = @"
-        SELECT (
-            COALESCE(sum(
-                case when type = 'income' then
-                    case when repeat = 'weekly' then ((((@fullDate - transaction_date) / 7) + 1) * value)
-                        else case when repeat = 'monthly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) * 12) + DATE_PART('month', AGE(@fullDate, transaction_date)) + 1) * value)
-                            else case when repeat = 'yearly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) + 1)) * value)
-                                else value
-                end end end
-            else
-                case when repeat = 'weekly' then ((((@fullDate - transaction_date) / 7) + 1) * value) * -1
-                    else case when repeat = 'monthly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) * 12) + DATE_PART('month', AGE(@fullDate, transaction_date)) + 1) * value) * -1
-                        else case when repeat = 'yearly' then (((DATE_PART('year', AGE(@fullDate, transaction_date)) + 1)) * value) * -1
-                            else value * -1
-                end end end
-            end
-            ), 0::money)
-    ) FROM transaction WHERE user_id=@userId AND transaction_date < @fullDate;";
+        var pocos = await this.Database.Query<TransactionPoco>(
+            "SELECT * FROM transaction WHERE user_id=@userId AND transaction_date <= @date;",
+            new NpgsqlParameter("userId", userId), new NpgsqlParameter("date", date));
 
-        return await this.Database.Execute<decimal>(
-            sql,
-            new NpgsqlParameter("userId", userId), new NpgsqlParameter("fullDate", date));
+        return pocos.Select(TransactionDTO.FromPoco).ToArray();
     }
 
     public async Task<TransactionDTO[]> GetAllByUserId(int userId)

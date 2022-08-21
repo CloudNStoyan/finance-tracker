@@ -30,6 +30,9 @@ public class TransactionPoco
     [Column(Name = "transaction_date")]
     public DateTime TransactionDate { get; set; }
 
+    [Column(Name = "repeat_end")]
+    public DateTime? RepeatEnd { get; set; }
+
     [Column(Name = "details")]
     public string? Details { get; set; }
 

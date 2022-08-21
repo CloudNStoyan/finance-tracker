@@ -22,6 +22,8 @@ public class TransactionDTO
     [Required]
     public DateTime TransactionDate { get; set; }
 
+    public DateTime? RepeatEnd { get; set; }
+
     public int? UserId { get; set; }
 
     [Required]
@@ -44,6 +46,7 @@ public class TransactionDTO
         Type = poco.Type,
         TransactionDate = poco.TransactionDate,
         UserId = poco.UserId,
-        Repeat = poco.Repeat
+        Repeat = poco.Repeat,
+        RepeatEnd = poco.RepeatEnd
     };
 }
