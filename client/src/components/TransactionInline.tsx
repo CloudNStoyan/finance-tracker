@@ -1,7 +1,9 @@
-import React, { FunctionComponent } from "react";
+import { format, parseJSON } from "date-fns";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import { Category, Transaction } from "../server-api";
+import { useAppSelector } from "../state/hooks";
 import TransactionInlineStyled from "./styles/TransactionInline.styled";
 
 export type TransactionInlineProps = {
@@ -14,10 +16,37 @@ const TransactionInline: FunctionComponent<TransactionInlineProps> = ({
   category,
 }) => {
   const navigate = useNavigate();
+  const selected = useAppSelector((state) => state.calendarReducer.selected);
+  const [parsedSelected, setParsedSelected] = useState<Date>(null);
+
+  useEffect(() => {
+    if (!selected) {
+      return;
+    }
+
+    setParsedSelected(new Date(selected));
+  }, [selected]);
+
+  const handleClick = () => {
+    if (
+      transaction.repeat !== null &&
+      parsedSelected !== parseJSON(transaction.transactionDate)
+    ) {
+      navigate(
+        `/transaction/${transaction.transactionId}?initialDate=${format(
+          parsedSelected,
+          "yyyy-MM-dd"
+        )}`
+      );
+      return;
+    }
+
+    navigate(`/transaction/${transaction.transactionId}`);
+  };
 
   return (
     <TransactionInlineStyled
-      onClick={() => navigate(`/transaction/${transaction.transactionId}`)}
+      onClick={handleClick}
       bgColor={category.bgColor}
       className="text-white flex rounded p-2"
     >

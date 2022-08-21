@@ -40,11 +40,11 @@ import {
 } from "../server-api";
 import axios from "axios";
 import { setNotification } from "../state/notificationSlice";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
-import { format, parseJSON } from "date-fns";
+import { format, parseISO, parseJSON } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 import DefaultCategory from "../state/DefaultCategory";
 import { setCategories } from "../state/categorySlice";
@@ -73,9 +73,9 @@ const CustomTextField = styled(TextField)({
   },
 });
 
-const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
-  hasTransactionId,
-}) => {
+const TransactionPage: FunctionComponent<{
+  hasTransactionId: boolean;
+}> = ({ hasTransactionId }) => {
   const calendarSelected = useAppSelector(
     (state) => state.calendarReducer.selected
   );
@@ -108,6 +108,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
 
   const { transactionId } = useParams();
   const navigate = useNavigate();
+  const query = useQuery();
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -167,6 +168,16 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
           : parseJSON(transaction.repeatEnd)
       );
       setShowRepeatEnd(transaction.repeatEnd !== null);
+
+      const initialDateRaw = query.get("initialDate");
+      if (initialDateRaw) {
+        try {
+          const initialDate = parseISO(initialDateRaw);
+          setDate(initialDate);
+        } catch (error) {
+          return;
+        }
+      }
     };
 
     const fetchTransaction = async () => {
@@ -221,6 +232,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     isFetchingTransaction,
     dispatch,
     navigate,
+    query,
   ]);
 
   const handleDateChange = (newDate: Date | null) => {
@@ -568,5 +580,11 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     </TransactionPageStyled>
   );
 };
+
+function useQuery() {
+  const { search } = useLocation();
+
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
 
 export default TransactionPage;
