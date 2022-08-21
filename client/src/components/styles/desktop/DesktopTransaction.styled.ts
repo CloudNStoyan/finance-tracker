@@ -9,6 +9,12 @@ const DesktopTransactionStyled = styled.div<{
   display: flex;
   flex-flow: column nowrap;
 
+  .repeat-end {
+    display: flex;
+    margin-left: 42px;
+    height: 42px;
+  }
+
   .description-btn-text {
     text-align: left;
     text-overflow: ellipsis;

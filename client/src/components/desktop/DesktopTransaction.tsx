@@ -7,6 +7,7 @@ import {
   MenuItem,
   Select,
   styled,
+  Switch,
   TextField,
 } from "@mui/material";
 import {
@@ -100,6 +101,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [category, setCategory] = useState<Category | undefined>();
   const [editCategory, setEditCategory] = useState<Category>(null);
   const [description, setDescription] = useState("");
+  const [repeatEnd, setRepeatEnd] = useState(new Date());
+  const [showRepeatEnd, setShowRepeatEnd] = useState(false);
+  const [repeatDateInputOpen, setRepeatDateInputOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -113,6 +117,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setDate(new Date());
     setCategory(DefaultCategory);
     setDescription("");
+    setRepeat("none");
+    setRepeatEnd(null);
+    setShowRepeatEnd(false);
   };
 
   useEffect(() => {
@@ -142,6 +149,13 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
     setDescription(transaction.details ?? "");
+    setRepeat(transaction.repeat ?? "none");
+    setRepeatEnd(
+      transaction.repeatEnd === null
+        ? new Date()
+        : parseJSON(transaction.repeatEnd)
+    );
+    setShowRepeatEnd(transaction.repeatEnd !== null);
   }, [transaction, categories, open]);
 
   useEffect(
@@ -151,6 +165,10 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
   const handleDateChange = (newDate: Date | null) => {
     setDate(newDate);
+  };
+
+  const handleRepeatDateChange = (newDate: Date | null) => {
+    setRepeatEnd(newDate);
   };
 
   const handleRepeatChange = (newRepeat: string) => {
@@ -174,6 +192,10 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       transactionDate: format(date, "yyyy-MM-dd") + "T00:00:00",
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
+      repeat:
+        repeat === "weekly" || repeat === "monthly" || repeat === "yearly"
+          ? repeat
+          : null,
     };
 
     if (description.trim().length > 0) {
@@ -186,6 +208,10 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
     if (category !== undefined) {
       newTransaction.categoryId = category.categoryId;
+    }
+
+    if (showRepeatEnd && repeat !== "none") {
+      newTransaction.repeatEnd = repeatEnd.toJSON();
     }
 
     try {
@@ -233,6 +259,14 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       }
     }
   };
+
+  useEffect(() => {
+    if (repeat !== "none") {
+      return;
+    }
+
+    setShowRepeatEnd(false);
+  }, [repeat]);
 
   return (
     <Dialog
@@ -412,11 +446,65 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   sx={{ border: 0 }}
                 >
                   <MenuItem value={"none"}>Does not repeat</MenuItem>
-                  <MenuItem value={"week"}>Repeat every week</MenuItem>
-                  <MenuItem value={"month"}>Repeat every month</MenuItem>
-                  <MenuItem value={"year"}>Repeat every year</MenuItem>
+                  <MenuItem value={"weekly"}>Repeat every week</MenuItem>
+                  <MenuItem value={"monthly"}>Repeat every month</MenuItem>
+                  <MenuItem value={"yearly"}>Repeat every year</MenuItem>
                 </Select>
               </div>
+              {repeat !== "none" && (
+                <div className="repeat-end">
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={showRepeatEnd}
+                        onChange={(e) => setShowRepeatEnd(e.target.checked)}
+                      />
+                    }
+                    label="End"
+                    labelPlacement="start"
+                  />
+                  {showRepeatEnd && (
+                    <div>
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DesktopDatePicker
+                          inputFormat="dd MMM yyy"
+                          disableMaskedInput={true}
+                          value={repeatEnd}
+                          onChange={handleRepeatDateChange}
+                          open={repeatDateInputOpen}
+                          onClose={() => setRepeatDateInputOpen(false)}
+                          renderInput={(params) => (
+                            <div className="date-picker-render flex items-center">
+                              {repeatEnd && (
+                                <TextField
+                                  {...params}
+                                  variant="standard"
+                                  size="small"
+                                  className="date-picker-input"
+                                  InputProps={{
+                                    startAdornment: (
+                                      <IconButton
+                                        className="p-0"
+                                        onClick={() =>
+                                          setRepeatDateInputOpen(true)
+                                        }
+                                      >
+                                        <ScheduleOutlined className="date-picker-icon" />
+                                      </IconButton>
+                                    ),
+                                    disableUnderline: true,
+                                  }}
+                                />
+                              )}
+                            </div>
+                          )}
+                        />
+                      </LocalizationProvider>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Button
                 onClick={() => setCurrentModal("description")}
                 size="large"

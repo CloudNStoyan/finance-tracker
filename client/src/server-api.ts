@@ -31,6 +31,7 @@ export interface Transaction {
   value: number;
   details?: string;
   repeat?: "weekly" | "monthly" | "yearly";
+  repeatEnd?: string;
 }
 
 export interface User {
