@@ -19,7 +19,7 @@ public class TransactionController : ControllerBase
         this.SessionService = sessionService;
     }
 
-    public async Task<ActionResult> Delete([FromQuery] int? transactionId)
+    public async Task<ActionResult> Delete([FromQuery] int? transactionId, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis, [FromQuery] DateTime? date)
     {
         if (transactionId == null)
         {
@@ -42,13 +42,33 @@ public class TransactionController : ControllerBase
             return this.Unauthorized();
         }
 
+        if (date.HasValue)
+        {
+            transaction.TransactionDate = date.Value;
+        }
+
+        if (transaction.Repeat != null && thisAndForward.HasValue && thisAndForward.Value)
+        {
+            //if is repeat and the query told us we w2ant to change this repeat and all others forward
+            var dto = await this.TransactionService.DeleteRepeatInstanceAndForward(TransactionDTO.FromPoco(transaction));
+
+            return this.Ok(dto);
+        }
+
+        if (transaction.Repeat != null && onlyThis.HasValue && onlyThis.Value)
+        {
+            var dto = await this.TransactionService.DeleteRepeatInstance(TransactionDTO.FromPoco(transaction));
+
+            return this.Ok(dto);
+        }
+
         await this.TransactionService.Delete(transaction);
 
         return this.Ok();
     }
 
     [HttpPut]
-    public async Task<ActionResult<TransactionDTO>> Edit([FromBody] TransactionDTO inputDto)
+    public async Task<ActionResult<TransactionDTO>> Edit([FromBody] TransactionDTO inputDto, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -79,6 +99,21 @@ public class TransactionController : ControllerBase
         }
 
         inputDto.UserId = session.UserId;
+
+        if (inputDto.Repeat != null && thisAndForward.HasValue && thisAndForward.Value)
+        {
+            //if is repeat and the query told us we w2ant to change this repeat and all others forward
+            var dto = await this.TransactionService.UpdateRepeatInstanceAndForward(inputDto);
+
+            return this.Ok(dto);
+        }
+
+        if (inputDto.Repeat != null && onlyThis.HasValue && onlyThis.Value)
+        {
+            var dto = await this.TransactionService.UpdateRepeatInstance(inputDto);
+
+            return this.Ok(dto);
+        }
 
         await this.TransactionService.Update(TransactionService.PocoFromDto(inputDto));
 

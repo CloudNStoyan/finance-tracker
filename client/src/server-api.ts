@@ -1,4 +1,5 @@
 import axios from "axios";
+import { format } from "date-fns";
 import { IconKey } from "./infrastructure/Icons";
 
 const SERVER_URL = "http://localhost:5010";
@@ -98,8 +99,18 @@ export const deleteCategory = async (categoryId: number) => {
   );
 };
 
-export const createOrEditTransaction = async (transaction: Transaction) => {
-  const url = `${SERVER_URL}/transaction`;
+export const createOrEditTransaction = async (
+  transaction: Transaction,
+  thisAndForward?: boolean,
+  onlyThis?: boolean
+) => {
+  const url = `${SERVER_URL}/transaction${
+    thisAndForward === true
+      ? "?thisAndForward=true"
+      : onlyThis === true
+      ? "?onlyThis=true"
+      : ""
+  }`;
 
   if (
     Number.isInteger(transaction.transactionId) &&
@@ -118,9 +129,21 @@ export const getTransactionById = async (transactionId: number) => {
   );
 };
 
-export const deleteTransaction = async (transactionId: number) => {
+export const deleteTransaction = async (
+  transactionId: number,
+  thisAndForward?: boolean,
+  onlyThis?: boolean,
+  date?: Date
+) => {
+  const formatDate = date !== null ? format(date, "yyyy-MM-dd") : null;
   return axios.delete<Transaction>(
-    `${SERVER_URL}/transaction?transactionId=${transactionId}`
+    `${SERVER_URL}/transaction?transactionId=${transactionId}${
+      thisAndForward === true
+        ? "&thisAndForward=true&date=" + formatDate
+        : onlyThis === true
+        ? "&onlyThis=true&date=" + formatDate
+        : ""
+    }`
   );
 };
 

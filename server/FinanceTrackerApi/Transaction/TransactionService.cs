@@ -128,4 +128,236 @@ public class TransactionService
     {
         await this.Database.Delete(poco);
     }
+
+    public async Task<TransactionDTO> UpdateRepeatInstance(TransactionDTO inputDto)
+    {
+        if (!inputDto.TransactionId.HasValue)
+        {
+            throw new Exception("Transaction ID was null");
+        }
+
+        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
+
+        if (originalTransaction!.TransactionDate == inputDto.TransactionDate)
+        {
+            var originalRepeatEnd = originalTransaction!.RepeatEnd;
+            string? originalRepeat = originalTransaction.Repeat;
+
+            inputDto.RepeatEnd = null;
+            inputDto.Repeat = null;
+
+            await this.Update(PocoFromDto(inputDto));
+            // updating the transaction original repeat end to before this day
+
+            var newStartingDate = inputDto.TransactionDate;
+
+            if (originalRepeat == "weekly")
+            {
+                newStartingDate = newStartingDate.AddDays(7);
+            }
+
+            if (originalRepeat == "monthly")
+            {
+                newStartingDate = newStartingDate.AddMonths(1);
+            }
+
+            if (originalRepeat == "yearly")
+            {
+                newStartingDate = newStartingDate.AddYears(1);
+            }
+
+            if (newStartingDate > originalRepeatEnd)
+            {
+                // we only want to create the new series of transactions only if there are occurrences left
+                return inputDto;
+            }
+
+            var newRepeatedTransactions = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            newRepeatedTransactions.Repeat = originalRepeat;
+            newRepeatedTransactions.RepeatEnd = originalRepeatEnd;
+            newRepeatedTransactions.TransactionDate = newStartingDate;
+
+            await Database.Insert(newRepeatedTransactions);
+            // creating the rest of the series
+        }
+        else
+        {
+            var originalRepeatEnd = originalTransaction!.RepeatEnd;
+
+            originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
+
+            await this.Update(originalTransaction);
+            // updating the transaction original repeat end to before this day
+
+            inputDto.Repeat = null;
+            inputDto.RepeatEnd = null;
+
+            int? transactionId = await Database.Insert(PocoFromDto(inputDto));
+            inputDto.TransactionId = transactionId;
+            // creating the new transaction for this day only
+
+            var newStartingDate = inputDto.TransactionDate;
+
+            if (originalTransaction.Repeat == "weekly")
+            {
+                newStartingDate = newStartingDate.AddDays(7);
+            }
+
+            if (originalTransaction.Repeat == "monthly")
+            {
+                newStartingDate = newStartingDate.AddMonths(1);
+            }
+
+            if (originalTransaction.Repeat == "yearly")
+            {
+                newStartingDate = newStartingDate.AddYears(1);
+            }
+
+            if (newStartingDate > originalRepeatEnd)
+            {
+                // we only want to create the new series of transactions only if there are occurrences left
+                return inputDto;
+            }
+
+            var newRepeatedTransactions = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            newRepeatedTransactions.RepeatEnd = originalRepeatEnd;
+            newRepeatedTransactions.TransactionDate = newStartingDate;
+
+            await Database.Insert(newRepeatedTransactions);
+            // creating the rest of the series
+        }
+
+        return inputDto;
+    }
+
+    public async Task<TransactionDTO> UpdateRepeatInstanceAndForward(TransactionDTO inputDto)
+    {
+        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
+
+        if (originalTransaction == null)
+        {
+            throw new Exception("Transaction ID was null");
+        }
+
+        var originalRepeatEnd = originalTransaction!.RepeatEnd;
+
+        originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
+
+        inputDto.RepeatEnd = originalRepeatEnd;
+
+        await this.Update(originalTransaction);
+        int? transactionId = await Database.Insert(PocoFromDto(inputDto));
+
+        inputDto.TransactionId = transactionId;
+
+
+        return inputDto;
+    }
+
+    public async Task<TransactionDTO> DeleteRepeatInstanceAndForward(TransactionDTO inputDto)
+    {
+        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
+
+        if (originalTransaction == null)
+        {
+            throw new Exception("Transaction ID was null");
+        }
+
+        originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
+
+        await this.Update(originalTransaction);
+
+        return TransactionDTO.FromPoco(originalTransaction);
+    }
+
+    public async Task<TransactionDTO> DeleteRepeatInstance(TransactionDTO inputDto)
+    {
+        if (!inputDto.TransactionId.HasValue)
+        {
+            throw new Exception("Transaction ID was null");
+        }
+
+        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
+
+        if (originalTransaction!.TransactionDate == inputDto.TransactionDate)
+        {
+            var originalRepeatEnd = originalTransaction!.RepeatEnd;
+            string? originalRepeat = originalTransaction.Repeat;
+
+            await this.Delete(PocoFromDto(inputDto));
+            // deleting the original transaction
+
+            var newStartingDate = inputDto.TransactionDate;
+
+            if (originalRepeat == "weekly")
+            {
+                newStartingDate = newStartingDate.AddDays(7);
+            }
+
+            if (originalRepeat == "monthly")
+            {
+                newStartingDate = newStartingDate.AddMonths(1);
+            }
+
+            if (originalRepeat == "yearly")
+            {
+                newStartingDate = newStartingDate.AddYears(1);
+            }
+
+            if (newStartingDate > originalRepeatEnd)
+            {
+                // we only want to create the new series of transactions only if there are occurrences left
+                return inputDto;
+            }
+
+            var newRepeatedTransactions = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            newRepeatedTransactions.Repeat = originalRepeat;
+            newRepeatedTransactions.RepeatEnd = originalRepeatEnd;
+            newRepeatedTransactions.TransactionDate = newStartingDate;
+
+            await Database.Insert(newRepeatedTransactions);
+            // creating the rest of the series
+        }
+        else
+        {
+            var originalRepeatEnd = originalTransaction!.RepeatEnd;
+
+            originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
+
+            await this.Update(originalTransaction);
+            // updating the transaction original repeat end to before this day
+
+            var newStartingDate = inputDto.TransactionDate;
+
+            if (originalTransaction.Repeat == "weekly")
+            {
+                newStartingDate = newStartingDate.AddDays(7);
+            }
+
+            if (originalTransaction.Repeat == "monthly")
+            {
+                newStartingDate = newStartingDate.AddMonths(1);
+            }
+
+            if (originalTransaction.Repeat == "yearly")
+            {
+                newStartingDate = newStartingDate.AddYears(1);
+            }
+
+            if (newStartingDate > originalRepeatEnd)
+            {
+                // we only want to create the new series of transactions only if there are occurrences left
+                return inputDto;
+            }
+
+            var newRepeatedTransactions = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            newRepeatedTransactions.RepeatEnd = originalRepeatEnd;
+            newRepeatedTransactions.TransactionDate = newStartingDate;
+
+            await Database.Insert(newRepeatedTransactions);
+            // creating the rest of the series
+        }
+
+        return inputDto;
+    }
 }

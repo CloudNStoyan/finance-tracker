@@ -1,6 +1,7 @@
 import { format, parseJSON } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DatesAreEqualWithoutTime } from "../infrastructure/CustomDateUtils";
 import Icons from "../infrastructure/Icons";
 import { Category, Transaction } from "../server-api";
 import { useAppSelector } from "../state/hooks";
@@ -28,9 +29,10 @@ const TransactionInline: FunctionComponent<TransactionInlineProps> = ({
   }, [selected]);
 
   const handleClick = () => {
+    const transactionDate = parseJSON(transaction.transactionDate);
     if (
       transaction.repeat !== null &&
-      parsedSelected !== parseJSON(transaction.transactionDate)
+      !DatesAreEqualWithoutTime(transactionDate, parsedSelected)
     ) {
       navigate(
         `/transaction/${transaction.transactionId}?initialDate=${format(
