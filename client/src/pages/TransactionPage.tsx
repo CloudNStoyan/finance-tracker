@@ -20,6 +20,7 @@ import {
   Select,
   styled,
   SwipeableDrawer,
+  Switch,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -95,6 +96,8 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
   const [openDescription, setOpenDescription] = useState(false);
   const [repeat, setRepeat] = useState("none");
   const [category, setCategory] = useState<Category | undefined>();
+  const [repeatEnd, setRepeatEnd] = useState(new Date());
+  const [showRepeatEnd, setShowRepeatEnd] = useState(false);
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -158,6 +161,12 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       setTransactionIsLoaded(true);
       setDescription(transaction.details ?? "");
       setEditableDescription(transaction.details ?? "");
+      setRepeatEnd(
+        transaction.repeatEnd === null
+          ? new Date()
+          : parseJSON(transaction.repeatEnd)
+      );
+      setShowRepeatEnd(transaction.repeatEnd !== null);
     };
 
     const fetchTransaction = async () => {
@@ -218,6 +227,10 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
     setDate(newDate);
   };
 
+  const handleRepeatDateChange = (newDate: Date | null) => {
+    setRepeatEnd(newDate);
+  };
+
   const handleRepeatChange = (newRepeat: string) => {
     setRepeat(newRepeat);
   };
@@ -254,6 +267,10 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
 
     if (category !== undefined) {
       transaction.categoryId = category.categoryId;
+    }
+
+    if (showRepeatEnd && repeat !== "none") {
+      transaction.repeatEnd = repeatEnd.toJSON();
     }
 
     try {
@@ -309,7 +326,7 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
       isDarkMode={isDarkMode}
     >
       <div className="relative fields">
-        <FormControl className="w-full justify-center items-end mt-2 pr-4">
+        <FormControl className="w-full justify-center items-end mt-2 pr-10">
           <ToggleButtonGroup
             className="type-selector"
             color="primary"
@@ -434,6 +451,51 @@ const TransactionPage: FunctionComponent<{ hasTransactionId: boolean }> = ({
             <MenuItem value={"yearly"}>Repeat every year</MenuItem>
           </Select>
         </div>
+
+        {repeat !== "none" && (
+          <div className="repeat-end">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showRepeatEnd}
+                  onChange={(e) => setShowRepeatEnd(e.target.checked)}
+                />
+              }
+              label="End"
+              labelPlacement="start"
+            />
+            {showRepeatEnd && (
+              <div>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <MobileDatePicker
+                    className="border-none"
+                    inputFormat="dd MMM yyyy"
+                    value={repeatEnd}
+                    onChange={handleRepeatDateChange}
+                    renderInput={(params) => (
+                      <div className="date-picker-render flex items-center">
+                        {repeatEnd && (
+                          <TextField
+                            {...params}
+                            variant="standard"
+                            size="small"
+                            className="date-picker-input"
+                            InputProps={{
+                              startAdornment: (
+                                <ScheduleOutlinedIcon className="date-picker-icon" />
+                              ),
+                              disableUnderline: true,
+                            }}
+                          />
+                        )}
+                      </div>
+                    )}
+                  />
+                </LocalizationProvider>
+              </div>
+            )}
+          </div>
+        )}
 
         {!openDescription && (
           <Button

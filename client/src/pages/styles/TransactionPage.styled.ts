@@ -10,6 +10,12 @@ const TransactionPageStyled = styled.div<{
   display: flex;
   flex-flow: column nowrap;
 
+  .repeat-end {
+    display: flex;
+    margin-left: 42px;
+    height: 42px;
+  }
+
   .type-selector {
     background-color: ${({ isDarkMode }) => (isDarkMode ? "#222" : "#f3f4f6")};
   }

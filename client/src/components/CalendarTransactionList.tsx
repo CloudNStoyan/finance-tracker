@@ -27,16 +27,24 @@ const CalendarTransactionList = () => {
             const date = fromUnixTimeMs(selected);
             const transactionDate = parseJSON(transaction.transactionDate);
 
+            const repeatEnd =
+              transaction.repeatEnd !== null
+                ? parseJSON(transaction.repeatEnd)
+                : null;
+
+            const tillDate =
+              repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+
             if (
-              (isAfter(date, transactionDate) &&
+              (isAfter(tillDate, transactionDate) &&
                 transaction.repeat === "weekly" &&
-                transactionDate.getDay() === date.getDay()) ||
+                transactionDate.getDay() === tillDate.getDay()) ||
               (transaction.repeat === "monthly" &&
-                transactionDate.getDate() === date.getDate() &&
-                isAfter(date, transactionDate)) ||
+                transactionDate.getDate() === tillDate.getDate() &&
+                isAfter(tillDate, transactionDate)) ||
               (transaction.repeat === "yearly" &&
-                transactionDate.getDate() === date.getDate() &&
-                transactionDate.getMonth() === date.getMonth())
+                transactionDate.getDate() === tillDate.getDate() &&
+                transactionDate.getMonth() === tillDate.getMonth())
             ) {
               return true;
             }

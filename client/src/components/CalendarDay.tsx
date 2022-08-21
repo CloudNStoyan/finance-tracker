@@ -47,6 +47,13 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
           const transactionDate = parseJSON(transaction.transactionDate);
 
           if (
+            transaction.repeatEnd !== null &&
+            parseJSON(transaction.repeatEnd) < date
+          ) {
+            return false;
+          }
+
+          if (
             (isAfter(date, transactionDate) &&
               transaction.repeat === "weekly" &&
               transactionDate.getDay() === date.getDay()) ||
@@ -123,17 +130,25 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
 
         const transactionDate = parseJSON(transaction.transactionDate);
 
+        const repeatEnd =
+          transaction.repeatEnd !== null
+            ? parseJSON(transaction.repeatEnd)
+            : null;
+
+        const tillDate =
+          repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+
         if (transaction.repeat === "monthly") {
           if (
-            (transactionDate.getDate() <= date.getDate() &&
-              date.getMonth() === month) ||
-            (date.getMonth() > month &&
-              date.getDate() < transactionDate.getDate())
+            (transactionDate.getDate() <= tillDate.getDate() &&
+              tillDate.getMonth() === month) ||
+            (tillDate.getMonth() > month &&
+              tillDate.getDate() < transactionDate.getDate())
           ) {
             transactionValue = transaction.value;
           } else if (
-            date.getMonth() > month &&
-            date.getDate() >= transactionDate.getDate()
+            tillDate.getMonth() > month &&
+            tillDate.getDate() >= transactionDate.getDate()
           ) {
             transactionValue = transactionValue * 2;
           } else {
@@ -144,10 +159,10 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
         if (transaction.repeat === "weekly") {
           const startDay = fromUnixTimeMs(days[transactionDate.getDay() - 1]);
 
-          let daysDiff = differenceInDays(date, transactionDate);
+          let daysDiff = differenceInDays(tillDate, transactionDate);
 
           if (isAfter(startDay, transactionDate)) {
-            daysDiff = differenceInDays(date, startDay);
+            daysDiff = differenceInDays(tillDate, startDay);
           }
 
           const multiplier = Math.floor(daysDiff / 7) + 1;

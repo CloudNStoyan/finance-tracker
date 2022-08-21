@@ -135,16 +135,24 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       allTransactions.filter((transaction) => {
         const transactionDate = parseJSON(transaction.transactionDate);
 
+        const repeatEnd =
+          transaction.repeatEnd !== null
+            ? parseJSON(transaction.repeatEnd)
+            : null;
+
+        const tillDate =
+          repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+
         if (
-          (isAfter(date, transactionDate) &&
+          (isAfter(tillDate, transactionDate) &&
             transaction.repeat === "weekly" &&
-            transactionDate.getDay() === date.getDay()) ||
+            transactionDate.getDay() === tillDate.getDay()) ||
           (transaction.repeat === "monthly" &&
-            transactionDate.getDate() === date.getDate() &&
-            isAfter(date, transactionDate)) ||
+            transactionDate.getDate() === tillDate.getDate() &&
+            isAfter(tillDate, transactionDate)) ||
           (transaction.repeat === "yearly" &&
-            transactionDate.getDate() === date.getDate() &&
-            transactionDate.getMonth() === date.getMonth())
+            transactionDate.getDate() === tillDate.getDate() &&
+            transactionDate.getMonth() === tillDate.getMonth())
         ) {
           return true;
         }
@@ -205,17 +213,25 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
 
         const transactionDate = parseJSON(transaction.transactionDate);
 
+        const repeatEnd =
+          transaction.repeatEnd !== null
+            ? parseJSON(transaction.repeatEnd)
+            : null;
+
+        const tillDate =
+          repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+
         if (transaction.repeat === "monthly") {
           if (
-            (transactionDate.getDate() <= date.getDate() &&
-              date.getMonth() === month) ||
-            (date.getMonth() > month &&
-              date.getDate() < transactionDate.getDate())
+            (transactionDate.getDate() <= tillDate.getDate() &&
+              tillDate.getMonth() === month) ||
+            (tillDate.getMonth() > month &&
+              tillDate.getDate() < transactionDate.getDate())
           ) {
             transactionValue = transaction.value;
           } else if (
-            date.getMonth() > month &&
-            date.getDate() >= transactionDate.getDate()
+            tillDate.getMonth() > month &&
+            tillDate.getDate() >= transactionDate.getDate()
           ) {
             transactionValue = transactionValue * 2;
           } else {
@@ -226,10 +242,10 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         if (transaction.repeat === "weekly") {
           const startDay = fromUnixTimeMs(days[transactionDate.getDay() - 1]);
 
-          let daysDiff = differenceInDays(date, transactionDate);
+          let daysDiff = differenceInDays(tillDate, transactionDate);
 
           if (isAfter(startDay, transactionDate)) {
-            daysDiff = differenceInDays(date, startDay);
+            daysDiff = differenceInDays(tillDate, startDay);
           }
 
           const multiplier = Math.floor(daysDiff / 7) + 1;
