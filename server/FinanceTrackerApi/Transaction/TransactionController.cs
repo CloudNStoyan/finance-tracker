@@ -19,7 +19,7 @@ public class TransactionController : ControllerBase
         this.SessionService = sessionService;
     }
 
-    public async Task<ActionResult> Delete([FromQuery] int? transactionId, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis, [FromQuery] DateTime? date)
+    public async Task<ActionResult<TransactionEventDTO[]>> Delete([FromQuery] int? transactionId, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis, [FromQuery] DateTime? date)
     {
         if (transactionId == null)
         {
@@ -50,21 +50,21 @@ public class TransactionController : ControllerBase
         if (transaction.Repeat != null && thisAndForward.HasValue && thisAndForward.Value)
         {
             //if is repeat and the query told us we w2ant to change this repeat and all others forward
-            var dto = await this.TransactionService.DeleteRepeatInstanceAndForward(TransactionDTO.FromPoco(transaction));
+            var dtos = await this.TransactionService.DeleteRepeatInstanceAndForward(TransactionDTO.FromPoco(transaction));
 
-            return this.Ok(dto);
+            return this.Ok(dtos);
         }
 
         if (transaction.Repeat != null && onlyThis.HasValue && onlyThis.Value)
         {
-            var dto = await this.TransactionService.DeleteRepeatInstance(TransactionDTO.FromPoco(transaction));
+            var dtos = await this.TransactionService.DeleteRepeatInstance(TransactionDTO.FromPoco(transaction));
 
-            return this.Ok(dto);
+            return this.Ok(dtos);
         }
 
         await this.TransactionService.Delete(transaction);
 
-        return this.Ok();
+        return this.Ok(new[] { new TransactionEventDTO{Event = "delete", Transaction = TransactionDTO.FromPoco(transaction) } });
     }
 
     [HttpPut]
@@ -117,7 +117,7 @@ public class TransactionController : ControllerBase
 
         await this.TransactionService.Update(TransactionService.PocoFromDto(inputDto));
 
-        return Ok(inputDto);
+        return this.Ok(new[] { new TransactionEventDTO { Event = "update", Transaction = inputDto }});
     }
 
     [HttpGet]
@@ -277,7 +277,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<TransactionDTO>> Create([FromBody] TransactionDTO inputDto)
+    public async Task<ActionResult<TransactionEventDTO>> Create([FromBody] TransactionDTO inputDto)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -299,6 +299,6 @@ public class TransactionController : ControllerBase
 
         var model = await this.TransactionService.Create(inputDto);
 
-        return CreatedAtAction(nameof(this.Create), model);
+        return CreatedAtAction(nameof(this.Create), new TransactionEventDTO {Event = "create", Transaction = model});
     }
 }

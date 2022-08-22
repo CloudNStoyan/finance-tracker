@@ -330,11 +330,23 @@ const TransactionPage: FunctionComponent<{
         onlyThis
       );
 
-      if (resp.status === 201) {
-        dispatch(addTransaction(resp.data));
-      } else if (resp.status === 200) {
-        dispatch(editTransaction(transaction));
-      }
+      const transactionChanges = resp.data;
+
+      transactionChanges.forEach((change) => {
+        const ev = change.event;
+
+        if (ev === "create") {
+          dispatch(addTransaction(change.transaction));
+        }
+
+        if (ev === "update") {
+          dispatch(editTransaction(change.transaction));
+        }
+
+        if (ev === "delete") {
+          dispatch(removeTransaction(change.transaction.transactionId));
+        }
+      });
 
       navigate("/");
       return;
@@ -373,7 +385,24 @@ const TransactionPage: FunctionComponent<{
         return;
       }
 
-      dispatch(removeTransaction(Number(transactionId)));
+      const transactionChanges = resp.data;
+
+      transactionChanges.forEach((change) => {
+        const ev = change.event;
+
+        if (ev === "create") {
+          dispatch(addTransaction(change.transaction));
+        }
+
+        if (ev === "update") {
+          dispatch(editTransaction(change.transaction));
+        }
+
+        if (ev === "delete") {
+          dispatch(removeTransaction(change.transaction.transactionId));
+        }
+      });
+
       navigate("/");
       dispatch(
         setNotification({

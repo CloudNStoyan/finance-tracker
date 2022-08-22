@@ -195,8 +195,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       return;
     }
 
-    console.log(action, onlyThis);
-
     if (action === "update") {
       void createOrEdit();
     }
@@ -263,11 +261,23 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         onlyThis === true
       );
 
-      if (resp.status === 201) {
-        dispatch(addTransaction(resp.data));
-      } else if (resp.status === 200) {
-        dispatch(editTransaction(newTransaction));
-      }
+      const transactionChanges = resp.data;
+
+      transactionChanges.forEach((change) => {
+        const ev = change.event;
+
+        if (ev === "create") {
+          dispatch(addTransaction(change.transaction));
+        }
+
+        if (ev === "update") {
+          dispatch(editTransaction(change.transaction));
+        }
+
+        if (ev === "delete") {
+          dispatch(removeTransaction(change.transaction.transactionId));
+        }
+      });
 
       onClose();
     } catch (error) {
@@ -303,7 +313,23 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         return;
       }
 
-      dispatch(removeTransaction(transaction.transactionId));
+      const transactionChanges = resp.data;
+
+      transactionChanges.forEach((change) => {
+        const ev = change.event;
+
+        if (ev === "create") {
+          dispatch(addTransaction(change.transaction));
+        }
+
+        if (ev === "update") {
+          dispatch(editTransaction(change.transaction));
+        }
+
+        if (ev === "delete") {
+          dispatch(removeTransaction(change.transaction.transactionId));
+        }
+      });
 
       dispatch(
         setNotification({

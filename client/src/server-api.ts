@@ -35,6 +35,11 @@ export interface Transaction {
   repeatEnd?: string;
 }
 
+export interface TransactionEvent {
+  event: "update" | "create" | "delete";
+  transaction: Transaction;
+}
+
 export interface User {
   username: string;
 }
@@ -116,11 +121,11 @@ export const createOrEditTransaction = async (
     Number.isInteger(transaction.transactionId) &&
     transaction.transactionId > 0
   ) {
-    return axios.put<Transaction>(url, transaction);
+    return axios.put<TransactionEvent[]>(url, transaction);
   }
 
   //create
-  return axios.post<Transaction>(url, transaction);
+  return axios.post<TransactionEvent[]>(url, transaction);
 };
 
 export const getTransactionById = async (transactionId: number) => {
@@ -136,7 +141,7 @@ export const deleteTransaction = async (
   date?: Date
 ) => {
   const formatDate = date !== null ? format(date, "yyyy-MM-dd") : null;
-  return axios.delete<Transaction>(
+  return axios.delete<TransactionEvent[]>(
     `${SERVER_URL}/transaction?transactionId=${transactionId}${
       thisAndForward === true
         ? "&thisAndForward=true&date=" + formatDate
