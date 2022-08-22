@@ -46,6 +46,7 @@ import DesktopManageCategoriesModal from "./DesktopManageCategoriesModal";
 import DesktopCategoryModal from "./DesktopCategoryModal";
 import DesktopDescriptionModal from "./DesktopDescriptionModal";
 import useCategories from "../../state/useCategories";
+import RepeatTransactionDialog from "../RepeatTransactionDialog";
 
 export type DesktopTransactionProps = {
   open: boolean;
@@ -104,6 +105,11 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [repeatEnd, setRepeatEnd] = useState(new Date());
   const [showRepeatEnd, setShowRepeatEnd] = useState(false);
   const [repeatDateInputOpen, setRepeatDateInputOpen] = useState(false);
+  const [repeatTransactionDialogOpen, setRepeatTransactionDialogOpen] =
+    useState(false);
+  const [onlyThis, setOnlyThis] = useState<boolean>(null);
+  const [action, setAction] = useState<"update" | "delete">();
+  const [itHasRepeat, setItHasRepeat] = useState(false);
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -120,6 +126,10 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setRepeat("none");
     setRepeatEnd(null);
     setShowRepeatEnd(false);
+    setOnlyThis(null);
+    setItHasRepeat(false);
+    setAction(null);
+    setRepeatTransactionDialogOpen(false);
   };
 
   useEffect(() => {
@@ -144,7 +154,11 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setLabel(transaction.label);
     setConfirmed(transaction.confirmed);
     setTransactionType(transaction.type);
-    setDate(parseJSON(transaction.transactionDate));
+    setDate(
+      transaction.repeat === null
+        ? parseJSON(transaction.transactionDate)
+        : fromUnixTimeMs(calendarSelected)
+    );
     setCategory(
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
@@ -156,7 +170,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         : parseJSON(transaction.repeatEnd)
     );
     setShowRepeatEnd(transaction.repeatEnd !== null);
-  }, [transaction, categories, open]);
+    setItHasRepeat(transaction.repeat !== null);
+  }, [transaction, categories, open, calendarSelected]);
 
   useEffect(
     () => setDate(fromUnixTimeMs(calendarSelected)),
@@ -175,7 +190,25 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setRepeat(newRepeat);
   };
 
-  const onSubmit = async () => {
+  useEffect(() => {
+    if (onlyThis === null || action === null) {
+      return;
+    }
+
+    console.log(action, onlyThis);
+
+    if (action === "update") {
+      void createOrEdit();
+    }
+
+    if (action === "delete") {
+      void deleteTransactionCallback();
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onlyThis, action]);
+
+  const onSubmit = () => {
     if (Number(value) === 0 || label.trim().length === 0) {
       dispatch(
         setNotification({
@@ -186,6 +219,15 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       return;
     }
 
+    if (itHasRepeat) {
+      setAction("update");
+      setRepeatTransactionDialogOpen(true);
+    } else {
+      void createOrEdit();
+    }
+  };
+
+  const createOrEdit = async () => {
     const newTransaction: Transaction = {
       label: label.trim(),
       value: Number(value),
@@ -215,7 +257,11 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
 
     try {
-      const resp = await createOrEditTransaction(newTransaction);
+      const resp = await createOrEditTransaction(
+        newTransaction,
+        onlyThis === false,
+        onlyThis === true
+      );
 
       if (resp.status === 201) {
         dispatch(addTransaction(resp.data));
@@ -231,13 +277,27 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
   };
 
-  const onDelete = async () => {
+  const onDelete = () => {
     if (!transaction) {
       return;
     }
 
+    if (itHasRepeat) {
+      setAction("delete");
+      setRepeatTransactionDialogOpen(true);
+    } else {
+      void deleteTransactionCallback();
+    }
+  };
+
+  const deleteTransactionCallback = async () => {
     try {
-      const resp = await deleteTransaction(Number(transaction.transactionId));
+      const resp = await deleteTransaction(
+        transaction.transactionId,
+        onlyThis === false,
+        onlyThis,
+        onlyThis !== null ? date : null
+      );
 
       if (resp.status !== 200) {
         return;
@@ -537,6 +597,20 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
             </div>
           </DesktopTransactionStyled>
         )}
+        <RepeatTransactionDialog
+          open={repeatTransactionDialogOpen}
+          selectedValue={null}
+          onClose={(option) => {
+            setRepeatTransactionDialogOpen(false);
+
+            if (option === null) {
+              setOnlyThis(null);
+              return;
+            }
+
+            setOnlyThis(option.value === "onlyThis");
+          }}
+        />
       </DesktopModalContainerStyled>
     </Dialog>
   );

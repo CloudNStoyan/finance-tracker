@@ -204,6 +204,7 @@ const DesktopCalendarPage = () => {
               <DesktopCalendarDay
                 onTransactionClick={(transaction) => {
                   setCurrentTransaction(transaction);
+                  dispatch(setSelected(getTime(day)));
                   setShowTransactionModal(true);
                 }}
                 onClick={(newSelected) => {

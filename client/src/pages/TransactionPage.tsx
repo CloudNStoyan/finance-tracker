@@ -40,7 +40,7 @@ import {
 } from "../server-api";
 import axios from "axios";
 import { setNotification } from "../state/notificationSlice";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
@@ -57,6 +57,7 @@ import useCategories from "../state/useCategories";
 import RepeatTransactionDialog, {
   RepeatTransactionDialogOptions,
 } from "../components/RepeatTransactionDialog";
+import useQuery from "../infrastructure/useQuery";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -647,11 +648,5 @@ const TransactionPage: FunctionComponent<{
     </TransactionPageStyled>
   );
 };
-
-function useQuery() {
-  const { search } = useLocation();
-
-  return React.useMemo(() => new URLSearchParams(search), [search]);
-}
 
 export default TransactionPage;
