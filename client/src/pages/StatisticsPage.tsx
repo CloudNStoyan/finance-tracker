@@ -126,22 +126,22 @@ const StatisticsPage = () => {
   }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
-    if (!expenses || categories.length === 0) {
+    if (!expenses || categoriesStatus !== "succeeded") {
       return;
     }
 
     const dataset = GenerateChartDataset(expenses, categories);
     setExpensesChartData(dataset);
-  }, [expenses, categories]);
+  }, [expenses, categories, categoriesStatus]);
 
   useEffect(() => {
-    if (!incomes || categories.length === 0) {
+    if (!incomes || categoriesStatus !== "succeeded") {
       return;
     }
 
     const dataset = GenerateChartDataset(incomes, categories);
     setIncomesChartData(dataset);
-  }, [incomes, categories]);
+  }, [incomes, categories, categoriesStatus]);
 
   useEffect(() => setSelectedCatId(null), [chart]);
 

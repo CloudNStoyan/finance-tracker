@@ -132,14 +132,14 @@ const TransactionPage: FunctionComponent<{
   }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
-    if (categories.length === 0) {
+    if (categoriesStatus !== "succeeded") {
       return;
     }
 
     setCategory(
       categories.find((c) => c.categoryId === categoryId) ?? DefaultCategory
     );
-  }, [categories, categoryId]);
+  }, [categories, categoryId, categoriesStatus]);
 
   useEffect(() => {
     if (!hasTransactionId || transactionIsLoaded || isFetchingTransaction) {

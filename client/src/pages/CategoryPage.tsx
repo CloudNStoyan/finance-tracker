@@ -119,7 +119,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
   }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
-    if (!hasCategoryId || categories.length === 0) {
+    if (!hasCategoryId || categoriesStatus !== "succeeded") {
       return;
     }
 
@@ -132,7 +132,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
     setColorIdx(COLORS.indexOf(category.bgColor));
     setIconKey(category.icon);
     setIconIdx(categoryIcons.indexOf(category.icon));
-  }, [hasCategoryId, categories, categoryId]);
+  }, [hasCategoryId, categories, categoryId, categoriesStatus]);
 
   const onColorClick = (bgColor: string, idx: number) => {
     setColor(bgColor);

@@ -116,22 +116,22 @@ const DesktopStatisticsPage = () => {
   }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
-    if (categories.length === 0) {
+    if (categoriesStatus !== "succeeded") {
       return;
     }
 
     const dataset = GenerateChartDataset(expenses, categories);
     setExpensesChartData(dataset);
-  }, [expenses, categories]);
+  }, [expenses, categories, categoriesStatus]);
 
   useEffect(() => {
-    if (categories.length === 0) {
+    if (categoriesStatus !== "succeeded") {
       return;
     }
 
     const dataset = GenerateChartDataset(incomes, categories);
     setIncomesChartData(dataset);
-  }, [incomes, categories]);
+  }, [incomes, categories, categoriesStatus]);
 
   useEffect(() => {
     setIncomes(GenerateData(currentTransactions, "income"));
