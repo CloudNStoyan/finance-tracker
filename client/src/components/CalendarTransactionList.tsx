@@ -25,7 +25,10 @@ const CalendarTransactionList = () => {
       {selected &&
         transactions
           .filter((transaction) => {
-            const date = fromUnixTimeMs(selected);
+            const date = new Date(
+              fromUnixTimeMs(selected).setHours(0, 0, 0, 0)
+            );
+
             const transactionDate = parseJSON(transaction.transactionDate);
 
             const repeatEnd =
@@ -35,6 +38,10 @@ const CalendarTransactionList = () => {
 
             const tillDate =
               repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+
+            if (repeatEnd !== null && repeatEnd < date) {
+              return false;
+            }
 
             if (
               (isAfter(tillDate, transactionDate) &&

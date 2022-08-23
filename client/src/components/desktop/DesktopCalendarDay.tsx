@@ -130,13 +130,22 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       allTransactions.filter((transaction) => {
         const transactionDate = parseJSON(transaction.transactionDate);
 
+        const dateWithoutTime = new Date(date);
+        dateWithoutTime.setHours(0, 0, 0, 0);
+
         const repeatEnd =
           transaction.repeatEnd !== null
             ? parseJSON(transaction.repeatEnd)
             : null;
 
         const tillDate =
-          repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+          repeatEnd !== null && repeatEnd < dateWithoutTime
+            ? repeatEnd
+            : dateWithoutTime;
+
+        if (repeatEnd !== null && repeatEnd < dateWithoutTime) {
+          return false;
+        }
 
         if (
           (isAfter(tillDate, transactionDate) &&
