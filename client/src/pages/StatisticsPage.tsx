@@ -22,8 +22,8 @@ import {
   setStartBalance,
 } from "../state/calendarSlice";
 import { addQuery, addTransactions } from "../state/transactionSlice";
-import useCategories from "../state/useCategories";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import { fetchCategories } from "../state/categorySlice";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -109,9 +109,21 @@ const StatisticsPage = () => {
     (state) => state.calendarReducer
   );
 
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
 
   const chartRef = useRef();
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
     if (!expenses || categories.length === 0) {

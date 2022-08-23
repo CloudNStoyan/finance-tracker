@@ -19,8 +19,8 @@ import {
 import DesktopStatisticsPageStyled from "../styles/desktop/DesktopStatisticsPage.styled";
 import DesktopStatsPanel from "../../components/desktop/DesktopStatsPanel";
 import { addQuery, addTransactions } from "../../state/transactionSlice";
-import useCategories from "../../state/useCategories";
 import { fromUnixTimeMs } from "../../infrastructure/CustomDateUtils";
+import { fetchCategories } from "../../state/categorySlice";
 
 export type CategoryData = { [name: string]: number };
 
@@ -101,7 +101,19 @@ const DesktopStatisticsPage = () => {
     (state) => state.calendarReducer
   );
 
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
     if (categories.length === 0) {

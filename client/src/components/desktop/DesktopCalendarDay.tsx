@@ -1,11 +1,4 @@
-import {
-  differenceInDays,
-  format,
-  isAfter,
-  isBefore,
-  parseJSON,
-  setYear,
-} from "date-fns";
+import { differenceInDays, format, isAfter, parseJSON } from "date-fns";
 import React, {
   FunctionComponent,
   useCallback,
@@ -23,7 +16,6 @@ import DesktopCalendarDayStyled from "../styles/desktop/DesktopCalendarDay.style
 import DesktopCalendarTransaction from "./DesktopCalendarTransaction";
 import { IconButton } from "@mui/material";
 import { Add } from "@mui/icons-material";
-import useCategories from "../../state/useCategories";
 
 export type DesktopCalendarDayProps = {
   date: Date;
@@ -51,7 +43,10 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   );
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const categories = useCategories();
+
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
 
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState(0);
@@ -166,40 +161,49 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         const transactionDate = parseJSON(transaction.transactionDate);
         const startDay = fromUnixTimeMs(days[0]);
 
-        if (DatesAreEqualWithoutTime(date, transactionDate)) {
-          return true;
+        if (transaction.repeat === null) {
+          if (transactionDate > startDay && transactionDate <= date) {
+            return true;
+          }
+
+          return false;
+        }
+
+        // no more normal equations now its only the repeat ones
+
+        if (transactionDate > date) {
+          return false;
         }
 
         if (
-          isBefore(transactionDate, date) &&
-          isAfter(transactionDate, startDay)
+          transaction.repeatEnd !== null &&
+          new Date(transaction.repeatEnd) < startDay
         ) {
+          return false;
+        }
+
+        if (transaction.repeat === "weekly") {
           return true;
         }
 
-        if (
-          (transaction.repeat === "monthly" ||
-            transaction.repeat === "weekly") &&
-          isBefore(transactionDate, date)
-        ) {
-          return true;
+        if (transaction.repeat === "monthly") {
+          if (
+            transactionDate.getDate() <= date.getDate() ||
+            month < date.getMonth()
+          ) {
+            return true;
+          }
         }
 
-        const futureYearlyDate = setYear(transactionDate, date.getFullYear());
+        if (transaction.repeat === "yearly") {
+          const nextDate = new Date(
+            transactionDate.setFullYear(date.getFullYear())
+          );
 
-        if (DatesAreEqualWithoutTime(futureYearlyDate, date)) {
-          return true;
+          if (nextDate > startDay && nextDate <= date) {
+            return true;
+          }
         }
-
-        if (
-          transaction.repeat === "yearly" &&
-          isAfter(futureYearlyDate, startDay) &&
-          isAfter(date, futureYearlyDate) &&
-          isBefore(futureYearlyDate, fromUnixTimeMs(days[days.length - 1]))
-        ) {
-          return true;
-        }
-
         return false;
       })
       .map((transaction) => {

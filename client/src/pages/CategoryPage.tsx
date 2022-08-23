@@ -9,10 +9,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Category, createOrEditCategory, deleteCategory } from "../server-api";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { useAppDispatch } from "../state/hooks";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setNotification } from "../state/notificationSlice";
-import useCategories from "../state/useCategories";
-import { addCategory, editCategory } from "../state/categorySlice";
+import {
+  addCategory,
+  editCategory,
+  fetchCategories,
+} from "../state/categorySlice";
 
 export type UseParamsCategoryType = { categoryId: number };
 
@@ -93,7 +96,9 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
   const [iconKey, setIconKey] = useState<IconKey>("money");
   const [iconIdx, setIconIdx] = useState(0);
 
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
 
   const [categoryName, setCategoryName] = useState("");
 
@@ -102,6 +107,16 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
   const navigate = useNavigate();
 
   const dispatch = useAppDispatch();
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
     if (!hasCategoryId || categories.length === 0) {

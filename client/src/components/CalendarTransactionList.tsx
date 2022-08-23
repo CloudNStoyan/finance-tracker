@@ -8,12 +8,13 @@ import {
 } from "../infrastructure/CustomDateUtils";
 import { parseJSON } from "date-fns";
 import { isAfter } from "date-fns/esm";
-import useCategories from "../state/useCategories";
 
 const CalendarTransactionList = () => {
   const selected = useAppSelector((state) => state.calendarReducer.selected);
 
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
 
   const transactions = useAppSelector(
     (state) => state.transactionsReducer.transactions

@@ -25,6 +25,7 @@ import { IconButton, InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { addQuery, addTransactions } from "../../state/transactionSlice";
+import { fetchCategories } from "../../state/categorySlice";
 
 const initialNow = new Date();
 
@@ -43,6 +44,10 @@ const DesktopCalendarPage = () => {
 
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
   const { now, startBalanceCache } = useAppSelector(
     (state) => state.calendarReducer
   );
@@ -54,6 +59,12 @@ const DesktopCalendarPage = () => {
   const days: Date[] = useAppSelector(
     (state) => state.calendarReducer.days
   ).map(fromUnixTimeMs);
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
     if (!showSearchInput) {

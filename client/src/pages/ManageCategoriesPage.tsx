@@ -1,15 +1,29 @@
 import { IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import React from "react";
+import React, { useEffect } from "react";
 import CategoryInlineComponent from "../components/CategoryInlineComponent";
 import { useNavigate } from "react-router-dom";
 import ManageCategoriesPageStyled from "./styles/ManageCategoriesPage.styled";
-import useCategories from "../state/useCategories";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
+import { fetchCategories } from "../state/categorySlice";
 
 const ManageCategoriesPage = () => {
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   return (
     <ManageCategoriesPageStyled className="flex flex-col">

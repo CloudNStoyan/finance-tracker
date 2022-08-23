@@ -5,8 +5,9 @@ import { getTransactionsBySearch, Transaction } from "../server-api";
 import axios from "axios";
 import DefaultCategory from "../state/DefaultCategory";
 import SearchTransaction from "../components/SearchTransaction";
-import { useAppDispatch } from "../state/hooks";
-import useCategories from "../state/useCategories";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
+import { fetchCategories } from "../state/categorySlice";
+import SearchPageStyled from "./styles/SearchPage.styled";
 
 const SearchPage = () => {
   const [alreadySearched, setAlreadySearched] = useState<string[]>([]);
@@ -16,7 +17,19 @@ const SearchPage = () => {
   >([]);
   const [search, setSearch] = useState("");
   const dispatch = useAppDispatch();
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
     if (
@@ -87,7 +100,7 @@ const SearchPage = () => {
   }, [search, transactions, categories]);
 
   return (
-    <div className="h-full">
+    <SearchPageStyled>
       <div className="px-5 mt-2">
         <TextField
           onChange={(e) => setSearch(e.target.value)}
@@ -105,7 +118,7 @@ const SearchPage = () => {
           }}
         />
       </div>
-      <div className="px-5 mt-2 flex flex-col gap-2">
+      <div className="px-5 my-2 flex flex-col gap-2 transactions-container">
         {(search === null || search.trim().length === 0) && (
           <div className="text-center">
             Find your transactions by name, category, notes or value.
@@ -133,7 +146,7 @@ const SearchPage = () => {
           />
         ))}
       </div>
-    </div>
+    </SearchPageStyled>
   );
 };
 

@@ -20,6 +20,7 @@ import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
 import CalendarNavigation from "../components/CalendarNavigation";
 import { addQuery, addTransactions } from "../state/transactionSlice";
+import { fetchCategories } from "../state/categorySlice";
 
 const initialNow = new Date();
 
@@ -40,6 +41,16 @@ const CalendarPage = () => {
   const { now, startBalanceCache } = useAppSelector(
     (state) => state.calendarReducer
   );
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
+  useEffect(() => {
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
+    }
+  }, [categoriesStatus, dispatch]);
 
   const days: Date[] = useAppSelector(
     (state) => state.calendarReducer.days
@@ -134,43 +145,45 @@ const CalendarPage = () => {
   }, [parsedNow, dispatch, completedTansactionQueries, days]);
 
   return (
-    <CalendarPageStyled
-      isDarkMode={isDarkMode}
-      className="h-full flex flex-col"
-    >
-      <div className="shadow calendar-container pt-1">
-        <CalendarNavigation />
-        <div className="calendar-wrapper">
-          <DaysOfWeek />
-          {parsedNow &&
-            days.map((day, idx) => (
-              <CalendarDay
-                onClick={(newSelected) => {
-                  dispatch(setSelected(getTime(newSelected)));
-
-                  if (parsedNow.getMonth() != newSelected.getMonth()) {
-                    dispatch(setNow(getTime(newSelected)));
-                  }
-                }}
-                month={parsedNow.getMonth()}
-                key={idx}
-                date={day}
-                isToday={DatesAreEqualWithoutTime(day, initialNow)}
-              />
-            ))}
-        </div>
-      </div>
-
-      <Fab
-        onClick={() => navigate("/transaction")}
-        color="primary"
-        aria-label="Add Transaction"
-        className="absolute bottom-4 right-4"
+    categoriesStatus === "succeeded" && (
+      <CalendarPageStyled
+        isDarkMode={isDarkMode}
+        className="h-full flex flex-col"
       >
-        <AddIcon />
-      </Fab>
-      <CalendarTransactionList />
-    </CalendarPageStyled>
+        <div className="shadow calendar-container pt-1">
+          <CalendarNavigation />
+          <div className="calendar-wrapper">
+            <DaysOfWeek />
+            {parsedNow &&
+              days.map((day, idx) => (
+                <CalendarDay
+                  onClick={(newSelected) => {
+                    dispatch(setSelected(getTime(newSelected)));
+
+                    if (parsedNow.getMonth() != newSelected.getMonth()) {
+                      dispatch(setNow(getTime(newSelected)));
+                    }
+                  }}
+                  month={parsedNow.getMonth()}
+                  key={idx}
+                  date={day}
+                  isToday={DatesAreEqualWithoutTime(day, initialNow)}
+                />
+              ))}
+          </div>
+        </div>
+
+        <Fab
+          onClick={() => navigate("/transaction")}
+          color="primary"
+          aria-label="Add Transaction"
+          className="absolute bottom-4 right-4"
+        >
+          <AddIcon />
+        </Fab>
+        <CalendarTransactionList />
+      </CalendarPageStyled>
+    )
   );
 };
 

@@ -34,7 +34,6 @@ import {
   Category,
   createOrEditTransaction,
   deleteTransaction,
-  getCategories,
   getTransactionById,
   Transaction,
 } from "../server-api";
@@ -47,17 +46,16 @@ import PickCategoriesStyled from "../components/styles/PickCategories.styled";
 import { format, parseISO, parseJSON } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 import DefaultCategory from "../state/DefaultCategory";
-import { setCategories } from "../state/categorySlice";
 import {
   addTransaction,
   editTransaction,
   removeTransaction,
 } from "../state/transactionSlice";
-import useCategories from "../state/useCategories";
 import RepeatTransactionDialog, {
   RepeatTransactionDialogOptions,
 } from "../components/RepeatTransactionDialog";
 import useQuery from "../infrastructure/useQuery";
+import { fetchCategories } from "../state/categorySlice";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -111,7 +109,14 @@ const TransactionPage: FunctionComponent<{
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
-  const categories = useCategories();
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
+
+  const categoriesStatus = useAppSelector(
+    (state) => state.categoriesReducer.status
+  );
+
   const transactions = useAppSelector(
     (state) => state.transactionsReducer.transactions
   );
@@ -121,28 +126,10 @@ const TransactionPage: FunctionComponent<{
   const query = useQuery();
 
   useEffect(() => {
-    if (categories.length > 0) {
-      return;
+    if (categoriesStatus === "idle") {
+      void dispatch(fetchCategories());
     }
-
-    const fetchApi = async () => {
-      try {
-        const resp = await getCategories();
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setCategories(resp.data));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [categories, dispatch]);
+  }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
     if (categories.length === 0) {

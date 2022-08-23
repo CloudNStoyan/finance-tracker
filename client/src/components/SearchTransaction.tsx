@@ -29,8 +29,10 @@ const SearchTransaction: FunctionComponent<SearchTransactionProps> = ({
           {transaction.type === "expense" ? "-" : "+"}
           {transaction.value}
         </div>
-        <div>{transaction.label}</div>
-        <div className="ml-auto mr-2">{category.name}</div>
+        <div className="label">{transaction.label}</div>
+        <div className="ml-auto mr-2 pl-2 whitespace-nowrap">
+          {category.name}
+        </div>
       </div>
       <div className="w-full flex justify-between">
         <div className="ml-1">{format(transactionDate, "dd MMM")}</div>

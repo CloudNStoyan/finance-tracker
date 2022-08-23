@@ -68,7 +68,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult<TransactionDTO>> Edit([FromBody] TransactionDTO inputDto, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis)
+    public async Task<ActionResult<TransactionEventDTO[]>> Edit([FromBody] TransactionDTO inputDto, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -277,7 +277,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<TransactionEventDTO>> Create([FromBody] TransactionDTO inputDto)
+    public async Task<ActionResult<TransactionEventDTO[]>> Create([FromBody] TransactionDTO inputDto)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -299,6 +299,6 @@ public class TransactionController : ControllerBase
 
         var model = await this.TransactionService.Create(inputDto);
 
-        return CreatedAtAction(nameof(this.Create), new TransactionEventDTO {Event = "create", Transaction = model});
+        return CreatedAtAction(nameof(this.Create), new[]{ new TransactionEventDTO { Event = "create", Transaction = model } });
     }
 }
