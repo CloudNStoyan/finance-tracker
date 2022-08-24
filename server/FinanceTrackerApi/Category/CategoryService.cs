@@ -47,14 +47,14 @@ public class CategoryService
 
     public async Task<bool> CategoryHasTransactions(int categoryId, int userId)
     {
-        return await this.Database.Execute<bool>("SELECT EXISTS(SELECT * FROM transaction WHERE user_id=@userId AND category_id = @catId)",
+        return await this.Database.Execute<bool>("SELECT EXISTS(SELECT * FROM user_transactions WHERE user_id=@userId AND category_id = @catId)",
             new NpgsqlParameter("catId", categoryId), new NpgsqlParameter("userId", userId));
     }
 
     public async Task<CategoryDTO?> GetById(int catId)
     {
         var poco = await this.Database.QueryOne<CategoryPoco>(
-            "SELECT * FROM category c WHERE c.category_id=@catId;",
+            "SELECT * FROM categories c WHERE c.category_id=@catId;",
             new NpgsqlParameter("catId", catId));
 
         if (poco == null)
@@ -70,7 +70,7 @@ public class CategoryService
     public async Task<CategoryDTO[]> GetAllByUserId(int userId)
     {
         var pocos = await this.Database.Query<CategoryPoco>(
-            "SELECT * FROM category c WHERE c.user_id=@userId;",
+            "SELECT * FROM categories c WHERE c.user_id=@userId;",
             new NpgsqlParameter("userId", userId));
 
         return pocos.Select(CategoryDTO.FromPoco).ToArray();

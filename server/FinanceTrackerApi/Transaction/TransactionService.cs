@@ -13,15 +13,14 @@ public class TransactionService
         this.Database = database;
     }
 
-    public static TransactionPoco PocoFromDto(TransactionDTO dto)
+    public static UserTransactionPoco PocoFromDto(UserTransactionDTO dto)
     {
-        var poco = new TransactionPoco
+        var poco = new UserTransactionPoco
         {
             Label = dto.Label,
             Type = dto.Type,
             Confirmed = dto.Confirmed,
             Details = dto.Details,
-            ImageReceiptId = dto.ImageReceiptId,
             TransactionDate = dto.TransactionDate,
             Value = dto.Value,
             CategoryId = dto.CategoryId,
@@ -32,76 +31,75 @@ public class TransactionService
 
         if (dto.TransactionId.HasValue)
         {
-            poco.TransactionId = dto.TransactionId.Value;
+            poco.UserTransactionId = dto.TransactionId.Value;
         }
 
         return poco;
     }
 
-    public async Task<TransactionPoco?> GetById(int transactionId)
+    public async Task<UserTransactionPoco?> GetById(int transactionId)
     {
-        var poco = await this.Database.QueryOne<TransactionPoco>(
-            "SELECT * FROM transaction t WHERE t.transaction_id=@transactionId;",
+        var poco = await this.Database.QueryOne<UserTransactionPoco>(
+            "SELECT * FROM user_transactions t WHERE t.user_transaction_id=@transactionId;",
             new NpgsqlParameter("transactionId", transactionId));
 
         return poco;
     }
 
-    public async Task<TransactionDTO[]> GetAllByDate(DateOnly date, int userId)
+    public async Task<UserTransactionDTO[]> GetAllByDate(DateOnly date, int userId)
     {
-        var pocos = await this.Database.Query<TransactionPoco>(
-            "SELECT * FROM transaction t WHERE t.transaction_date=@transactionDate AND t.user_id=@userId;",
+        var pocos = await this.Database.Query<UserTransactionPoco>(
+            "SELECT * FROM user_transactions t WHERE t.transaction_date=@transactionDate AND t.user_id=@userId;",
             new NpgsqlParameter("transactionDate", date), new NpgsqlParameter("userId", userId));
 
-        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+        return pocos.Select(UserTransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<TransactionDTO[]> GetAllByDateRange(DateOnly before, DateOnly after, int userId)
+    public async Task<UserTransactionDTO[]> GetAllByDateRange(DateOnly before, DateOnly after, int userId)
     {
-        var pocos = await this.Database.Query<TransactionPoco>(
-            "SELECT * FROM transaction t WHERE t.user_id=@userId AND (t.transaction_date <= @before AND t.transaction_date >= @after OR t.repeat IS NOT NULL);",
+        var pocos = await this.Database.Query<UserTransactionPoco>(
+            "SELECT * FROM user_transactions t WHERE t.user_id=@userId AND (t.transaction_date <= @before AND t.transaction_date >= @after OR t.repeat IS NOT NULL);",
             new NpgsqlParameter("before", before), new NpgsqlParameter("after", after), new NpgsqlParameter("userId", userId));
 
-        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+        return pocos.Select(UserTransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<TransactionDTO[]> GetAllByMonth(int month, int year, int userId)
+    public async Task<UserTransactionDTO[]> GetAllByMonth(int month, int year, int userId)
     {
-        var pocos = await this.Database.Query<TransactionPoco>(
-            "SELECT * FROM transaction WHERE user_id=@userId AND ((EXTRACT(MONTH FROM transaction_date)=@month AND EXTRACT(YEAR FROM transaction_date)=@year) OR (repeat IS NOT NULL AND repeat != 'yearly' AND transaction_date < @beforeDate) OR (repeat = 'yearly' AND EXTRACT(MONTH FROM transaction_date)=@month));",
+        var pocos = await this.Database.Query<UserTransactionPoco>(
+            "SELECT * FROM user_transactions WHERE user_id=@userId AND ((EXTRACT(MONTH FROM transaction_date)=@month AND EXTRACT(YEAR FROM transaction_date)=@year) OR (repeat IS NOT NULL AND repeat != 'yearly' AND transaction_date < @beforeDate) OR (repeat = 'yearly' AND EXTRACT(MONTH FROM transaction_date)=@month));",
             new NpgsqlParameter("userId", userId), new NpgsqlParameter("month", month), new NpgsqlParameter("year", year), new NpgsqlParameter("beforeDate", new DateOnly(year, month, 1)));
 
-        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+        return pocos.Select(UserTransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<TransactionDTO[]> GetTransactionsOnAndBeforeDate(DateOnly date, int userId)
+    public async Task<UserTransactionDTO[]> GetTransactionsOnAndBeforeDate(DateOnly date, int userId)
     {
-        var pocos = await this.Database.Query<TransactionPoco>(
-            "SELECT * FROM transaction WHERE user_id=@userId AND transaction_date <= @date;",
+        var pocos = await this.Database.Query<UserTransactionPoco>(
+            "SELECT * FROM user_transactions WHERE user_id=@userId AND transaction_date <= @date;",
             new NpgsqlParameter("userId", userId), new NpgsqlParameter("date", date));
 
-        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+        return pocos.Select(UserTransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<TransactionDTO[]> GetAllByUserId(int userId)
+    public async Task<UserTransactionDTO[]> GetAllByUserId(int userId)
     {
-        var pocos = await this.Database.Query<TransactionPoco>(
-            "SELECT * FROM transaction t WHERE t.user_id=@userId;", new NpgsqlParameter("userId", userId));
+        var pocos = await this.Database.Query<UserTransactionPoco>(
+            "SELECT * FROM user_transactions t WHERE t.user_id=@userId;", new NpgsqlParameter("userId", userId));
 
-        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+        return pocos.Select(UserTransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<TransactionDTO[]> GetAllBySearchQuery(string searchQuery,int userId)
+    public async Task<UserTransactionDTO[]> GetAllBySearchQuery(string searchQuery,int userId)
     {
-        var pocos = await this.Database.Query<TransactionPoco>(
-            @"SELECT * FROM transaction t JOIN category c on t.category_id = c.category_id 
-                  WHERE t.user_id=@userId AND t.label ILIKE '%' || @searchQuery || '%' OR c.name ILIKE '%' || @searchQuery || '%' OR t.value::text ILIKE '%' || @searchQuery || '%';",
+        var pocos = await this.Database.Query<UserTransactionPoco>(
+            @"SELECT * FROM user_transactions t LEFT JOIN categories c on t.category_id = c.category_id WHERE t.user_id=@userId AND (t.label ILIKE '%' || @searchQuery || '%' OR c.name ILIKE '%' || @searchQuery || '%' OR t.value::text ILIKE '%' || @searchQuery || '%');",
             new NpgsqlParameter("userId", userId), new NpgsqlParameter("searchQuery", searchQuery));
 
-        return pocos.Select(TransactionDTO.FromPoco).ToArray();
+        return pocos.Select(UserTransactionDTO.FromPoco).ToArray();
     }
 
-    public async Task<TransactionDTO> Create(TransactionDTO inputDto)
+    public async Task<UserTransactionDTO> Create(UserTransactionDTO inputDto)
     {
         if (inputDto == null)
         {
@@ -112,28 +110,28 @@ public class TransactionService
 
         int? transactionId = await Database.Insert(poco);
 
-        var model = TransactionDTO.FromPoco(poco);
+        var model = UserTransactionDTO.FromPoco(poco);
 
         model.TransactionId = transactionId;
 
         return model;
     }
 
-    public async Task Update(TransactionPoco poco)
+    public async Task Update(UserTransactionPoco poco)
     {
         await this.Database.Update(poco);
     }
-
-    public async Task Delete(TransactionPoco poco)
+    
+    public async Task Delete(UserTransactionPoco poco)
     {
         await this.Database.Delete(poco);
     }
 
-    public async Task<TransactionEventDTO[]> UpdateRepeatInstance(TransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> UpdateRepeatInstance(UserTransactionDTO inputDto)
     {
         if (!inputDto.TransactionId.HasValue)
         {
-            throw new Exception("Transaction ID was null");
+            throw new Exception("UserTransaction ID was null");
         }
 
         var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
@@ -175,14 +173,14 @@ public class TransactionService
                 return returnTransactionsList.ToArray();
             }
 
-            var newRepeatedTransaction = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
             newRepeatedTransaction.Repeat = originalRepeat;
             newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
             int? newRepeatedTransactionId = await Database.Insert(newRepeatedTransaction);
-            newRepeatedTransaction.TransactionId = newRepeatedTransactionId!.Value;
-            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = TransactionDTO.FromPoco(newRepeatedTransaction) });
+            newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
+            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
             // creating the rest of the series
         }
         else
@@ -192,7 +190,7 @@ public class TransactionService
             originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
 
             await this.Update(originalTransaction);
-            returnTransactionsList.Add(new TransactionEventDTO { Event = "update", Transaction = TransactionDTO.FromPoco(originalTransaction) });
+            returnTransactionsList.Add(new TransactionEventDTO { Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) });
             // updating the transaction original repeat end to before this day
 
             inputDto.Repeat = null;
@@ -226,27 +224,27 @@ public class TransactionService
                 return returnTransactionsList.ToArray();
             }
 
-            var newRepeatedTransaction = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
             newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
             int? newRepeatedTransactionId = await Database.Insert(newRepeatedTransaction);
-            newRepeatedTransaction.TransactionId = newRepeatedTransactionId!.Value;
+            newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
 
-            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = TransactionDTO.FromPoco(newRepeatedTransaction) }); ;
+            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) }); ;
             // creating the rest of the series
         }
 
         return returnTransactionsList.ToArray();
     }
 
-    public async Task<TransactionEventDTO[]> UpdateRepeatInstanceAndForward(TransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> UpdateRepeatInstanceAndForward(UserTransactionDTO inputDto)
     {
         var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
 
         if (originalTransaction == null)
         {
-            throw new Exception("Transaction ID was null");
+            throw new Exception("UserTransaction ID was null");
         }
 
         var originalRepeatEnd = originalTransaction!.RepeatEnd;
@@ -263,32 +261,32 @@ public class TransactionService
 
         return new[]
         {
-            new TransactionEventDTO { Event = "update", Transaction = TransactionDTO.FromPoco(originalTransaction) },
+            new TransactionEventDTO { Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) },
             new TransactionEventDTO { Event = "create", Transaction = inputDto }
         };
     }
 
-    public async Task<TransactionEventDTO[]> DeleteRepeatInstanceAndForward(TransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> DeleteRepeatInstanceAndForward(UserTransactionDTO inputDto)
     {
         var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
 
         if (originalTransaction == null)
         {
-            throw new Exception("Transaction ID was null");
+            throw new Exception("UserTransaction ID was null");
         }
 
         originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
 
         await this.Update(originalTransaction);
 
-        return new[] { new TransactionEventDTO {Event = "update", Transaction = TransactionDTO.FromPoco(originalTransaction) } };
+        return new[] { new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) } };
     }
 
-    public async Task<TransactionEventDTO[]> DeleteRepeatInstance(TransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> DeleteRepeatInstance(UserTransactionDTO inputDto)
     {
         if (!inputDto.TransactionId.HasValue)
         {
-            throw new Exception("Transaction ID was null");
+            throw new Exception("UserTransaction ID was null");
         }
 
         var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
@@ -329,15 +327,15 @@ public class TransactionService
                 return returnTransactionsList.ToArray();
             }
 
-            var newRepeatedTransaction = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
             newRepeatedTransaction.Repeat = originalRepeat;
             newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
             int? newRepeatedTransactionId = await Database.Insert(newRepeatedTransaction);
-            newRepeatedTransaction.TransactionId = newRepeatedTransactionId!.Value;
+            newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
             returnTransactionsList.Add(new TransactionEventDTO
-                { Event = "create", Transaction = TransactionDTO.FromPoco(newRepeatedTransaction) });
+                { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
 
             return returnTransactionsList.ToArray();
             // creating the rest of the series
@@ -351,7 +349,7 @@ public class TransactionService
             originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
 
             await this.Update(originalTransaction);
-            returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = TransactionDTO.FromPoco(originalTransaction)});
+            returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction)});
             // updating the transaction original repeat end to before this day
 
             var newStartingDate = inputDto.TransactionDate;
@@ -377,14 +375,14 @@ public class TransactionService
                 return returnTransactionsList.ToArray();
             }
 
-            var newRepeatedTransaction = PocoFromDto(TransactionDTO.FromPoco(originalTransaction));
+            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
             newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
             int? newRepeatedTransactionId = await Database.Insert(newRepeatedTransaction);
-            newRepeatedTransaction.TransactionId = newRepeatedTransactionId!.Value;
+            newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
             returnTransactionsList.Add(new TransactionEventDTO
-                { Event = "create", Transaction = TransactionDTO.FromPoco(newRepeatedTransaction) });
+                { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
 
             return returnTransactionsList.ToArray();
             // creating the rest of the series

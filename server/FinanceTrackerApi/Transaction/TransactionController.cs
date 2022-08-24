@@ -50,25 +50,25 @@ public class TransactionController : ControllerBase
         if (transaction.Repeat != null && thisAndForward.HasValue && thisAndForward.Value)
         {
             //if is repeat and the query told us we w2ant to change this repeat and all others forward
-            var dtos = await this.TransactionService.DeleteRepeatInstanceAndForward(TransactionDTO.FromPoco(transaction));
+            var dtos = await this.TransactionService.DeleteRepeatInstanceAndForward(UserTransactionDTO.FromPoco(transaction));
 
             return this.Ok(dtos);
         }
 
         if (transaction.Repeat != null && onlyThis.HasValue && onlyThis.Value)
         {
-            var dtos = await this.TransactionService.DeleteRepeatInstance(TransactionDTO.FromPoco(transaction));
+            var dtos = await this.TransactionService.DeleteRepeatInstance(UserTransactionDTO.FromPoco(transaction));
 
             return this.Ok(dtos);
         }
 
         await this.TransactionService.Delete(transaction);
 
-        return this.Ok(new[] { new TransactionEventDTO{Event = "delete", Transaction = TransactionDTO.FromPoco(transaction) } });
+        return this.Ok(new[] { new TransactionEventDTO{Event = "delete", Transaction = UserTransactionDTO.FromPoco(transaction) } });
     }
 
     [HttpPut]
-    public async Task<ActionResult<TransactionEventDTO[]>> Edit([FromBody] TransactionDTO inputDto, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis)
+    public async Task<ActionResult<TransactionEventDTO[]>> Edit([FromBody] UserTransactionDTO inputDto, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -121,7 +121,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<TransactionDTO>> Get([FromQuery] int? transactionId)
+    public async Task<ActionResult<UserTransactionDTO>> Get([FromQuery] int? transactionId)
     {
         if (!transactionId.HasValue)
         {
@@ -148,7 +148,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("/transaction/all/search")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAllBySearch([FromQuery] string searchQuery)
+    public async Task<ActionResult<UserTransactionDTO[]>> GetAllBySearch([FromQuery] string searchQuery)
     {
         var session = this.SessionService.Session;
 
@@ -163,7 +163,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("/transaction/all/date")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAllByDate([FromQuery] DateTime? transactionDate)
+    public async Task<ActionResult<UserTransactionDTO[]>> GetAllByDate([FromQuery] DateTime? transactionDate)
     {
         var session = this.SessionService.Session;
 
@@ -183,7 +183,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("/transaction/all/range")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAllByDateRange([FromQuery] DateTime? beforeDate, [FromQuery] DateTime? afterDate)
+    public async Task<ActionResult<UserTransactionDTO[]>> GetAllByDateRange([FromQuery] DateTime? beforeDate, [FromQuery] DateTime? afterDate)
     {
         var session = this.SessionService.Session;
 
@@ -262,7 +262,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpGet("/transaction/all/month")]
-    public async Task<ActionResult<TransactionDTO[]>> GetAllByMonth([FromQuery] int month, [FromQuery] int year)
+    public async Task<ActionResult<UserTransactionDTO[]>> GetAllByMonth([FromQuery] int month, [FromQuery] int year)
     {
         var session = this.SessionService.Session;
 
@@ -277,7 +277,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<TransactionEventDTO[]>> Create([FromBody] TransactionDTO inputDto)
+    public async Task<ActionResult<TransactionEventDTO[]>> Create([FromBody] UserTransactionDTO inputDto)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 

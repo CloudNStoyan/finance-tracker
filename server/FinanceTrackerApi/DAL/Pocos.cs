@@ -1,10 +1,10 @@
 ﻿namespace FinanceTrackerApi.DAL;
 
-[Table(Name = "transaction", Schema = "public")]
-public class TransactionPoco
+[Table(Name = "user_transactions", Schema = "public")]
+public class UserTransactionPoco
 {
-    [Column(Name = "transaction_id", IsPrimaryKey = true)]
-    public int TransactionId { get; set; }
+    [Column(Name = "user_transaction_id", IsPrimaryKey = true)]
+    public int UserTransactionId { get; set; }
 
     [Column(Name = "user_id")]
     public int? UserId { get; set; }
@@ -24,9 +24,6 @@ public class TransactionPoco
     [Column(Name = "confirmed")]
     public bool Confirmed { get; set; }
 
-    [Column(Name = "image_receipt_id")]
-    public int? ImageReceiptId { get; set; }
-
     [Column(Name = "transaction_date")]
     public DateTime TransactionDate { get; set; }
 
@@ -40,7 +37,7 @@ public class TransactionPoco
     public string? Repeat { get; set; }
 }
 
-[Table(Name = "category", Schema = "public")]
+[Table(Name = "categories", Schema = "public")]
 public class CategoryPoco
 {
     [Column(Name = "category_id", IsPrimaryKey = true)]
@@ -62,7 +59,7 @@ public class CategoryPoco
     public int? UserId { get; set; }
 }
 
-[Table(Name = "user_account", Schema = "public")]
+[Table(Name = "user_accounts", Schema = "public")]
 public class UserPoco
 {
     [Column(Name = "user_id", IsPrimaryKey = true)]
@@ -75,7 +72,7 @@ public class UserPoco
     public byte[] Password { get; set; }
 }
 
-[Table(Name = "session", Schema = "public")]
+[Table(Name = "sessions", Schema = "public")]
 public class SessionPoco
 {
     [Column(Name = "session_id", IsPrimaryKey = true)]

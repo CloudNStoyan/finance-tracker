@@ -17,7 +17,7 @@ public class AuthenticationService
 
     public async Task<UserPoco> GetUserById(int userId)
     {
-        var userPoco = await this.Database.QueryOne<UserPoco>("SELECT * FROM user_account WHERE user_id=@userId;",
+        var userPoco = await this.Database.QueryOne<UserPoco>("SELECT * FROM user_accounts WHERE user_id=@userId;",
             new NpgsqlParameter("userId", userId));
 
         return userPoco;
@@ -56,7 +56,7 @@ public class AuthenticationService
 
 
         var userPoco = await this.Database.QueryOne<UserPoco>(
-            "SELECT * FROM user_account u WHERE u.username=@username AND u.password=@password;",
+            "SELECT * FROM user_accounts u WHERE u.username=@username AND u.password=@password;",
             new NpgsqlParameter("username", dto.Username!), new NpgsqlParameter("password", hashedPassword));
 
         if (userPoco == null)
@@ -83,7 +83,7 @@ public class AuthenticationService
     public async Task Logout(int sessionId)
     {
         var session = await this.Database.QueryOne<SessionPoco>(
-            "SELECT * FROM session s WHERE s.session_id=@sessionId;", new NpgsqlParameter("sessionId", sessionId));
+            "SELECT * FROM sessions s WHERE s.session_id=@sessionId;", new NpgsqlParameter("sessionId", sessionId));
 
         if (session == null)
         {
@@ -101,7 +101,7 @@ public class AuthenticationService
     public async Task<SessionPoco?> GetSessionBySessionKey(string sessionKey)
     {
         var sessionPoco = await this.Database.QueryOne<SessionPoco>(
-            "SELECT * FROM session s WHERE s.session_key=@sessionKey;", new NpgsqlParameter("sessionKey", sessionKey));
+            "SELECT * FROM sessions s WHERE s.session_key=@sessionKey;", new NpgsqlParameter("sessionKey", sessionKey));
 
         return sessionPoco;
     }
@@ -109,7 +109,7 @@ public class AuthenticationService
     public async Task<bool> IsUsernameFree(string username)
     {
         var userPoco = await this.Database.QueryOne<UserPoco>(
-            "SELECT * FROM user_account u WHERE u.username=@username;",
+            "SELECT * FROM user_accounts u WHERE u.username=@username;",
             new NpgsqlParameter("username", username));
 
         return userPoco == null;

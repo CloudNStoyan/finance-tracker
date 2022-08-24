@@ -3,7 +3,7 @@ using FinanceTrackerApi.DAL;
 
 namespace FinanceTrackerApi.Transaction;
 
-public class TransactionDTO
+public class UserTransactionDTO
 {
     public int? TransactionId { get; set; }
 
@@ -29,18 +29,15 @@ public class TransactionDTO
     [Required]
     public bool Confirmed { get; set; }
 
-    public int? ImageReceiptId { get; set; }
-
     public string? Details { get; set; }
     public string? Repeat { get; set; }
 
-    public static TransactionDTO FromPoco(TransactionPoco poco) => new()
+    public static UserTransactionDTO FromPoco(UserTransactionPoco poco) => new()
     {
-        TransactionId = poco.TransactionId,
+        TransactionId = poco.UserTransactionId,
         CategoryId = poco.CategoryId,
         Confirmed = poco.Confirmed,
         Details = poco.Details,
-        ImageReceiptId = poco.ImageReceiptId,
         Value = poco.Value,
         Label = poco.Label,
         Type = poco.Type,
