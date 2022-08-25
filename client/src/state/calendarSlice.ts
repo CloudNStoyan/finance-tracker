@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   addDays,
   endOfMonth,
@@ -13,6 +13,7 @@ import {
   fromUnixTimeMs,
   isValidDate,
 } from "../infrastructure/CustomDateUtils";
+import { getStartBalanceByMonth, Balance } from "../server-api";
 
 export type StartBalanceCache = {
   [cacheKey: string]: number;
@@ -24,6 +25,7 @@ export type CalendarState = {
   selected: number;
   startBalance: number;
   startBalanceCache: StartBalanceCache;
+  fetchingStatus: "idle" | "loading" | "succeeded";
 };
 
 const initialState: CalendarState = {
@@ -32,13 +34,29 @@ const initialState: CalendarState = {
   selected: null,
   startBalance: null,
   startBalanceCache: {},
+  fetchingStatus: "idle",
 };
+
+export const fetchStartBalance = createAsyncThunk(
+  "calendar/fetchStartBalance",
+  async (day: Date) => {
+    const resp = await getStartBalanceByMonth(
+      day.getDate(),
+      day.getMonth() + 1,
+      day.getFullYear()
+    );
+
+    return resp.data;
+  }
+);
 
 const calendarSlice = createSlice({
   name: "calendar",
   initialState,
   reducers: {
     setNow(state, action: PayloadAction<number>) {
+      state.fetchingStatus = "idle";
+
       const now = fromUnixTimeMs(action.payload);
       const stateNow = fromUnixTimeMs(state.now);
 
@@ -94,6 +112,35 @@ const calendarSlice = createSlice({
       state.startBalanceCache[key] = action.payload;
       state.startBalance = action.payload;
     },
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchStartBalance.pending, (state) => {
+        state.fetchingStatus = "loading";
+      })
+      .addCase(fetchStartBalance.rejected, (state) => {
+        state.fetchingStatus = "idle";
+      })
+      .addCase(
+        fetchStartBalance.fulfilled,
+        (state, action: PayloadAction<Balance>) => {
+          state.fetchingStatus = "succeeded";
+
+          const afterDate = fromUnixTimeMs(state.days[0]);
+          const beforeDate = fromUnixTimeMs(state.days[state.days.length - 1]);
+          if (!isValidDate(afterDate) || !isValidDate(beforeDate)) {
+            return;
+          }
+
+          const key = `${format(afterDate, "dd/MM/yy")}-${format(
+            beforeDate,
+            "dd/MM/yy"
+          )}`;
+
+          state.startBalanceCache[key] = action.payload.balance;
+          state.startBalance = action.payload.balance;
+        }
+      );
   },
 });
 

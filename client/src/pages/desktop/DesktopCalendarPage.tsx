@@ -6,11 +6,11 @@ import {
   fromUnixTimeMs,
 } from "../../infrastructure/CustomDateUtils";
 import {
-  getStartBalanceByMonth,
   getTransactionsBeforeAndAfterDate,
   Transaction,
 } from "../../server-api";
 import {
+  fetchStartBalance,
   setNow,
   setSelected,
   setStartBalance,
@@ -52,6 +52,10 @@ const DesktopCalendarPage = () => {
     (state) => state.calendarReducer
   );
 
+  const balanceStatus = useAppSelector(
+    (state) => state.calendarReducer.fetchingStatus
+  );
+
   const { completedTansactionQueries } = useAppSelector(
     (state) => state.transactionsReducer
   );
@@ -89,7 +93,7 @@ const DesktopCalendarPage = () => {
   }, [dispatch, now, selected]);
 
   useEffect(() => {
-    if (parsedNow === null) {
+    if (parsedNow === null || balanceStatus !== "idle") {
       return;
     }
 
@@ -105,28 +109,8 @@ const DesktopCalendarPage = () => {
       return;
     }
 
-    const fetchForBalance = async () => {
-      try {
-        const resp = await getStartBalanceByMonth(
-          days[0].getDate(),
-          days[0].getMonth() + 1,
-          days[0].getFullYear()
-        );
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setStartBalance(resp.data.balance));
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchForBalance();
-  }, [parsedNow, dispatch, startBalanceCache, days]);
+    void dispatch(fetchStartBalance(days[0]));
+  }, [parsedNow, dispatch, startBalanceCache, days, balanceStatus]);
 
   useEffect(() => {
     if (parsedNow === null) {

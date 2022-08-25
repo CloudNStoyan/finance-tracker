@@ -10,11 +10,13 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
+import { getTransactionsBeforeAndAfterDate } from "../server-api";
 import {
-  getStartBalanceByMonth,
-  getTransactionsBeforeAndAfterDate,
-} from "../server-api";
-import { setNow, setSelected, setStartBalance } from "../state/calendarSlice";
+  fetchStartBalance,
+  setNow,
+  setSelected,
+  setStartBalance,
+} from "../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +48,10 @@ const CalendarPage = () => {
     (state) => state.categoriesReducer.status
   );
 
+  const balanceFetchingStatus = useAppSelector(
+    (state) => state.calendarReducer.fetchingStatus
+  );
+
   useEffect(() => {
     if (categoriesStatus === "idle") {
       void dispatch(fetchCategories());
@@ -71,7 +77,7 @@ const CalendarPage = () => {
   }, [selected, now, dispatch]);
 
   useEffect(() => {
-    if (parsedNow === null) {
+    if (parsedNow === null || balanceFetchingStatus !== "idle") {
       return;
     }
 
@@ -87,28 +93,8 @@ const CalendarPage = () => {
       return;
     }
 
-    const fetchForBalance = async () => {
-      try {
-        const resp = await getStartBalanceByMonth(
-          days[0].getDate(),
-          days[0].getMonth() + 1,
-          days[0].getFullYear()
-        );
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setStartBalance(resp.data.balance));
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchForBalance();
-  }, [parsedNow, dispatch, startBalanceCache, days]);
+    void dispatch(fetchStartBalance(days[0]));
+  }, [parsedNow, dispatch, startBalanceCache, days, balanceFetchingStatus]);
 
   useEffect(() => {
     if (parsedNow === null) {
