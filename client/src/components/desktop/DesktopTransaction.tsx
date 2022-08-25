@@ -130,7 +130,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setCategory(DefaultCategory);
     setDescription("");
     setRepeat("none");
-    setRepeatEnd(null);
+    setRepeatEnd(new Date());
     setShowRepeatEnd(false);
     setOnlyThis(null);
     setItHasRepeat(false);
