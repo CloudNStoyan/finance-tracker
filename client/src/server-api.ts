@@ -106,16 +106,11 @@ export const deleteCategory = async (categoryId: number) => {
 
 export const createOrEditTransaction = async (
   transaction: Transaction,
-  thisAndForward?: boolean,
-  onlyThis?: boolean
+  repeatMode?: "thisAndForward" | "onlyThis"
 ) => {
-  const url = `${SERVER_URL}/transaction${
-    thisAndForward === true
-      ? "?thisAndForward=true"
-      : onlyThis === true
-      ? "?onlyThis=true"
-      : ""
-  }`;
+  const url = !repeatMode
+    ? `${SERVER_URL}/transaction`
+    : `${SERVER_URL}/transaction?${repeatMode}=true`;
 
   if (
     Number.isInteger(transaction.transactionId) &&

@@ -144,7 +144,7 @@ public class TransactionController : ControllerBase
             return this.Unauthorized();
         }
 
-        return this.Ok(transaction);
+        return this.Ok(UserTransactionDTO.FromPoco(transaction));
     }
 
     [HttpGet("/transaction/all/search")]

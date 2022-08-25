@@ -1,7 +1,13 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { format } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
-import { getTransactionsBeforeAndAfterDate, Transaction } from "../server-api";
+import {
+  createOrEditTransaction,
+  getTransactionById,
+  getTransactionsBeforeAndAfterDate,
+  Transaction,
+  TransactionEvent,
+} from "../server-api";
 
 export type TransactionState = {
   transactions: Transaction[];
@@ -14,6 +20,15 @@ const initialState: TransactionState = {
   completedTansactionQueries: [],
   fetchingStatus: "idle",
 };
+
+export const fetchTransactionById = createAsyncThunk(
+  "transactions/fetchTransactionById",
+  async (transactionId: number) => {
+    const resp = await getTransactionById(transactionId);
+
+    return resp.data;
+  }
+);
 
 export const fetchTransactionsByRange = createAsyncThunk(
   "transactions/fetchTransactionsByRange",
@@ -29,6 +44,27 @@ export const fetchTransactionsByRange = createAsyncThunk(
     const resp = await getTransactionsBeforeAndAfterDate(after, before);
 
     return { transactions: resp.data, now };
+  }
+);
+
+export const addNewOrEditTransaction = createAsyncThunk(
+  "transactions/addNewOrEditTransaction",
+  async ({
+    transaction,
+    repeatMode,
+  }: {
+    transaction: Transaction;
+    repeatMode?: "onlyThis" | "thisAndForward";
+  }) => {
+    if (!repeatMode) {
+      const resp = await createOrEditTransaction(transaction);
+
+      return resp.data;
+    }
+
+    const resp = await createOrEditTransaction(transaction, repeatMode);
+
+    return resp.data;
   }
 );
 
@@ -111,6 +147,63 @@ const transactionsSlice = createSlice({
         state.fetchingStatus = "loading";
       })
       .addCase(fetchTransactionsByRange.rejected, (state) => {
+        state.fetchingStatus = "idle";
+      })
+      .addCase(
+        fetchTransactionById.fulfilled,
+        (state, action: PayloadAction<Transaction>) => {
+          state.fetchingStatus = "idle";
+          state.transactions.push(action.payload);
+        }
+      )
+      .addCase(fetchTransactionById.pending, (state) => {
+        state.fetchingStatus = "loading";
+      })
+      .addCase(fetchTransactionById.rejected, (state) => {
+        state.fetchingStatus = "idle";
+      })
+      .addCase(
+        addNewOrEditTransaction.fulfilled,
+        (state, action: PayloadAction<TransactionEvent[]>) => {
+          state.fetchingStatus = "idle";
+          const changes = action.payload;
+
+          changes.forEach((change) => {
+            const ev = change.event;
+            const transaction = change.transaction;
+
+            if (ev === "create") {
+              const stateHasTransaction =
+                state.transactions.findIndex(
+                  (t) => t.transactionId === transaction.transactionId
+                ) !== -1;
+
+              if (!stateHasTransaction) {
+                state.transactions.push(transaction);
+              }
+            }
+
+            if (ev === "update") {
+              state.transactions = [
+                transaction,
+                ...state.transactions.filter(
+                  (x) => x.transactionId !== transaction.transactionId
+                ),
+              ];
+            }
+
+            if (ev === "delete") {
+              state.transactions = state.transactions.filter(
+                (t) => t.transactionId !== transaction.transactionId
+              );
+            }
+          });
+        }
+      )
+      .addCase(addNewOrEditTransaction.pending, (state) => {
+        state.fetchingStatus = "loading";
+      })
+      .addCase(addNewOrEditTransaction.rejected, (state) => {
         state.fetchingStatus = "idle";
       });
   },

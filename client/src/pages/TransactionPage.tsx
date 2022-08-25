@@ -30,13 +30,7 @@ import React, { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./styles/TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import {
-  Category,
-  createOrEditTransaction,
-  deleteTransaction,
-  getTransactionById,
-  Transaction,
-} from "../server-api";
+import { Category, deleteTransaction, Transaction } from "../server-api";
 import axios from "axios";
 import { setNotification } from "../state/notificationSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -47,8 +41,10 @@ import { format, parseISO, parseJSON } from "date-fns";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 import DefaultCategory from "../state/DefaultCategory";
 import {
+  addNewOrEditTransaction,
   addTransaction,
   editTransaction,
+  fetchTransactionById,
   removeTransaction,
 } from "../state/transactionSlice";
 import RepeatTransactionDialog, {
@@ -82,7 +78,6 @@ const TransactionPage: FunctionComponent<{
     (state) => state.calendarReducer.selected
   );
 
-  const [isFetchingTransaction, setIsFetchingTransaction] = useState(false);
   const [transactionIsLoaded, setTransactionIsLoaded] = useState(false);
   const [transactionType, setTransactionType] = useState("expense");
   const [value, setValue] = useState("");
@@ -121,6 +116,10 @@ const TransactionPage: FunctionComponent<{
     (state) => state.transactionsReducer.transactions
   );
 
+  const transactionsStatus = useAppSelector(
+    (state) => state.transactionsReducer.fetchingStatus
+  );
+
   const { transactionId } = useParams();
   const navigate = useNavigate();
   const query = useQuery();
@@ -142,11 +141,18 @@ const TransactionPage: FunctionComponent<{
   }, [categories, categoryId, categoriesStatus]);
 
   useEffect(() => {
-    if (!hasTransactionId || transactionIsLoaded || isFetchingTransaction) {
+    if (!hasTransactionId || transactionIsLoaded) {
       return;
     }
 
-    setIsFetchingTransaction(true);
+    const transaction = transactions.find(
+      (t) => t.transactionId === Number(transactionId)
+    );
+
+    if (!transaction && transactionsStatus === "idle") {
+      void dispatch(fetchTransactionById(Number(transactionId)));
+      return;
+    }
 
     const handleTransaction = (transaction: Transaction) => {
       setValue(transaction.value.toString());
@@ -180,58 +186,16 @@ const TransactionPage: FunctionComponent<{
       }
     };
 
-    const fetchTransaction = async () => {
-      try {
-        const resp = await getTransactionById(Number(transactionId));
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        const transaction = resp.data;
-
-        handleTransaction(transaction);
-        if (transactions.length > 0) {
-          dispatch(addTransaction(transaction));
-        }
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-
-        if (error.response.status === 404) {
-          dispatch(
-            setNotification({
-              message: "No transaction with that ID.",
-              color: "error",
-            })
-          );
-          navigate("/transaction");
-        }
-      } finally {
-        setIsFetchingTransaction(false);
-      }
-    };
-
-    const transaction = transactions.find(
-      (t) => t.transactionId === Number(transactionId)
-    );
-
-    if (!transaction) {
-      void fetchTransaction();
-      return;
+    if (transaction) {
+      handleTransaction(transaction);
     }
-
-    handleTransaction(transaction);
   }, [
+    dispatch,
     hasTransactionId,
     transactionId,
-    transactions,
-    categories,
     transactionIsLoaded,
-    isFetchingTransaction,
-    dispatch,
-    navigate,
+    transactions,
+    transactionsStatus,
     query,
   ]);
 
@@ -291,7 +255,7 @@ const TransactionPage: FunctionComponent<{
     const transaction: Transaction = {
       label: label.trim(),
       value: Number(value),
-      transactionDate: format(date, "yyyy-MM-dd") + "T00:00:00",
+      transactionDate: format(date, "yyyy-MM-dd"),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
       repeat: transactionRepeat,
@@ -310,37 +274,24 @@ const TransactionPage: FunctionComponent<{
       transaction.repeatEnd = repeatEnd.toJSON();
     }
 
+    const repeatMode =
+      onlyThis === true
+        ? "onlyThis"
+        : onlyThis === false
+        ? "thisAndForward"
+        : null;
+
     try {
-      const resp = await createOrEditTransaction(
-        transaction,
-        transactionIsARepeat && !onlyThis,
-        onlyThis
+      await dispatch(
+        addNewOrEditTransaction({
+          transaction,
+          repeatMode,
+        })
       );
 
-      const transactionChanges = resp.data;
-
-      transactionChanges.forEach((change) => {
-        const ev = change.event;
-
-        if (ev === "create") {
-          dispatch(addTransaction(change.transaction));
-        }
-
-        if (ev === "update") {
-          dispatch(editTransaction(change.transaction));
-        }
-
-        if (ev === "delete") {
-          dispatch(removeTransaction(change.transaction.transactionId));
-        }
-      });
-
       navigate("/");
-      return;
     } catch (error) {
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
+      console.error(error);
     }
   };
 

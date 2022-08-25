@@ -24,16 +24,12 @@ import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import DefaultCategory from "../../state/DefaultCategory";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { fromUnixTimeMs } from "../../infrastructure/CustomDateUtils";
-import {
-  Category,
-  createOrEditTransaction,
-  deleteTransaction,
-  Transaction,
-} from "../../server-api";
+import { Category, deleteTransaction, Transaction } from "../../server-api";
 import axios from "axios";
 import { format, parseJSON } from "date-fns";
 import { setNotification } from "../../state/notificationSlice";
 import {
+  addNewOrEditTransaction,
   addTransaction,
   editTransaction,
   removeTransaction,
@@ -116,23 +112,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     (state) => state.categoriesReducer.categories
   );
 
-  const clearFields = () => {
-    setValue("");
-    setLabel("");
-    setConfirmed(true);
-    setTransactionType("expense");
-    setDate(new Date());
-    setCategory(DefaultCategory);
-    setDescription("");
-    setRepeat("none");
-    setRepeatEnd(null);
-    setShowRepeatEnd(false);
-    setOnlyThis(null);
-    setItHasRepeat(false);
-    setAction(null);
-    setRepeatTransactionDialogOpen(false);
-  };
-
   useEffect(() => {
     setModalHistory([currentModal, ...modalHistory.slice(0, 4)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,7 +122,22 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       return;
     }
 
-    clearFields();
+    setValue("");
+    setLabel("");
+    setConfirmed(true);
+    setTransactionType("expense");
+    setDate(fromUnixTimeMs(calendarSelected));
+    setCategory(DefaultCategory);
+    setDescription("");
+    setRepeat("none");
+    setRepeatEnd(null);
+    setShowRepeatEnd(false);
+    setOnlyThis(null);
+    setItHasRepeat(false);
+    setAction(null);
+    setRepeatTransactionDialogOpen(false);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
@@ -230,7 +224,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     const newTransaction: Transaction = {
       label: label.trim(),
       value: Number(value),
-      transactionDate: format(date, "yyyy-MM-dd") + "T00:00:00",
+      transactionDate: format(date, "yyyy-MM-dd"),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
       repeat:
@@ -255,36 +249,24 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       newTransaction.repeatEnd = repeatEnd.toJSON();
     }
 
+    const repeatMode =
+      onlyThis === true
+        ? "onlyThis"
+        : onlyThis === false
+        ? "thisAndForward"
+        : null;
+
     try {
-      const resp = await createOrEditTransaction(
-        newTransaction,
-        onlyThis === false,
-        onlyThis === true
+      await dispatch(
+        addNewOrEditTransaction({
+          transaction: newTransaction,
+          repeatMode,
+        })
       );
-
-      const transactionChanges = resp.data;
-
-      transactionChanges.forEach((change) => {
-        const ev = change.event;
-
-        if (ev === "create") {
-          dispatch(addTransaction(change.transaction));
-        }
-
-        if (ev === "update") {
-          dispatch(editTransaction(change.transaction));
-        }
-
-        if (ev === "delete") {
-          dispatch(removeTransaction(change.transaction.transactionId));
-        }
-      });
 
       onClose();
     } catch (error) {
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
+      console.error(error);
     }
   };
 
