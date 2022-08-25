@@ -1,14 +1,10 @@
-import axios from "axios";
 import { format, getTime } from "date-fns";
 import React, { useEffect, useRef, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../../infrastructure/CustomDateUtils";
-import {
-  getTransactionsBeforeAndAfterDate,
-  Transaction,
-} from "../../server-api";
+import { Transaction } from "../../server-api";
 import {
   fetchStartBalance,
   setNow,
@@ -24,7 +20,7 @@ import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
 import { IconButton, InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
-import { addQuery, addTransactions } from "../../state/transactionSlice";
+import { fetchTransactionsByRange } from "../../state/transactionSlice";
 import { fetchCategories } from "../../state/categorySlice";
 
 const initialNow = new Date();
@@ -54,6 +50,10 @@ const DesktopCalendarPage = () => {
 
   const balanceStatus = useAppSelector(
     (state) => state.calendarReducer.fetchingStatus
+  );
+
+  const transactionsStatus = useAppSelector(
+    (state) => state.transactionsReducer.fetchingStatus
   );
 
   const { completedTansactionQueries } = useAppSelector(
@@ -113,7 +113,7 @@ const DesktopCalendarPage = () => {
   }, [parsedNow, dispatch, startBalanceCache, days, balanceStatus]);
 
   useEffect(() => {
-    if (parsedNow === null) {
+    if (parsedNow === null || transactionsStatus !== "idle") {
       return;
     }
 
@@ -123,28 +123,21 @@ const DesktopCalendarPage = () => {
       return;
     }
 
-    const fetchApi = async () => {
-      try {
-        const resp = await getTransactionsBeforeAndAfterDate(
-          days[0],
-          days[days.length - 1]
-        );
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(addTransactions(resp.data));
-        dispatch(addQuery(query));
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [parsedNow, dispatch, completedTansactionQueries, days]);
+    void dispatch(
+      fetchTransactionsByRange({
+        after: days[0],
+        before: days[days.length - 1],
+        now,
+      })
+    );
+  }, [
+    parsedNow,
+    dispatch,
+    completedTansactionQueries,
+    days,
+    transactionsStatus,
+    now,
+  ]);
 
   return (
     <DesktopCalendarPageStyled

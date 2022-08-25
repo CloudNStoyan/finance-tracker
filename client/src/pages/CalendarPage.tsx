@@ -1,6 +1,5 @@
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
 import { format, getTime } from "date-fns";
 import React, { useEffect, useState } from "react";
 import CalendarDay from "../components/CalendarDay";
@@ -10,7 +9,6 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
-import { getTransactionsBeforeAndAfterDate } from "../server-api";
 import {
   fetchStartBalance,
   setNow,
@@ -21,7 +19,7 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
 import CalendarNavigation from "../components/CalendarNavigation";
-import { addQuery, addTransactions } from "../state/transactionSlice";
+import { fetchTransactionsByRange } from "../state/transactionSlice";
 import { fetchCategories } from "../state/categorySlice";
 
 const initialNow = new Date();
@@ -50,6 +48,10 @@ const CalendarPage = () => {
 
   const balanceFetchingStatus = useAppSelector(
     (state) => state.calendarReducer.fetchingStatus
+  );
+
+  const transactionsStatus = useAppSelector(
+    (state) => state.transactionsReducer.fetchingStatus
   );
 
   useEffect(() => {
@@ -97,7 +99,7 @@ const CalendarPage = () => {
   }, [parsedNow, dispatch, startBalanceCache, days, balanceFetchingStatus]);
 
   useEffect(() => {
-    if (parsedNow === null) {
+    if (parsedNow === null || transactionsStatus !== "idle") {
       return;
     }
 
@@ -107,28 +109,21 @@ const CalendarPage = () => {
       return;
     }
 
-    const fetchApi = async () => {
-      try {
-        const resp = await getTransactionsBeforeAndAfterDate(
-          days[0],
-          days[days.length - 1]
-        );
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(addTransactions(resp.data));
-        dispatch(addQuery(query));
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [parsedNow, dispatch, completedTansactionQueries, days]);
+    void dispatch(
+      fetchTransactionsByRange({
+        after: days[0],
+        before: days[days.length - 1],
+        now,
+      })
+    );
+  }, [
+    parsedNow,
+    dispatch,
+    completedTansactionQueries,
+    days,
+    now,
+    transactionsStatus,
+  ]);
 
   return (
     categoriesStatus === "succeeded" && (

@@ -1,15 +1,36 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Transaction } from "../server-api";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { format } from "date-fns";
+import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import { getTransactionsBeforeAndAfterDate, Transaction } from "../server-api";
 
 export type TransactionState = {
   transactions: Transaction[];
   completedTansactionQueries: string[];
+  fetchingStatus: "idle" | "loading";
 };
 
 const initialState: TransactionState = {
   transactions: [],
   completedTansactionQueries: [],
+  fetchingStatus: "idle",
 };
+
+export const fetchTransactionsByRange = createAsyncThunk(
+  "transactions/fetchTransactionsByRange",
+  async ({
+    after,
+    before,
+    now,
+  }: {
+    after: Date;
+    before: Date;
+    now: number;
+  }) => {
+    const resp = await getTransactionsBeforeAndAfterDate(after, before);
+
+    return { transactions: resp.data, now };
+  }
+);
 
 const transactionsSlice = createSlice({
   name: "transactions",
@@ -59,6 +80,39 @@ const transactionsSlice = createSlice({
         ),
       ];
     },
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(
+        fetchTransactionsByRange.fulfilled,
+        (
+          state,
+          action: PayloadAction<{ transactions: Transaction[]; now: number }>
+        ) => {
+          state.fetchingStatus = "idle";
+
+          const query = format(fromUnixTimeMs(action.payload.now), "yyyy-MMMM");
+          state.completedTansactionQueries.push(query);
+
+          const transactions = action.payload.transactions;
+
+          state.transactions = [
+            ...transactions.filter(
+              (transaction) =>
+                state.transactions.findIndex(
+                  (t) => t.transactionId === transaction.transactionId
+                ) === -1
+            ),
+            ...state.transactions,
+          ];
+        }
+      )
+      .addCase(fetchTransactionsByRange.pending, (state) => {
+        state.fetchingStatus = "loading";
+      })
+      .addCase(fetchTransactionsByRange.rejected, (state) => {
+        state.fetchingStatus = "idle";
+      });
   },
 });
 

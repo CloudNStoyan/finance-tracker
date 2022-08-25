@@ -161,19 +161,16 @@ export const getTransactionsBeforeAndAfterDate = async (
   beforeDate: Date
 ) => {
   return axios.get<Transaction[]>(
-    `${SERVER_URL}/transaction/all/range?afterDate=${afterDate.toJSON()}&beforeDate=${beforeDate.toJSON()}`
+    `${SERVER_URL}/transaction/all/range?afterDate=${format(
+      afterDate,
+      "yyyy-MM-dd"
+    )}&beforeDate=${format(beforeDate, "yyyy-MM-dd")}`
   );
 };
 
-export const getStartBalanceByMonth = async (
-  date: number,
-  month: number,
-  year: number
-) => {
+export const getStartBalanceByMonth = async (date: Date) => {
   return axios.get<Balance>(
-    `${SERVER_URL}/transaction/balance?date=${year}-${month
-      .toString()
-      .padStart(2, "0")}-${date.toString().padStart(2, "0")}`
+    `${SERVER_URL}/transaction/balance?date=${format(date, "yyyy-MM-dd")}`
   );
 };
 
