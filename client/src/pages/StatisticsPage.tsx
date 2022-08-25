@@ -2,35 +2,39 @@ import React, { useEffect, useRef, useState } from "react";
 import { Chart, ArcElement, ChartData, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
-import {
-  Category,
-  getStartBalanceByMonth,
-  getTransactionsBeforeAndAfterDate,
-  Transaction,
-} from "../server-api";
-import axios from "axios";
+import { Category, Transaction } from "../server-api";
 import DefaultCategory from "../state/DefaultCategory";
 import StatisticsPageStyled from "./styles/StatisticsPage.styled";
 import { IconButton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { addMonths, format, getTime, subMonths } from "date-fns";
+import {
+  addMonths,
+  addWeeks,
+  format,
+  getTime,
+  parseJSON,
+  setDate,
+  subMonths,
+} from "date-fns";
 import SearchTransaction from "../components/SearchTransaction";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import CategoryStat from "../components/CategoryStat";
 import {
+  fetchStartBalance,
   setNow as setNowCalendar,
   setStartBalance,
 } from "../state/calendarSlice";
-import { addQuery, addTransactions } from "../state/transactionSlice";
+import { fetchTransactionsByRange } from "../state/transactionSlice";
 import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 import { fetchCategories } from "../state/categorySlice";
+import { differenceInWeeks, lastDayOfMonth } from "date-fns/esm";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 export type CategoryData = { [name: string]: number };
 
 const GenerateChartDataset = (data: CategoryData, categories: Category[]) => {
-  if (Object.keys(data).length === 0) {
+  if (!data || Object.keys(data).length === 0) {
     return null;
   }
 
@@ -58,7 +62,7 @@ const GenerateData = (
   transactions: Transaction[],
   type: "income" | "expense"
 ) => {
-  if (transactions === null) {
+  if (transactions === null || transactions.length === 0) {
     return null;
   }
 
@@ -105,6 +109,13 @@ const StatisticsPage = () => {
     (state) => state.transactionsReducer.transactions
   );
 
+  const transactionsStatus = useAppSelector(
+    (state) => state.transactionsReducer.fetchingStatus
+  );
+  const balanceFetchingStatus = useAppSelector(
+    (state) => state.calendarReducer.fetchingStatus
+  );
+
   const { days, startBalanceCache } = useAppSelector(
     (state) => state.calendarReducer
   );
@@ -126,7 +137,7 @@ const StatisticsPage = () => {
   }, [categoriesStatus, dispatch]);
 
   useEffect(() => {
-    if (!expenses || categoriesStatus !== "succeeded") {
+    if (categoriesStatus !== "succeeded") {
       return;
     }
 
@@ -135,7 +146,7 @@ const StatisticsPage = () => {
   }, [expenses, categories, categoriesStatus]);
 
   useEffect(() => {
-    if (!incomes || categoriesStatus !== "succeeded") {
+    if (categoriesStatus !== "succeeded") {
       return;
     }
 
@@ -151,11 +162,57 @@ const StatisticsPage = () => {
   }, [currentTransactions]);
 
   useEffect(() => {
+    const transactionRepeats: Transaction[][] = [];
+    allTransactions.forEach((t) => {
+      if (t.repeat === null) {
+        return;
+      }
+
+      const transactionDate = parseJSON(t.transactionDate);
+
+      const lastDay = lastDayOfMonth(now);
+      const firstDay = setDate(new Date(now).setHours(0, 0, 0, 0), 1);
+
+      if (t.repeat === "weekly") {
+        const transactions: Transaction[] = [];
+
+        const tillDate =
+          t.repeatEnd !== null ? parseJSON(t.repeatEnd) : lastDay;
+
+        const occurences = differenceInWeeks(tillDate, transactionDate);
+
+        for (let i = 0; i < occurences; i++) {
+          const newDate = addWeeks(transactionDate, i + 1);
+
+          if (newDate.getMonth() === firstDay.getMonth()) {
+            const newTransaction = Object.assign({}, t);
+            newTransaction.transactionDate = newDate.toJSON();
+            transactions.push(newTransaction);
+          }
+        }
+
+        transactionRepeats.push(transactions);
+      }
+    });
+
+    const repeatedTransactions = transactionRepeats.reduce(
+      (prev, curr) => [...prev, ...curr],
+      []
+    );
+
     setCurrentTransactions(
-      allTransactions.filter(
-        (transaction) =>
-          new Date(transaction.transactionDate).getMonth() === now.getMonth()
-      )
+      [...allTransactions, ...repeatedTransactions]
+        .filter((transaction) => {
+          const transactionDate = new Date(transaction.transactionDate);
+
+          return (
+            transactionDate.getMonth() === now.getMonth() &&
+            transactionDate.getFullYear() === now.getFullYear()
+          );
+        })
+        .sort((a, b) =>
+          new Date(a.transactionDate) > new Date(b.transactionDate) ? 1 : -1
+        )
     );
   }, [allTransactions, now]);
 
@@ -164,14 +221,12 @@ const StatisticsPage = () => {
   }, [now, dispatch]);
 
   useEffect(() => {
-    if (now === null || days.length === 0) {
+    if (now === null || balanceFetchingStatus !== "idle" || days.length === 0) {
       return;
     }
 
-    const startDay = fromUnixTimeMs(days[0]);
-
-    const key = `${format(startDay, "dd/MM/yy")}-${format(
-      fromUnixTimeMs(days[days.length - 1]),
+    const key = `${format(days[0], "dd/MM/yy")}-${format(
+      days[days.length - 1],
       "dd/MM/yy"
     )}`;
 
@@ -182,31 +237,11 @@ const StatisticsPage = () => {
       return;
     }
 
-    const fetchForBalance = async () => {
-      try {
-        const resp = await getStartBalanceByMonth(
-          startDay.getDate(),
-          startDay.getMonth() + 1,
-          startDay.getFullYear()
-        );
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(setStartBalance(resp.data.balance));
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchForBalance();
-  }, [now, dispatch, startBalanceCache, days]);
+    void dispatch(fetchStartBalance(fromUnixTimeMs(days[0])));
+  }, [now, dispatch, startBalanceCache, days, balanceFetchingStatus]);
 
   useEffect(() => {
-    if (now === null || days.length === 0) {
+    if (now === null || transactionsStatus !== "idle" || days.length === 0) {
       return;
     }
 
@@ -216,28 +251,14 @@ const StatisticsPage = () => {
       return;
     }
 
-    const fetchApi = async () => {
-      try {
-        const resp = await getTransactionsBeforeAndAfterDate(
-          fromUnixTimeMs(days[0]),
-          fromUnixTimeMs(days[days.length - 1])
-        );
-
-        if (resp.status !== 200) {
-          return;
-        }
-
-        dispatch(addTransactions(resp.data));
-        dispatch(addQuery(query));
-      } catch (err) {
-        if (!axios.isAxiosError(err)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [now, dispatch, completedTansactionQueries, days]);
+    void dispatch(
+      fetchTransactionsByRange({
+        after: fromUnixTimeMs(days[0]),
+        before: fromUnixTimeMs(days[days.length - 1]),
+        now: now.getTime(),
+      })
+    );
+  }, [dispatch, completedTansactionQueries, days, now, transactionsStatus]);
 
   return (
     <StatisticsPageStyled>
@@ -270,8 +291,7 @@ const StatisticsPage = () => {
           </ToggleButtonGroup>
         </div>
       </div>
-      {((expensesChartData && incomesChartData) ||
-        (incomesChartData && chart === "income") ||
+      {((incomesChartData && chart === "income") ||
         (expensesChartData && chart === "expense")) && (
         <div className="relative chart" onBlur={(e) => console.log(e)}>
           <Doughnut
@@ -330,15 +350,15 @@ const StatisticsPage = () => {
           />
         </div>
       )}
-      {((incomesChartData === null && expensesChartData === null) ||
-        (incomes === null && chart === "income") ||
-        (expensesChartData === null && chart === "expense")) && (
+      {((chart === "expense" && expensesChartData === null) ||
+        (chart === "income" && incomesChartData === null)) && (
         <div className="text-center">
           No data for {chart === "income" ? "Incomes" : "Expenses"} from this
           month
         </div>
       )}
-      {(expensesChartData || incomesChartData) && (
+      {((chart === "expense" && expensesChartData) ||
+        (chart === "income" && incomesChartData)) && (
         <div className="mt-4 flex justify-end mr-2">
           <ToggleButtonGroup
             color="primary"
@@ -358,37 +378,41 @@ const StatisticsPage = () => {
           </ToggleButtonGroup>
         </div>
       )}
-      {bottomView === "categories" && (expensesChartData || incomesChartData) && (
-        <div className="categories-list flex flex-col p-2 pt-0 gap-2 mt-2">
-          {Object.keys(chart === "income" ? incomes : expenses).map((catId) => {
-            const chartData = chart === "income" ? incomes : expenses;
+      {bottomView === "categories" &&
+        ((chart === "expense" && expenses) ||
+          (chart === "income" && incomes)) && (
+          <div className="categories-list flex flex-col p-2 pt-0 gap-2 mt-2">
+            {Object.keys(chart === "income" ? incomes : expenses).map(
+              (catId) => {
+                const chartData = chart === "income" ? incomes : expenses;
 
-            const catTotalValues = Object.values(chartData).reduce(
-              (a, b) => a + b,
-              0
-            );
+                const catTotalValues = Object.values(chartData).reduce(
+                  (a, b) => a + b,
+                  0
+                );
 
-            const totalValue = chartData[catId];
+                const totalValue = chartData[catId];
 
-            const percentage = Math.round(
-              (totalValue / catTotalValues) * 100
-            ).toString();
+                const percentage = Math.round(
+                  (totalValue / catTotalValues) * 100
+                ).toString();
 
-            const category =
-              categories.find((c) => c.categoryId === Number(catId)) ??
-              DefaultCategory;
+                const category =
+                  categories.find((c) => c.categoryId === Number(catId)) ??
+                  DefaultCategory;
 
-            return (
-              <CategoryStat
-                total={totalValue}
-                percentage={percentage}
-                category={category}
-                key={category.categoryId ?? -1}
-              />
-            );
-          })}
-        </div>
-      )}
+                return (
+                  <CategoryStat
+                    total={totalValue}
+                    percentage={percentage}
+                    category={category}
+                    key={category.categoryId ?? -1}
+                  />
+                );
+              }
+            )}
+          </div>
+        )}
       {bottomView === "transactions" && currentTransactions && (
         <div className="transaction-list flex flex-col p-2 pt-0 gap-2">
           {currentTransactions
