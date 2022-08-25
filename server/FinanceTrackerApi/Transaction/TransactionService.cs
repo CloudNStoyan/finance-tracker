@@ -247,6 +247,16 @@ public class TransactionService
             throw new Exception("UserTransaction ID was null");
         }
 
+        if (originalTransaction.TransactionDate == inputDto.TransactionDate)
+        {
+            await this.Update(PocoFromDto(inputDto));
+
+            return new[]
+            {
+                new TransactionEventDTO { Event = "update", Transaction = inputDto },
+            };
+        }
+
         var originalRepeatEnd = originalTransaction!.RepeatEnd;
 
         originalTransaction.RepeatEnd = inputDto.TransactionDate.Subtract(TimeSpan.FromDays(1));
