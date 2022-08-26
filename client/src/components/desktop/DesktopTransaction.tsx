@@ -24,15 +24,12 @@ import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import DefaultCategory from "../../state/DefaultCategory";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { fromUnixTimeMs } from "../../infrastructure/CustomDateUtils";
-import { Category, deleteTransaction, Transaction } from "../../server-api";
-import axios from "axios";
+import { Category, Transaction } from "../../server-api";
 import { format, parseJSON } from "date-fns";
 import { setNotification } from "../../state/notificationSlice";
 import {
   addNewOrEditTransaction,
-  addTransaction,
-  editTransaction,
-  removeTransaction,
+  deleteTransaction,
 } from "../../state/transactionSlice";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
@@ -41,7 +38,11 @@ import DesktopPickCategoriesModal from "./DesktopPickCategoriesModal";
 import DesktopManageCategoriesModal from "./DesktopManageCategoriesModal";
 import DesktopCategoryModal from "./DesktopCategoryModal";
 import DesktopDescriptionModal from "./DesktopDescriptionModal";
-import RepeatTransactionDialog from "../RepeatTransactionDialog";
+import RepeatTransactionDialog, {
+  OptionType,
+  OptionValue,
+} from "../RepeatTransactionDialog";
+import DeleteTransactionDialog from "../DeleteDialog";
 
 export type DesktopTransactionProps = {
   open: boolean;
@@ -102,8 +103,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [repeatDateInputOpen, setRepeatDateInputOpen] = useState(false);
   const [repeatTransactionDialogOpen, setRepeatTransactionDialogOpen] =
     useState(false);
-  const [onlyThis, setOnlyThis] = useState<boolean>(null);
-  const [action, setAction] = useState<"update" | "delete">();
+  const [repeatTransactionDialogCallback, setRepeatTransactionDialogCallback] =
+    useState<(option: OptionType) => void>();
+  const [deleteTransactionDialogOpen, setDeleteTransactionDialogOpen] =
+    useState(false);
+  const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
+    useState<(option: boolean) => void>();
   const [itHasRepeat, setItHasRepeat] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -132,9 +137,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setRepeat("none");
     setRepeatEnd(new Date());
     setShowRepeatEnd(false);
-    setOnlyThis(null);
     setItHasRepeat(false);
-    setAction(null);
     setRepeatTransactionDialogOpen(false);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -185,22 +188,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setRepeat(newRepeat);
   };
 
-  useEffect(() => {
-    if (onlyThis === null || action === null) {
-      return;
-    }
-
-    if (action === "update") {
-      void createOrEdit();
-    }
-
-    if (action === "delete") {
-      void deleteTransactionCallback();
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onlyThis, action]);
-
   const onSubmit = () => {
     if (Number(value) === 0 || label.trim().length === 0) {
       dispatch(
@@ -213,14 +200,22 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
 
     if (itHasRepeat) {
-      setAction("update");
       setRepeatTransactionDialogOpen(true);
+      const callback = (option: OptionType) => {
+        if (!option) {
+          return;
+        }
+
+        void createOrEdit(option.value);
+      };
+
+      setRepeatTransactionDialogCallback(() => callback);
     } else {
       void createOrEdit();
     }
   };
 
-  const createOrEdit = async () => {
+  const createOrEdit = async (repeatMode?: OptionValue) => {
     const newTransaction: Transaction = {
       label: label.trim(),
       value: Number(value),
@@ -249,13 +244,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       newTransaction.repeatEnd = repeatEnd.toJSON();
     }
 
-    const repeatMode =
-      onlyThis === true
-        ? "onlyThis"
-        : onlyThis === false
-        ? "thisAndForward"
-        : null;
-
     try {
       await dispatch(
         addNewOrEditTransaction({
@@ -276,43 +264,40 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
 
     if (itHasRepeat) {
-      setAction("delete");
       setRepeatTransactionDialogOpen(true);
+
+      const callback = (option: OptionType) => {
+        if (!option) {
+          return;
+        }
+
+        void deleteTransactionCallback(option.value);
+      };
+
+      setRepeatTransactionDialogCallback(() => callback);
     } else {
-      void deleteTransactionCallback();
+      setDeleteTransactionDialogOpen(true);
+
+      const callback = (option: boolean) => {
+        if (!option) {
+          return;
+        }
+
+        void deleteTransactionCallback();
+      };
+
+      setDeleteTransactionDialogCallback(() => callback);
     }
   };
 
-  const deleteTransactionCallback = async () => {
+  const deleteTransactionCallback = async (repeatMode?: OptionValue) => {
     try {
-      const resp = await deleteTransaction(
-        transaction.transactionId,
-        onlyThis === false,
-        onlyThis,
-        onlyThis !== null ? date : null
+      await dispatch(
+        deleteTransaction({
+          transactionId: transaction.transactionId,
+          repeatMode,
+        })
       );
-
-      if (resp.status !== 200) {
-        return;
-      }
-
-      const transactionChanges = resp.data;
-
-      transactionChanges.forEach((change) => {
-        const ev = change.event;
-
-        if (ev === "create") {
-          dispatch(addTransaction(change.transaction));
-        }
-
-        if (ev === "update") {
-          dispatch(editTransaction(change.transaction));
-        }
-
-        if (ev === "delete") {
-          dispatch(removeTransaction(change.transaction.transactionId));
-        }
-      });
 
       dispatch(
         setNotification({
@@ -323,9 +308,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
       onClose();
     } catch (error) {
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
+      console.error(error);
     }
   };
 
@@ -608,16 +591,25 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         )}
         <RepeatTransactionDialog
           open={repeatTransactionDialogOpen}
-          selectedValue={null}
           onClose={(option) => {
             setRepeatTransactionDialogOpen(false);
 
-            if (option === null) {
-              setOnlyThis(null);
-              return;
+            if (repeatTransactionDialogCallback) {
+              repeatTransactionDialogCallback(option);
+              setRepeatTransactionDialogCallback(null);
             }
+          }}
+        />
+        <DeleteTransactionDialog
+          type="transaction"
+          open={deleteTransactionDialogOpen}
+          onClose={(option) => {
+            setDeleteTransactionDialogOpen(false);
 
-            setOnlyThis(option.value === "onlyThis");
+            if (deleteTransactionDialogCallback) {
+              deleteTransactionDialogCallback(option);
+              setDeleteTransactionDialogCallback(null);
+            }
           }}
         />
       </DesktopModalContainerStyled>

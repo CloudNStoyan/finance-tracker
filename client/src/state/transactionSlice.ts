@@ -7,6 +7,7 @@ import {
   getTransactionsBeforeAndAfterDate,
   Transaction,
   TransactionEvent,
+  deleteTransaction as deleteTransactionApi,
 } from "../server-api";
 
 export type TransactionState = {
@@ -63,6 +64,27 @@ export const addNewOrEditTransaction = createAsyncThunk(
     }
 
     const resp = await createOrEditTransaction(transaction, repeatMode);
+
+    return resp.data;
+  }
+);
+
+export const deleteTransaction = createAsyncThunk(
+  "transactions/deleteTransaction",
+  async ({
+    transactionId,
+    repeatMode,
+  }: {
+    transactionId: number;
+    repeatMode?: "onlyThis" | "thisAndForward";
+  }) => {
+    if (!repeatMode) {
+      const resp = await deleteTransactionApi(transactionId);
+
+      return resp.data;
+    }
+
+    const resp = await deleteTransactionApi(transactionId, repeatMode);
 
     return resp.data;
   }
@@ -153,6 +175,16 @@ const transactionsSlice = createSlice({
         fetchTransactionById.fulfilled,
         (state, action: PayloadAction<Transaction>) => {
           state.fetchingStatus = "idle";
+
+          const stateHasTransaction =
+            state.transactions.findIndex(
+              (t) => t.transactionId === action.payload.transactionId
+            ) !== -1;
+
+          if (stateHasTransaction) {
+            return;
+          }
+
           state.transactions.push(action.payload);
         }
       )
@@ -204,6 +236,50 @@ const transactionsSlice = createSlice({
         state.fetchingStatus = "loading";
       })
       .addCase(addNewOrEditTransaction.rejected, (state) => {
+        state.fetchingStatus = "idle";
+      })
+      .addCase(
+        deleteTransaction.fulfilled,
+        (state, action: PayloadAction<TransactionEvent[]>) => {
+          state.fetchingStatus = "idle";
+          const changes = action.payload;
+
+          changes.forEach((change) => {
+            const ev = change.event;
+            const transaction = change.transaction;
+
+            if (ev === "create") {
+              const stateHasTransaction =
+                state.transactions.findIndex(
+                  (t) => t.transactionId === transaction.transactionId
+                ) !== -1;
+
+              if (!stateHasTransaction) {
+                state.transactions.push(transaction);
+              }
+            }
+
+            if (ev === "update") {
+              state.transactions = [
+                transaction,
+                ...state.transactions.filter(
+                  (x) => x.transactionId !== transaction.transactionId
+                ),
+              ];
+            }
+
+            if (ev === "delete") {
+              state.transactions = state.transactions.filter(
+                (t) => t.transactionId !== transaction.transactionId
+              );
+            }
+          });
+        }
+      )
+      .addCase(deleteTransaction.pending, (state) => {
+        state.fetchingStatus = "loading";
+      })
+      .addCase(deleteTransaction.rejected, (state) => {
         state.fetchingStatus = "idle";
       });
   },

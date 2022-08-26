@@ -131,20 +131,12 @@ export const getTransactionById = async (transactionId: number) => {
 
 export const deleteTransaction = async (
   transactionId: number,
-  thisAndForward?: boolean,
-  onlyThis?: boolean,
-  date?: Date
+  repeatMode?: "thisAndForward" | "onlyThis"
 ) => {
-  const formatDate = date !== null ? format(date, "yyyy-MM-dd") : null;
-  return axios.delete<TransactionEvent[]>(
-    `${SERVER_URL}/transaction?transactionId=${transactionId}${
-      thisAndForward === true
-        ? "&thisAndForward=true&date=" + formatDate
-        : onlyThis === true
-        ? "&onlyThis=true&date=" + formatDate
-        : ""
-    }`
-  );
+  const url = !repeatMode
+    ? `${SERVER_URL}/transaction?transactionId=${transactionId}`
+    : `${SERVER_URL}/transaction?transactionId=${transactionId}&${repeatMode}=true`;
+  return axios.delete<TransactionEvent[]>(url);
 };
 
 export const getTransactions = async () => {

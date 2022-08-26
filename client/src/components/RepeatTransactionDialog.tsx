@@ -6,7 +6,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Dialog from "@mui/material/Dialog";
 
-export const RepeatTransactionDialogOptions = [
+export const RepeatTransactionDialogOptions: OptionType[] = [
   {
     title: "Only this transaction",
     content:
@@ -17,27 +17,28 @@ export const RepeatTransactionDialogOptions = [
     title: "This and all following transactions",
     content:
       "This and all the following transactions in the series will be changed.",
-    value: "thisAndFollowing",
+    value: "thisAndForward",
   },
 ];
 
-type OptionType = {
+export type OptionType = {
   title: string;
   content: string;
-  value: string;
+  value: "onlyThis" | "thisAndForward";
 };
+
+export type OptionValue = OptionType["value"];
 
 export interface RepeatTransactionDialogProps {
   open: boolean;
-  selectedValue: OptionType;
   onClose: (value: OptionType) => void;
 }
 
 function RepeatTransactionDialog(props: RepeatTransactionDialogProps) {
-  const { onClose, selectedValue, open } = props;
+  const { onClose, open } = props;
 
   const handleClose = () => {
-    onClose(selectedValue);
+    onClose(null);
   };
 
   const handleListItemClick = (value: string) => {

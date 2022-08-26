@@ -30,8 +30,7 @@ import React, { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./styles/TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { Category, deleteTransaction, Transaction } from "../server-api";
-import axios from "axios";
+import { Category, Transaction } from "../server-api";
 import { setNotification } from "../state/notificationSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
@@ -42,16 +41,16 @@ import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
 import DefaultCategory from "../state/DefaultCategory";
 import {
   addNewOrEditTransaction,
-  addTransaction,
-  editTransaction,
   fetchTransactionById,
-  removeTransaction,
+  deleteTransaction,
 } from "../state/transactionSlice";
 import RepeatTransactionDialog, {
-  RepeatTransactionDialogOptions,
+  OptionType,
+  OptionValue,
 } from "../components/RepeatTransactionDialog";
 import useQuery from "../infrastructure/useQuery";
 import { fetchCategories } from "../state/categorySlice";
+import DeleteTransactionDialog from "../components/DeleteDialog";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -95,12 +94,15 @@ const TransactionPage: FunctionComponent<{
   const [category, setCategory] = useState<Category | undefined>();
   const [repeatEnd, setRepeatEnd] = useState(new Date());
   const [showRepeatEnd, setShowRepeatEnd] = useState(false);
-  const [transactionIsARepeat, setTransactionIsARepeat] = useState(false);
-  const [onlyThis, setOnlyThis] = useState<boolean>(null);
   const [showRepeatTransactionDialog, setShowRepeatTransactionDialog] =
     useState(false);
+  const [repeatTransactionDialogCallback, setRepeatTransactionDialogCallback] =
+    useState<(option: OptionType) => void>();
+  const [deleteTransactionDialogOpen, setDeleteTransactionDialogOpen] =
+    useState(false);
+  const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
+    useState<(option: boolean) => void>();
   const [itHasRepeat, setItHasRepeat] = useState(false);
-  const [action, setAction] = useState<"update" | "delete">();
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -177,9 +179,7 @@ const TransactionPage: FunctionComponent<{
       if (initialDateRaw) {
         try {
           const initialDate = parseISO(initialDateRaw);
-          console.log(initialDate);
           setDate(initialDate);
-          setTransactionIsARepeat(true);
         } catch (error) {
           return;
         }
@@ -211,22 +211,6 @@ const TransactionPage: FunctionComponent<{
     setRepeat(newRepeat);
   };
 
-  useEffect(() => {
-    if (onlyThis === null || action === null) {
-      return;
-    }
-
-    if (action === "update") {
-      void createOrEdit();
-    }
-
-    if (action === "delete") {
-      void deleteTransactionCallback();
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onlyThis, action]);
-
   const onSubmit = () => {
     if (!(Number(value) > 0 && label.trim().length > 0)) {
       dispatch(
@@ -238,15 +222,24 @@ const TransactionPage: FunctionComponent<{
       return;
     }
 
-    if (transactionIsARepeat || itHasRepeat) {
-      setAction("update");
+    if (itHasRepeat) {
       setShowRepeatTransactionDialog(true);
+
+      const callback = (option: OptionType) => {
+        if (!option) {
+          return;
+        }
+
+        void createOrEdit(option.value);
+      };
+
+      setRepeatTransactionDialogCallback(() => callback);
     } else {
       void createOrEdit();
     }
   };
 
-  const createOrEdit = async () => {
+  const createOrEdit = async (repeatMode?: OptionValue) => {
     const transactionRepeat =
       repeat === "weekly" || repeat === "monthly" || repeat === "yearly"
         ? repeat
@@ -274,13 +267,6 @@ const TransactionPage: FunctionComponent<{
       transaction.repeatEnd = repeatEnd.toJSON();
     }
 
-    const repeatMode =
-      onlyThis === true
-        ? "onlyThis"
-        : onlyThis === false
-        ? "thisAndForward"
-        : null;
-
     try {
       await dispatch(
         addNewOrEditTransaction({
@@ -300,46 +286,41 @@ const TransactionPage: FunctionComponent<{
       return;
     }
 
-    if (transactionIsARepeat || itHasRepeat) {
-      setAction("delete");
+    if (itHasRepeat) {
       setShowRepeatTransactionDialog(true);
+
+      const callback = (option: OptionType) => {
+        if (!option) {
+          return;
+        }
+
+        void deleteTransactionCallback(option.value);
+      };
+
+      setRepeatTransactionDialogCallback(() => callback);
     } else {
-      void deleteTransactionCallback();
+      setDeleteTransactionDialogOpen(true);
+
+      const callback = (option: boolean) => {
+        if (!option) {
+          return;
+        }
+
+        void deleteTransactionCallback();
+      };
+
+      setDeleteTransactionDialogCallback(() => callback);
     }
   };
 
-  const deleteTransactionCallback = async () => {
+  const deleteTransactionCallback = async (repeatMode?: OptionValue) => {
     try {
-      const resp = await deleteTransaction(
-        Number(transactionId),
-        transactionIsARepeat && onlyThis === false,
-        onlyThis,
-        (transactionIsARepeat && onlyThis === false) || onlyThis === true
-          ? date
-          : null
+      await dispatch(
+        deleteTransaction({
+          transactionId: Number(transactionId),
+          repeatMode,
+        })
       );
-
-      if (resp.status !== 200) {
-        return;
-      }
-
-      const transactionChanges = resp.data;
-
-      transactionChanges.forEach((change) => {
-        const ev = change.event;
-
-        if (ev === "create") {
-          dispatch(addTransaction(change.transaction));
-        }
-
-        if (ev === "update") {
-          dispatch(editTransaction(change.transaction));
-        }
-
-        if (ev === "delete") {
-          dispatch(removeTransaction(change.transaction.transactionId));
-        }
-      });
 
       navigate("/");
       dispatch(
@@ -350,9 +331,6 @@ const TransactionPage: FunctionComponent<{
       );
     } catch (error) {
       console.error(error);
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
     }
   };
 
@@ -604,11 +582,26 @@ const TransactionPage: FunctionComponent<{
         </SwipeableDrawer>
 
         <RepeatTransactionDialog
-          selectedValue={RepeatTransactionDialogOptions[0]}
           open={showRepeatTransactionDialog}
           onClose={(option) => {
             setShowRepeatTransactionDialog(false);
-            setOnlyThis(option.value === "onlyThis");
+
+            if (repeatTransactionDialogCallback) {
+              repeatTransactionDialogCallback(option);
+              setRepeatTransactionDialogCallback(null);
+            }
+          }}
+        />
+        <DeleteTransactionDialog
+          type="transaction"
+          open={deleteTransactionDialogOpen}
+          onClose={(option) => {
+            setDeleteTransactionDialogOpen(false);
+
+            if (deleteTransactionDialogCallback) {
+              deleteTransactionDialogCallback(option);
+              setDeleteTransactionDialogCallback(null);
+            }
           }}
         />
       </div>
