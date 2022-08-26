@@ -26,7 +26,7 @@ const ManageCategoriesPage = () => {
   }, [categoriesStatus, dispatch]);
 
   return (
-    <ManageCategoriesPageStyled className="flex flex-col">
+    <ManageCategoriesPageStyled className="flex flex-col h-full">
       <div className="flex justify-between items-center shadow-md">
         <h1 className="grow text-center ml-3 font-bold text-gray-500 dark:text-gray-300">
           Manage Categories
@@ -38,7 +38,7 @@ const ManageCategoriesPage = () => {
           <AddIcon />
         </IconButton>
       </div>
-      <div className="categories-container">
+      <div className="categories-container grow">
         {categories.map((cat) => (
           <CategoryInlineComponent category={cat} key={cat.categoryId} />
         ))}

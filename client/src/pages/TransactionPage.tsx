@@ -10,8 +10,10 @@ import { MobileDatePicker } from "@mui/x-date-pickers/";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
 import {
+  AppBar,
   Button,
   Checkbox,
+  Dialog,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -19,11 +21,12 @@ import {
   MenuItem,
   Select,
   styled,
-  SwipeableDrawer,
   Switch,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Toolbar,
+  Typography,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import React, { FunctionComponent, useEffect, useState } from "react";
@@ -554,32 +557,53 @@ const TransactionPage: FunctionComponent<{
           </div>
         )}
 
-        <SwipeableDrawer
-          anchor={"bottom"}
+        <Dialog
+          fullScreen
           open={drawerIsOpen}
           onClose={() => setDrawerIsOpen(false)}
-          onOpen={() => {}}
         >
           <PickCategoriesStyled>
-            {[...categories, DefaultCategory].map((cat, idx) => (
-              <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
-                <button
-                  className="wrapper"
-                  onClick={() => {
-                    setCategory(cat);
-                    setDrawerIsOpen(false);
-                  }}
+            <AppBar sx={{ position: "relative" }}>
+              <Toolbar sx={{ minHeight: "50px" }}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  onClick={() => setDrawerIsOpen(false)}
                 >
-                  <div className="icon">{Icons[cat.icon]}</div>
-                  <h4>{cat.name}</h4>
-                </button>
-              </PickCategoryStyled>
-            ))}
-            <Button>
-              <Link to={"/categories"}>Manage categories</Link>
-            </Button>
+                  <Close />
+                </IconButton>
+                <Typography
+                  sx={{ ml: 2, flex: 1 }}
+                  variant="h6"
+                  component="div"
+                >
+                  Select category
+                </Typography>
+              </Toolbar>
+            </AppBar>
+            <div className="cat-wrapper">
+              <div className="cat-container">
+                {[...categories, DefaultCategory].map((cat, idx) => (
+                  <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
+                    <button
+                      className="wrapper"
+                      onClick={() => {
+                        setCategory(cat);
+                        setDrawerIsOpen(false);
+                      }}
+                    >
+                      <div className="icon">{Icons[cat.icon]}</div>
+                      <h4>{cat.name}</h4>
+                    </button>
+                  </PickCategoryStyled>
+                ))}
+              </div>
+              <Button className="manage-cat-btn">
+                <Link to={"/categories"}>Manage categories</Link>
+              </Button>
+            </div>
           </PickCategoriesStyled>
-        </SwipeableDrawer>
+        </Dialog>
 
         <RepeatTransactionDialog
           open={showRepeatTransactionDialog}
