@@ -6,16 +6,16 @@ import CheckIcon from "@mui/icons-material/Check";
 import Icons, { IconKey } from "../infrastructure/Icons";
 import IconComponent from "../components/IconComponent";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Category, createOrEditCategory, deleteCategory } from "../server-api";
+import { Category } from "../server-api";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setNotification } from "../state/notificationSlice";
 import {
-  addCategory,
-  editCategory,
+  addNewOrEditCategory,
   fetchCategories,
+  deleteCategory,
 } from "../state/categorySlice";
+import DeleteDialog from "../components/DeleteDialog";
 
 export type UseParamsCategoryType = { categoryId: number };
 
@@ -95,6 +95,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
   const [iconKey, setIconKey] = useState<IconKey>("money");
   const [iconIdx, setIconIdx] = useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const categories = useAppSelector(
     (state) => state.categoriesReducer.categories
@@ -126,6 +127,10 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
     const category = categories.find(
       (c) => c.categoryId === Number(categoryId)
     );
+
+    if (!category) {
+      return;
+    }
 
     setCategoryName(category.name);
     setColor(category.bgColor);
@@ -167,19 +172,16 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         category.categoryId = Number(categoryId);
       }
 
-      const resp = await createOrEditCategory(category);
+      await dispatch(addNewOrEditCategory(category));
 
-      if (resp.status === 200) {
-        dispatch(editCategory(resp.data));
+      if (hasCategoryId) {
         dispatch(
           setNotification({
             message: "Category edited.",
             color: "success",
           })
         );
-      }
-      if (resp.status === 201) {
-        dispatch(addCategory(resp.data));
+      } else {
         dispatch(
           setNotification({
             message: "Category created.",
@@ -194,30 +196,24 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
     }
   };
 
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
+  };
+
   const onDelete = async () => {
     if (!hasCategoryId) {
       return;
     }
 
-    try {
-      const resp = await deleteCategory(Number(categoryId));
+    await dispatch(deleteCategory(Number(categoryId)));
 
-      if (resp.status !== 200) {
-        return;
-      }
-
-      dispatch(
-        setNotification({
-          message: "Category deleted.",
-          color: "success",
-        })
-      );
-      navigate("/categories");
-    } catch (error) {
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
-    }
+    dispatch(
+      setNotification({
+        message: "Category deleted.",
+        color: "success",
+      })
+    );
+    navigate("/categories");
   };
 
   return (
@@ -249,7 +245,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         </IconButton>
         {hasCategoryId && (
           <IconButton
-            onClick={() => void onDelete()}
+            onClick={() => handleDelete()}
             size="small"
             className="bg-red-500 text-gray-100 border-2 border-gray-400 delete-btn focus:scale-110"
           >
@@ -282,6 +278,19 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
           ))}
         </div>
       )}
+      <DeleteDialog
+        type="category"
+        open={deleteDialogOpen}
+        onClose={(option) => {
+          setDeleteDialogOpen(false);
+
+          if (option !== true) {
+            return;
+          }
+
+          void onDelete();
+        }}
+      />
     </CategoryPageStyled>
   );
 };

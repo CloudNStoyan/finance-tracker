@@ -2,22 +2,17 @@ import { Button, IconButton, styled, TextField } from "@mui/material";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import Icons, { IconKey } from "../../infrastructure/Icons";
 import IconComponent from "../../components/IconComponent";
-import {
-  Category,
-  createOrEditCategory,
-  deleteCategory,
-} from "../../server-api";
-import axios from "axios";
+import { Category } from "../../server-api";
 import { useAppDispatch } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
 import ColorComponent from "../ColorComponent";
 import { Delete, West } from "@mui/icons-material";
 import DesktopCategoryModalStyled from "../styles/desktop/DesktopCategoryModal.styled";
 import {
-  addCategory,
-  editCategory,
-  removeCategory,
+  addNewOrEditCategory,
+  deleteCategory,
 } from "../../state/categorySlice";
+import DeleteDialog from "../DeleteDialog";
 
 export type DesktopCategoryModalProps = {
   category?: Category;
@@ -104,6 +99,8 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
 
   const [categoryName, setCategoryName] = useState("");
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -151,18 +148,9 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         newCategory.categoryId = category.categoryId;
       }
 
-      const resp = await createOrEditCategory(newCategory);
+      await dispatch(addNewOrEditCategory(newCategory));
 
-      if (resp.status === 201) {
-        dispatch(addCategory(resp.data));
-        dispatch(
-          setNotification({
-            message: "Category created.",
-            color: "success",
-          })
-        );
-      } else if (resp.status === 200) {
-        dispatch(editCategory(resp.data));
+      if (newCategory.categoryId) {
         dispatch(
           setNotification({
             message: "Category edited.",
@@ -170,15 +158,22 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
           })
         );
       } else {
-        return;
+        dispatch(
+          setNotification({
+            message: "Category created.",
+            color: "success",
+          })
+        );
       }
 
       onClose();
     } catch (error) {
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
+      console.log(error);
     }
+  };
+
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
   };
 
   const onDelete = async () => {
@@ -186,27 +181,15 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
       return;
     }
 
-    try {
-      const resp = await deleteCategory(category.categoryId);
+    await dispatch(deleteCategory(category.categoryId));
 
-      if (resp.status !== 200) {
-        return;
-      }
-
-      dispatch(removeCategory(category));
-
-      dispatch(
-        setNotification({
-          message: "Category deleted.",
-          color: "success",
-        })
-      );
-      onClose();
-    } catch (error) {
-      if (!axios.isAxiosError(error)) {
-        return;
-      }
-    }
+    dispatch(
+      setNotification({
+        message: "Category deleted.",
+        color: "success",
+      })
+    );
+    onClose();
   };
 
   return (
@@ -261,7 +244,7 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
       </div>
       <div className="p-2 w-full flex">
         {category && (
-          <IconButton onClick={() => void onDelete()} className="text-red-500">
+          <IconButton onClick={() => handleDelete()} className="text-red-500">
             <Delete />
           </IconButton>
         )}
@@ -273,6 +256,19 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
           {category ? "Save" : "Create"}
         </Button>
       </div>
+      <DeleteDialog
+        type="category"
+        open={deleteDialogOpen}
+        onClose={(option) => {
+          setDeleteDialogOpen(false);
+
+          if (option !== true) {
+            return;
+          }
+
+          void onDelete();
+        }}
+      />
     </DesktopCategoryModalStyled>
   );
 };

@@ -1,5 +1,10 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { Category, getCategories } from "../server-api";
+import {
+  Category,
+  createOrEditCategory,
+  getCategories,
+  deleteCategory as deleteCategoryApi,
+} from "../server-api";
 
 export type CategoriesState = {
   categories: Category[];
@@ -18,6 +23,24 @@ export const fetchCategories = createAsyncThunk(
   async () => {
     const response = await getCategories();
     return response.data;
+  }
+);
+
+export const addNewOrEditCategory = createAsyncThunk(
+  "categories/addNewOrEditCategory",
+  async (category: Category) => {
+    const resp = await createOrEditCategory(category);
+
+    return { category: resp.data, status: resp.status };
+  }
+);
+
+export const deleteCategory = createAsyncThunk(
+  "categories/deleteCategory",
+  async (categoryId: number) => {
+    await deleteCategoryApi(categoryId);
+
+    return categoryId;
   }
 );
 
@@ -54,6 +77,48 @@ const categoriesSlice = createSlice({
         }
       )
       .addCase(fetchCategories.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(
+        addNewOrEditCategory.fulfilled,
+        (
+          state,
+          action: PayloadAction<{ category: Category; status: number }>
+        ) => {
+          state.status = "succeeded";
+          const { category, status } = action.payload;
+
+          if (status === 200) {
+            state.categories = state.categories.filter(
+              (cat) => cat.categoryId !== category.categoryId
+            );
+          }
+
+          state.categories.push(category);
+        }
+      )
+      .addCase(addNewOrEditCategory.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(addNewOrEditCategory.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(
+        deleteCategory.fulfilled,
+        (state, action: PayloadAction<number>) => {
+          state.status = "succeeded";
+
+          state.categories = state.categories.filter(
+            (cat) => cat.categoryId !== action.payload
+          );
+        }
+      )
+      .addCase(deleteCategory.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(deleteCategory.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });
