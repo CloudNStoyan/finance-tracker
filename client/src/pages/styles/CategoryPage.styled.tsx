@@ -8,6 +8,7 @@ const CategoryPageStyled = styled.div<CategoryPageStyledProps>`
   .fields {
     background-color: ${({ categoryColor }) => categoryColor};
     border-radius: 6px;
+    transition: background-color 0.15s linear;
   }
 
   .fields-wrapper {
