@@ -5,6 +5,8 @@ using FinanceTrackerApi.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
+
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
