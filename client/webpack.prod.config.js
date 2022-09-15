@@ -61,7 +61,6 @@ module.exports = {
       inject: "body",
       template: "./src/template.html",
     }),
-    new BundleAnalyzerPlugin(),
   ],
   target: "browserslist",
 };
