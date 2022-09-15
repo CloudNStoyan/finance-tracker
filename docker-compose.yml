@@ -15,4 +15,10 @@ services:
       dockerfile: ServerDockerfile
     ports: 
       - "3000:80"
-    
+  db:
+    build:
+      dockerfile: DbDockerfile
+    env_file:
+      - postgres.env
+    volumes:
+      - "/root/data/postgres:/var/lib/postgresql/data"
