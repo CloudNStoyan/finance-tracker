@@ -11,6 +11,8 @@ services:
     environment:
       - NGINX_PORT=80
   api:
+    depends_on:
+      - db
     build:
       dockerfile: ServerDockerfile
     ports: 
