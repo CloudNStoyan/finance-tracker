@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  client:
+    stdin_open: true
+    build: 
+      dockerfile: Dockerfile
+      context: ./client
+    
+  web:
+    depends_on:
+      - client
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports:
+      - "5050:80"
+    environment:
+      - NGINX_PORT=80
+    

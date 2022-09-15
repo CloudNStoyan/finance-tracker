@@ -11,6 +11,7 @@ module.exports = {
   },
   devServer: {
     port: 8001,
+    allowedHosts: "all",
     static: {
       directory: path.resolve(__dirname, "./dist"),
     },

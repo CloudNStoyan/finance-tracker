@@ -2,7 +2,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import { IconKey } from "./infrastructure/Icons";
 
-const SERVER_URL = "http://localhost:5010";
+const SERVER_URL = "/api";
 
 export interface SessionData {
   status: number;
