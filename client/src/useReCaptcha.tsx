@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 export type ReCaptchaCallback = (token: string) => Promise<void>;
 
-const RECAPTCHA_SITE_KEY = "6LdbFKQcAAAAAINGHQjTEo3Z6h4HmFHv6J-KCVHt";
+const RECAPTCHA_SITE_KEY = "6Le9jQAiAAAAAL3zoGwIFGTFzFKpexQKBpF9djw0";
 
 declare const grecaptcha: {
   ready: (cb: () => void) => void;
