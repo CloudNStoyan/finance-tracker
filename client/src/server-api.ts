@@ -2,7 +2,8 @@ import axios from "axios";
 import { format } from "date-fns";
 import { IconKey } from "./infrastructure/Icons";
 
-const SERVER_URL = "/api";
+const SERVER_URL =
+  process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5010";
 
 export interface SessionData {
   status: number;

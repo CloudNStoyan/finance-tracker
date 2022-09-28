@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const BundleAnalyzerPlugin =
   require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const { DefinePlugin } = require("webpack");
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -60,6 +61,9 @@ module.exports = {
       title: "Finance Tracker",
       inject: "body",
       template: "./src/template.html",
+    }),
+    new DefinePlugin({
+      "process.env.NODE_ENV": JSON.stringify("production"),
     }),
   ],
   target: "browserslist",
