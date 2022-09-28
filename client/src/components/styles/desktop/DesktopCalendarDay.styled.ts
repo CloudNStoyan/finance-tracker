@@ -29,6 +29,29 @@ const DesktopCalendarDayStyled = styled.div`
       border-radius: 6px;
     }
   }
+
+  .stats-transition-enter-active .open-modal-btn {
+    animation-name: scale-animation;
+    animation-duration: 0.25s;
+    animation-direction: normal;
+  }
+
+  .stats-transition-exit-active {
+    .numbers {
+      animation-name: scale-animation;
+      animation-duration: 0.25s;
+      animation-direction: normal;
+    }
+  }
+
+  @keyframes scale-animation {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
 `;
 
 export default DesktopCalendarDayStyled;
