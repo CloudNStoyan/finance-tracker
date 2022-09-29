@@ -54,7 +54,6 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   const [balance, setBalance] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [notSearchRelevant, setNotSearchRelevant] = useState(false);
-  const [showTest, setShowTest] = useState(true);
 
   const compareTransactionToSearchValue = useCallback(
     (transaction: Transaction) => {
@@ -301,7 +300,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       className={`${format(date, "yyyy-MM-dd")} flex flex-col text-center ${
         notFromSameMonth ? "opacity-50" : ""
-      } ${notSearchRelevant ? "opacity-25" : ""} ${
+      } ${notSearchRelevant ? "fade-off" : ""} ${
         isSelected ? "selected" : ""
       } ${isToday ? "today" : ""} `}
     >

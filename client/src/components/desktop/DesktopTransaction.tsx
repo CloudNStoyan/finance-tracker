@@ -43,6 +43,8 @@ import RepeatTransactionDialog, {
   OptionValue,
 } from "../RepeatTransactionDialog";
 import DeleteTransactionDialog from "../DeleteDialog";
+import { TransitionGroup } from "react-transition-group";
+import SimpleTransition from "./SimpleTransition";
 
 export type DesktopTransactionProps = {
   open: boolean;
@@ -330,18 +332,17 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       }}
     >
       <DesktopModalContainerStyled>
-        {currentModal === "select-category" && (
-          <DesktopPickCategoriesModal
-            onClose={() => setCurrentModal("transaction")}
-            categories={categories}
-            setCategory={setCategory}
-            onSettings={() => setCurrentModal("manage-categories")}
-            onAddCategory={() => {
-              setEditCategory(null);
-              setCurrentModal("category");
-            }}
-          />
-        )}
+        <DesktopPickCategoriesModal
+          transitionIn={currentModal === "select-category"}
+          onClose={() => setCurrentModal("transaction")}
+          categories={categories}
+          setCategory={setCategory}
+          onSettings={() => setCurrentModal("manage-categories")}
+          onAddCategory={() => {
+            setEditCategory(null);
+            setCurrentModal("category");
+          }}
+        />
         {currentModal === "manage-categories" && (
           <DesktopManageCategoriesModal
             onClose={() => setCurrentModal("select-category")}
@@ -354,6 +355,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
               setEditCategory(null);
               setCurrentModal("category");
             }}
+            transitionIn={currentModal === "manage-categories"}
           />
         )}
         {currentModal === "category" && (
@@ -381,212 +383,214 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
             }
             isDarkMode={isDarkMode}
           >
-            <div className="relative fields">
-              <div className="m-2 flex items-end">
-                <IconButton
-                  className="text-white"
-                  onClick={() => {
-                    setTransactionType(
-                      transactionType === "expense" ? "income" : "expense"
-                    );
-                  }}
-                >
-                  {transactionType === "expense" ? <Remove /> : <Add />}
-                </IconButton>
-                <CustomTextField
-                  onChange={(e) => {
-                    const inputValue = e.target.value;
+            <SimpleTransition transitionIn={currentModal === "transaction"}>
+              <div className="relative fields">
+                <div className="m-2 flex items-end">
+                  <IconButton
+                    className="text-white"
+                    onClick={() => {
+                      setTransactionType(
+                        transactionType === "expense" ? "income" : "expense"
+                      );
+                    }}
+                  >
+                    {transactionType === "expense" ? <Remove /> : <Add />}
+                  </IconButton>
+                  <CustomTextField
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
 
-                    if (isNaN(Number(inputValue)) && inputValue.length > 0) {
-                      return;
-                    }
+                      if (isNaN(Number(inputValue)) && inputValue.length > 0) {
+                        return;
+                      }
 
-                    setValue(inputValue.trim());
-                  }}
-                  onBlur={(e) => {
-                    const inputValue = e.target.value;
+                      setValue(inputValue.trim());
+                    }}
+                    onBlur={(e) => {
+                      const inputValue = e.target.value;
 
-                    if (isNaN(Number(inputValue)) && inputValue.length > 0) {
-                      return;
-                    }
+                      if (isNaN(Number(inputValue)) && inputValue.length > 0) {
+                        return;
+                      }
 
-                    setValue(inputValue.trim());
-                  }}
-                  value={value}
-                  variant="standard"
-                  className="transaction-value"
-                  InputLabelProps={{ shrink: true }}
-                  label="Value"
-                  placeholder="0.00"
-                />
-                <CustomTextField
-                  InputLabelProps={{ shrink: true }}
-                  placeholder="e.g netflix"
-                  label="Label"
-                  variant="standard"
-                  className="ml-4"
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
-                  onBlur={(e) => setLabel(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="transaction-info">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={confirmed}
-                    onChange={(e) => setConfirmed(e.target.checked)}
+                      setValue(inputValue.trim());
+                    }}
+                    value={value}
+                    variant="standard"
+                    className="transaction-value"
+                    InputLabelProps={{ shrink: true }}
+                    label="Value"
+                    placeholder="0.00"
                   />
-                }
-                label="Confirmed"
-              />
-              <Button
-                onClick={() => setCurrentModal("select-category")}
-                className="label-button justify-start normal-case"
-                size="large"
-                startIcon={
-                  category != undefined
-                    ? Icons[category.icon]
-                    : Icons[DefaultCategory.icon]
-                }
-              >
-                {category != undefined ? category.name : "Uncategorized"}
-              </Button>
-              <div>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DesktopDatePicker
-                    inputFormat="dd MMM yyy"
-                    disableMaskedInput={true}
-                    value={date}
-                    onChange={handleDateChange}
-                    open={dateInputOpen}
-                    onClose={() => setDateInputOpen(false)}
-                    renderInput={(params) => (
-                      <div className="date-picker-render flex items-center">
-                        <TextField
-                          {...params}
-                          variant="standard"
-                          size="small"
-                          className="date-picker-input"
-                          InputProps={{
-                            startAdornment: (
-                              <IconButton
-                                className="p-0"
-                                onClick={() => setDateInputOpen(true)}
-                              >
-                                <ScheduleOutlined className="date-picker-icon" />
-                              </IconButton>
-                            ),
-                            disableUnderline: true,
-                          }}
+                  <CustomTextField
+                    InputLabelProps={{ shrink: true }}
+                    placeholder="e.g netflix"
+                    label="Label"
+                    variant="standard"
+                    className="ml-4"
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                    onBlur={(e) => setLabel(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="transaction-info">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={confirmed}
+                      onChange={(e) => setConfirmed(e.target.checked)}
+                    />
+                  }
+                  label="Confirmed"
+                />
+                <Button
+                  onClick={() => setCurrentModal("select-category")}
+                  className="label-button justify-start normal-case"
+                  size="large"
+                  startIcon={
+                    category != undefined
+                      ? Icons[category.icon]
+                      : Icons[DefaultCategory.icon]
+                  }
+                >
+                  {category != undefined ? category.name : "Uncategorized"}
+                </Button>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DesktopDatePicker
+                      inputFormat="dd MMM yyy"
+                      disableMaskedInput={true}
+                      value={date}
+                      onChange={handleDateChange}
+                      open={dateInputOpen}
+                      onClose={() => setDateInputOpen(false)}
+                      renderInput={(params) => (
+                        <div className="date-picker-render flex items-center">
+                          <TextField
+                            {...params}
+                            variant="standard"
+                            size="small"
+                            className="date-picker-input"
+                            InputProps={{
+                              startAdornment: (
+                                <IconButton
+                                  className="p-0"
+                                  onClick={() => setDateInputOpen(true)}
+                                >
+                                  <ScheduleOutlined className="date-picker-icon" />
+                                </IconButton>
+                              ),
+                              disableUnderline: true,
+                            }}
+                          />
+                        </div>
+                      )}
+                    />
+                  </LocalizationProvider>
+                </div>
+
+                <div className="repeat-selector-wrapper">
+                  <LoopOutlined className="icon" />
+                  <Select
+                    variant="standard"
+                    className="repeat-select"
+                    value={repeat}
+                    onChange={(e) => handleRepeatChange(e.target.value)}
+                    label="Age"
+                    sx={{ border: 0 }}
+                  >
+                    <MenuItem value={"none"}>Does not repeat</MenuItem>
+                    <MenuItem value={"weekly"}>Repeat every week</MenuItem>
+                    <MenuItem value={"monthly"}>Repeat every month</MenuItem>
+                    <MenuItem value={"yearly"}>Repeat every year</MenuItem>
+                  </Select>
+                </div>
+                {repeat !== "none" && (
+                  <div className="repeat-end">
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={showRepeatEnd}
+                          onChange={(e) => setShowRepeatEnd(e.target.checked)}
                         />
+                      }
+                      label="End"
+                      labelPlacement="start"
+                    />
+                    {showRepeatEnd && (
+                      <div>
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                          <DesktopDatePicker
+                            inputFormat="dd MMM yyy"
+                            disableMaskedInput={true}
+                            value={repeatEnd}
+                            onChange={handleRepeatDateChange}
+                            open={repeatDateInputOpen}
+                            onClose={() => setRepeatDateInputOpen(false)}
+                            renderInput={(params) => (
+                              <div className="date-picker-render flex items-center">
+                                {repeatEnd && (
+                                  <TextField
+                                    {...params}
+                                    variant="standard"
+                                    size="small"
+                                    className="date-picker-input"
+                                    InputProps={{
+                                      startAdornment: (
+                                        <IconButton
+                                          className="p-0"
+                                          onClick={() =>
+                                            setRepeatDateInputOpen(true)
+                                          }
+                                        >
+                                          <ScheduleOutlined className="date-picker-icon" />
+                                        </IconButton>
+                                      ),
+                                      disableUnderline: true,
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            )}
+                          />
+                        </LocalizationProvider>
                       </div>
                     )}
-                  />
-                </LocalizationProvider>
-              </div>
+                  </div>
+                )}
 
-              <div className="repeat-selector-wrapper">
-                <LoopOutlined className="icon" />
-                <Select
-                  variant="standard"
-                  className="repeat-select"
-                  value={repeat}
-                  onChange={(e) => handleRepeatChange(e.target.value)}
-                  label="Age"
-                  sx={{ border: 0 }}
+                <Button
+                  onClick={() => setCurrentModal("description")}
+                  size="large"
+                  className="label-button justify-start normal-case"
+                  startIcon={<DescriptionOutlined />}
                 >
-                  <MenuItem value={"none"}>Does not repeat</MenuItem>
-                  <MenuItem value={"weekly"}>Repeat every week</MenuItem>
-                  <MenuItem value={"monthly"}>Repeat every month</MenuItem>
-                  <MenuItem value={"yearly"}>Repeat every year</MenuItem>
-                </Select>
+                  <span className="description-btn-text">
+                    {description.trim().length === 0
+                      ? "Add description"
+                      : description}
+                  </span>
+                </Button>
               </div>
-              {repeat !== "none" && (
-                <div className="repeat-end">
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={showRepeatEnd}
-                        onChange={(e) => setShowRepeatEnd(e.target.checked)}
-                      />
-                    }
-                    label="End"
-                    labelPlacement="start"
-                  />
-                  {showRepeatEnd && (
-                    <div>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DesktopDatePicker
-                          inputFormat="dd MMM yyy"
-                          disableMaskedInput={true}
-                          value={repeatEnd}
-                          onChange={handleRepeatDateChange}
-                          open={repeatDateInputOpen}
-                          onClose={() => setRepeatDateInputOpen(false)}
-                          renderInput={(params) => (
-                            <div className="date-picker-render flex items-center">
-                              {repeatEnd && (
-                                <TextField
-                                  {...params}
-                                  variant="standard"
-                                  size="small"
-                                  className="date-picker-input"
-                                  InputProps={{
-                                    startAdornment: (
-                                      <IconButton
-                                        className="p-0"
-                                        onClick={() =>
-                                          setRepeatDateInputOpen(true)
-                                        }
-                                      >
-                                        <ScheduleOutlined className="date-picker-icon" />
-                                      </IconButton>
-                                    ),
-                                    disableUnderline: true,
-                                  }}
-                                />
-                              )}
-                            </div>
-                          )}
-                        />
-                      </LocalizationProvider>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <Button
-                onClick={() => setCurrentModal("description")}
-                size="large"
-                className="label-button justify-start normal-case"
-                startIcon={<DescriptionOutlined />}
-              >
-                <span className="description-btn-text">
-                  {description.trim().length === 0
-                    ? "Add description"
-                    : description}
-                </span>
-              </Button>
-            </div>
-            <div className="p-2 w-full flex">
-              {transaction && (
-                <IconButton
-                  onClick={() => void onDelete()}
-                  className="text-red-500"
+              <div className="p-2 w-full flex">
+                {transaction && (
+                  <IconButton
+                    onClick={() => void onDelete()}
+                    className="text-red-500"
+                  >
+                    <Delete />
+                  </IconButton>
+                )}
+                <Button
+                  onClick={() => void onSubmit()}
+                  className="block ml-auto"
+                  variant="contained"
                 >
-                  <Delete />
-                </IconButton>
-              )}
-              <Button
-                onClick={() => void onSubmit()}
-                className="block ml-auto"
-                variant="contained"
-              >
-                {transaction ? "Save" : "Create"}
-              </Button>
-            </div>
+                  {transaction ? "Save" : "Create"}
+                </Button>
+              </div>
+            </SimpleTransition>
           </DesktopTransactionStyled>
         )}
         <RepeatTransactionDialog
