@@ -14,30 +14,6 @@ public class CategoryService
         this.Database = database;
     }
 
-    private static CategoryPoco PocoFromDto(CategoryDTO dto)
-    {
-        var poco = new CategoryPoco
-        {
-            Name = dto.Name,
-            BackgroundColor = dto.BgColor,
-            Icon = dto.Icon,
-            ListOrder = dto.Order,
-            UserId = dto.UserId
-        };
-
-        if (dto.CategoryId.HasValue)
-        {
-            poco.CategoryId = dto.CategoryId.Value;
-        }
-
-        if (dto.UserId.HasValue)
-        {
-            poco.UserId = dto.UserId.Value;
-        }
-
-        return poco;
-    }
-
     public async Task MoveAllTransactionsByCatId(int catId, int userId)
     {
         await this.Database.ExecuteNonQuery(
@@ -51,39 +27,30 @@ public class CategoryService
             new NpgsqlParameter("catId", categoryId), new NpgsqlParameter("userId", userId));
     }
 
-    public async Task<CategoryDTO?> GetById(int catId)
+    public async Task<CategoryPoco?> GetById(int catId)
     {
         var poco = await this.Database.QueryOne<CategoryPoco>(
             "SELECT * FROM categories c WHERE c.category_id=@catId;",
             new NpgsqlParameter("catId", catId));
 
-        if (poco == null)
-        {
-            return null;
-        }
-
-        var model = CategoryDTO.FromPoco(poco);
-
-        return model;
+        return poco;
     }
 
-    public async Task<CategoryDTO[]> GetAllByUserId(int userId)
+    public async Task<CategoryPoco[]> GetAllByUserId(int userId)
     {
         var pocos = await this.Database.Query<CategoryPoco>(
             "SELECT * FROM categories c WHERE c.user_id=@userId;",
             new NpgsqlParameter("userId", userId));
 
-        return pocos.Select(CategoryDTO.FromPoco).ToArray();
+        return pocos.ToArray();
     }
 
-    public async Task<CategoryDTO?> Create(CategoryDTO inputDto)
+    public async Task<CategoryPoco?> Create(CategoryPoco poco)
     {
-        if (inputDto == null)
+        if (poco == null)
         {
-            throw new ArgumentNullException(nameof(inputDto));
+            throw new ArgumentNullException(nameof(poco));
         }
-
-        var poco = PocoFromDto(inputDto);
 
         int? categoryId = await this.Database.Insert(poco);
 
@@ -92,20 +59,18 @@ public class CategoryService
             return null;
         }
 
-        var dto = CategoryDTO.FromPoco(poco);
+        poco.CategoryId = categoryId.Value;
 
-        dto.CategoryId = categoryId;
-
-        return dto;
+        return poco;
     }
 
-    public async Task Update(CategoryDTO inputDto)
+    public async Task Update(CategoryPoco poco)
     {
-        await this.Database.Update(PocoFromDto(inputDto));
+        await this.Database.Update(poco);
     }
 
-    public async Task Delete(CategoryDTO inputDto)
+    public async Task Delete(CategoryPoco poco)
     {
-        await this.Database.Delete(PocoFromDto(inputDto));
+        await this.Database.Delete(poco);
     }
 }

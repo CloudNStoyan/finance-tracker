@@ -54,7 +54,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult<CategoryDTO>> Edit([FromBody] CategoryDTO inputDto)
+    public async Task<ActionResult<RequestCategory>> Edit([FromBody] RequestCategory inputDto)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -77,27 +77,25 @@ public class CategoryController : ControllerBase
             return this.Unauthorized();
         }
 
-        var categoryDto = await this.CategoryService.GetById(inputDto.CategoryId.Value);
+        var categoryPoco = await this.CategoryService.GetById(inputDto.CategoryId.Value);
 
-        if (categoryDto == null)
+        if (categoryPoco == null)
         {
             return this.NotFound();
         }
 
-        if (session.UserId == null || session.UserId.Value != categoryDto.UserId.Value)
+        if (session.UserId == null || session.UserId.Value != categoryPoco.UserId!.Value)
         {
             return this.Unauthorized();
         }
 
-        inputDto.UserId = session.UserId.Value;
+        await this.CategoryService.Update(categoryPoco);
 
-        await this.CategoryService.Update(inputDto);
-
-        return Ok(inputDto);
+        return this.Ok(inputDto);
     }
 
     [HttpGet]
-    public async Task<ActionResult<CategoryDTO>> Get([FromQuery] int? categoryId)
+    public async Task<ActionResult<RequestCategory>> Get([FromQuery] int? categoryId)
     {
         if (!categoryId.HasValue)
         {
@@ -120,11 +118,11 @@ public class CategoryController : ControllerBase
             return this.Unauthorized();
         }
 
-        return this.Ok(category);
+        return this.Ok(RequestCategory.FromPoco(category));
     }
 
     [HttpGet("/category/getall")]
-    public async Task<ActionResult<CategoryDTO[]>> GetAll()
+    public async Task<ActionResult<RequestCategory[]>> GetAll()
     {
 
         var session = this.SessionService.Session;
@@ -136,13 +134,15 @@ public class CategoryController : ControllerBase
             return this.Unauthorized();
         }
 
-        var transactions = await this.CategoryService.GetAllByUserId(session.UserId.Value);
+        var pocoTransactions = await this.CategoryService.GetAllByUserId(session.UserId.Value);
+
+        var transactions = pocoTransactions.Select(RequestCategory.FromPoco).ToArray();
 
         return this.Ok(transactions);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CategoryDTO>> Create([FromBody] CategoryDTO inputDto)
+    public async Task<ActionResult<RequestCategory>> Create([FromBody] RequestCategory inputDto)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -160,9 +160,11 @@ public class CategoryController : ControllerBase
             return this.Unauthorized();
         }
 
-        inputDto.UserId = this.SessionService.Session.UserId;
+        var poco = inputDto.ToPoco();
 
-        var category = await this.CategoryService.Create(inputDto);
+        poco.UserId = this.SessionService.Session.UserId;
+
+        var category = await this.CategoryService.Create(poco);
 
         return CreatedAtAction(nameof(this.Create), category);
     }
