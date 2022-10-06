@@ -20,7 +20,6 @@ export interface Category {
   name: string;
   bgColor: string;
   icon: IconKey;
-  order: number;
 }
 
 export interface Transaction {

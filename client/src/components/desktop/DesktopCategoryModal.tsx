@@ -98,7 +98,6 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         name: categoryName.trim(),
         bgColor: color,
         icon: iconKey,
-        order: 100,
       };
 
       if (category) {

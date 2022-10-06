@@ -16,7 +16,6 @@ public class RequestCategory
         BgColor = poco.BackgroundColor,
         Icon = poco.Icon,
         Name = poco.Name,
-        Order = poco.ListOrder,
     };
 
     public CategoryPoco ToPoco() => new()
@@ -25,6 +24,5 @@ public class RequestCategory
         BackgroundColor = this.BgColor,
         Icon = this.Icon,
         Name = this.Name,
-        ListOrder = this.Order,
     };
 }

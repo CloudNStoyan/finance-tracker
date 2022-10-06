@@ -119,7 +119,6 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
         name: categoryName.trim(),
         bgColor: color,
         icon: iconKey,
-        order: 100,
       };
 
       if (hasCategoryId) {
