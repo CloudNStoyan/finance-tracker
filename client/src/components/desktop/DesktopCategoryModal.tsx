@@ -154,7 +154,7 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         <IconButton onClick={() => onClose()}>
           <West />
         </IconButton>
-        <h2 className="grow text-center">
+        <h2 className="grow text-center font-medium">
           {category ? "Edit Category" : "Create Category"}
         </h2>
       </div>

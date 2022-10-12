@@ -20,7 +20,7 @@ const DesktopDescriptionModal: FunctionComponent<
         <IconButton onClick={() => onClose()}>
           <West />
         </IconButton>
-        <h2 className="grow text-center">
+        <h2 className="grow text-center font-medium">
           {description.trim().length === 0
             ? "Add description"
             : "Edit description"}

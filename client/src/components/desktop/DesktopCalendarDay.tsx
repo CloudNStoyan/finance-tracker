@@ -17,7 +17,6 @@ import DesktopCalendarDayStyled from "../styles/desktop/DesktopCalendarDay.style
 import DesktopCalendarTransaction from "./DesktopCalendarTransaction";
 import { IconButton } from "@mui/material";
 import { Add } from "@mui/icons-material";
-import { CSSTransition } from "react-transition-group";
 
 export type DesktopCalendarDayProps = {
   date: Date;
@@ -310,30 +309,23 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         } dark:text-white p-1 pl-2 flex justify-between`}
       >
         <div className="date-number">{date.getDate()}</div>
-        <CSSTransition
-          nodeRef={nodeRef}
-          in={isHovered}
-          timeout={250}
-          classNames="stats-transition"
-        >
-          <div className="stats flex mr-1 relative items-center" ref={nodeRef}>
-            {isHovered ? (
-              <IconButton
-                onClick={() => onClick(date)}
-                size="large"
-                className="open-modal-btn absolute right-0 bg-blue-500 dark:bg-purple-500 dark:text-gray-200 text-white"
-              >
-                <Add />
-              </IconButton>
-            ) : (
-              <div className="flex gap-1 numbers">
-                <div>{total.toFixed(2)}</div>
-                {"|"}
-                <div>{balance.toFixed(2)}</div>
-              </div>
-            )}
-          </div>
-        </CSSTransition>
+        <div className="stats flex mr-1 relative items-center" ref={nodeRef}>
+          {isHovered ? (
+            <IconButton
+              onClick={() => onClick(date)}
+              size="large"
+              className="open-modal-btn absolute right-0 bg-blue-500 dark:bg-purple-500 dark:text-gray-200 text-white"
+            >
+              <Add />
+            </IconButton>
+          ) : (
+            <div className="flex gap-1 numbers stats-numbers">
+              <div>{total.toFixed(2)}</div>
+              {"|"}
+              <div>{balance.toFixed(2)}</div>
+            </div>
+          )}
+        </div>
       </div>
       <div className="transactions flex flex-col">
         {(searchInputValue.trim().length > 0

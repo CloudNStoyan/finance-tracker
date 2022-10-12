@@ -8,6 +8,7 @@ const DesktopTransactionStyled = styled.div<{
   background-color: ${({ theme }) => theme.colors.background};
   display: flex;
   flex-flow: column nowrap;
+  padding-top: 0 !important;
 
   .repeat-end {
     display: flex;

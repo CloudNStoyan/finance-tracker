@@ -6,7 +6,6 @@ import DesktopPickCategoriesStyled from "../styles/desktop/DesktopPickCategories
 import PickCategoryStyled from "../styles/PickCategory.styled";
 import DefaultCategory from "../../state/DefaultCategory";
 import Icons from "../../infrastructure/Icons";
-import SimpleTransition from "./SimpleTransition";
 
 export type DesktopPickCategoriesModalProps = {
   categories: Category[];
@@ -14,55 +13,41 @@ export type DesktopPickCategoriesModalProps = {
   setCategory: (cat: Category) => void;
   onSettings: () => void;
   onAddCategory: () => void;
-  transitionIn: boolean;
 };
 
 const DesktopPickCategoriesModal: FunctionComponent<
   DesktopPickCategoriesModalProps
-> = ({
-  categories,
-  onClose,
-  setCategory,
-  onSettings,
-  onAddCategory,
-  transitionIn,
-}) => {
+> = ({ categories, onClose, setCategory, onSettings, onAddCategory }) => {
   return (
     <DesktopPickCategoriesStyled>
-      <SimpleTransition transitionIn={transitionIn}>
-        <div className="flex items-center justify-between mx-2 mt-1">
-          <IconButton onClick={() => onClose()}>
-            <West />
-          </IconButton>
-          <h2>Select Category</h2>
-          <IconButton onClick={onSettings}>
-            <Settings />
-          </IconButton>
-        </div>
-        <div className="cats">
-          {[...categories, DefaultCategory].map((cat, idx) => (
-            <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
-              <button
-                className="wrapper"
-                onClick={() => {
-                  setCategory(cat);
-                  onClose();
-                }}
-              >
-                <div className="icon">{Icons[cat.icon]}</div>
-                <h4>{cat.name}</h4>
-              </button>
-            </PickCategoryStyled>
-          ))}
-        </div>
-        <Button
-          onClick={onAddCategory}
-          className="ml-3 mb-1"
-          startIcon={<Add />}
-        >
-          Add Category
-        </Button>
-      </SimpleTransition>
+      <div className="flex items-center justify-between mx-2 mt-1">
+        <IconButton onClick={() => onClose()}>
+          <West />
+        </IconButton>
+        <h2 className="font-medium">Select Category</h2>
+        <IconButton onClick={onSettings}>
+          <Settings />
+        </IconButton>
+      </div>
+      <div className="cats">
+        {[...categories, DefaultCategory].map((cat, idx) => (
+          <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
+            <button
+              className="wrapper"
+              onClick={() => {
+                setCategory(cat);
+                onClose();
+              }}
+            >
+              <div className="icon">{Icons[cat.icon]}</div>
+              <h4>{cat.name}</h4>
+            </button>
+          </PickCategoryStyled>
+        ))}
+      </div>
+      <Button onClick={onAddCategory} className="ml-3 mb-1" startIcon={<Add />}>
+        Add Category
+      </Button>
     </DesktopPickCategoriesStyled>
   );
 };

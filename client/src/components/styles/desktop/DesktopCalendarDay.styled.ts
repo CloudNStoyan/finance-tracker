@@ -32,22 +32,18 @@ const DesktopCalendarDayStyled = styled.div`
     }
   }
 
-  .stats-transition-enter-active .open-modal-btn {
-    animation-name: scale-animation;
-    animation-duration: 0.25s;
-    animation-direction: normal;
-  }
-
-  .stats-transition-exit-active {
-    .numbers {
-      animation-name: scale-animation;
-      animation-duration: 0.25s;
-      animation-direction: normal;
-    }
-  }
-
   &.fade-off {
     opacity: 0.25 !important;
+  }
+
+  .open-modal-btn {
+    animation-name: scale-animation;
+    animation-duration: 0.25s;
+  }
+
+  .stats-numbers {
+    animation-name: scale-animation;
+    animation-duration: 0.25s;
   }
 
   @keyframes scale-animation {
