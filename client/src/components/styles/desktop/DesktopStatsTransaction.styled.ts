@@ -6,6 +6,9 @@ export type DesktopStatsTransactionStyledProps = {
 };
 
 const DesktopStatsTransactionStyled = styled.div<DesktopStatsTransactionStyledProps>`
+  animation-name: scale-animation;
+  animation-duration: 0.25s;
+
   border-bottom: 1px solid
     ${({ isDarkMode }) => (isDarkMode ? "#444" : "#f0f0f0")};
 
@@ -15,6 +18,16 @@ const DesktopStatsTransactionStyled = styled.div<DesktopStatsTransactionStyledPr
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
+  }
+
+  @keyframes scale-animation {
+    from {
+      transform: scale(0);
+    }
+
+    to {
+      transform: scale(1);
+    }
   }
 `;
 
