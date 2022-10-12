@@ -2,6 +2,8 @@ import { styled } from "../../../infrastructure/ThemeManager";
 
 const DesktopCalendarDayStyled = styled.div`
   transition: opacity 0.25s linear;
+  animation-name: scale-animation;
+  animation-duration: 0.5s;
 
   .date-number {
     font-size: 18px;

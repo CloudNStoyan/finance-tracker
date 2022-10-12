@@ -31,7 +31,11 @@ const CalendarNavigation = () => {
         >
           <ChevronLeft />
         </IconButton>
-        {nowParsed && <span>{format(nowParsed, "MMMM yyyy")}</span>}
+        {nowParsed && (
+          <span className="w-32 text-center">
+            {format(nowParsed, "MMMM yyyy")}
+          </span>
+        )}
         <IconButton
           onClick={() => dispatch(setNow(getTime(addMonths(nowParsed, 1))))}
         >
