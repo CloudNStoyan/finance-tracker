@@ -134,11 +134,13 @@ public class CategoryController : ControllerBase
             return this.Unauthorized();
         }
 
-        var pocoTransactions = await this.CategoryService.GetAllByUserId(session.UserId.Value);
+        var pocoCategories = await this.CategoryService.GetAllByUserId(session.UserId.Value);
 
-        var transactions = pocoTransactions.Select(RequestCategory.FromPoco).ToArray();
+        var categories = pocoCategories.Select(RequestCategory.FromPoco).ToList();
 
-        return this.Ok(transactions);
+        categories.Sort((firstCat, secondCat) => firstCat.Name.CompareTo(secondCat.Name));
+
+        return this.Ok(categories.ToArray());
     }
 
     [HttpPost]
@@ -166,6 +168,6 @@ public class CategoryController : ControllerBase
 
         var category = await this.CategoryService.Create(poco);
 
-        return CreatedAtAction(nameof(this.Create), category);
+        return this.CreatedAtAction(nameof(this.Create), category);
     }
 }
