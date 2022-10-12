@@ -2,11 +2,11 @@ import { Add, West } from "@mui/icons-material";
 import { Button, IconButton } from "@mui/material";
 import React, { FunctionComponent } from "react";
 import { Category } from "../../server-api";
+import { useAppSelector } from "../../state/hooks";
 import DesktopManageCategoriesStlyed from "../styles/desktop/DesktopManageCategories.styled";
 import DesktopCategoryInlineComponent from "./DesktopCategoryInline";
 
 export type DesktopManageCategoriesModalProps = {
-  categories: Category[];
   onClose: () => void;
   selectedCat: (cat: Category) => void;
   onAddCategory: () => void;
@@ -14,7 +14,11 @@ export type DesktopManageCategoriesModalProps = {
 
 const DesktopManageCategoriesModal: FunctionComponent<
   DesktopManageCategoriesModalProps
-> = ({ categories, onClose, selectedCat, onAddCategory }) => {
+> = ({ onClose, selectedCat, onAddCategory }) => {
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
+
   return (
     <DesktopManageCategoriesStlyed>
       <div className="flex items-center justify-start mx-2 mt-1">

@@ -6,9 +6,9 @@ import DesktopPickCategoriesStyled from "../styles/desktop/DesktopPickCategories
 import PickCategoryStyled from "../styles/PickCategory.styled";
 import DefaultCategory from "../../state/DefaultCategory";
 import Icons from "../../infrastructure/Icons";
+import { useAppSelector } from "../../state/hooks";
 
 export type DesktopPickCategoriesModalProps = {
-  categories: Category[];
   onClose: () => void;
   setCategory: (cat: Category) => void;
   onSettings: () => void;
@@ -17,7 +17,11 @@ export type DesktopPickCategoriesModalProps = {
 
 const DesktopPickCategoriesModal: FunctionComponent<
   DesktopPickCategoriesModalProps
-> = ({ categories, onClose, setCategory, onSettings, onAddCategory }) => {
+> = ({ onClose, setCategory, onSettings, onAddCategory }) => {
+  const categories = useAppSelector(
+    (state) => state.categoriesReducer.categories
+  );
+
   return (
     <DesktopPickCategoriesStyled>
       <div className="flex items-center justify-between mx-2 mt-1">

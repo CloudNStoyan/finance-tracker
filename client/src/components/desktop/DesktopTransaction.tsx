@@ -338,7 +338,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         {currentModal === "select-category" && (
           <DesktopPickCategoriesModal
             onClose={() => setCurrentModal("transaction")}
-            categories={categories}
             setCategory={setCategory}
             onSettings={() => setCurrentModal("manage-categories")}
             onAddCategory={() => {
@@ -350,7 +349,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         {currentModal === "manage-categories" && (
           <DesktopManageCategoriesModal
             onClose={() => setCurrentModal("select-category")}
-            categories={categories}
             selectedCat={(cat) => {
               setEditCategory(cat);
               setCurrentModal("category");

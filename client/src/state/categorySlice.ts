@@ -44,6 +44,13 @@ export const deleteCategory = createAsyncThunk(
   }
 );
 
+const sortComparison = (a: Category, b: Category) =>
+  a.name.toLowerCase() > b.name.toLowerCase()
+    ? 1
+    : b.name.toLowerCase() > a.name.toLowerCase()
+    ? -1
+    : 0;
+
 const categoriesSlice = createSlice({
   name: "categories",
   initialState,
@@ -53,9 +60,11 @@ const categoriesSlice = createSlice({
         (cat) => cat.categoryId !== action.payload.categoryId
       );
       state.categories.push(action.payload);
+      state.categories.sort(sortComparison);
     },
     addCategory(state, action: PayloadAction<Category>) {
       state.categories.push(action.payload);
+      state.categories.sort(sortComparison);
     },
     removeCategory(state, action: PayloadAction<Category>) {
       state.categories = state.categories.filter(
@@ -74,6 +83,7 @@ const categoriesSlice = createSlice({
           state.status = "succeeded";
 
           state.categories = action.payload;
+          state.categories.sort(sortComparison);
         }
       )
       .addCase(fetchCategories.rejected, (state, action) => {
@@ -96,6 +106,7 @@ const categoriesSlice = createSlice({
           }
 
           state.categories.push(category);
+          state.categories.sort(sortComparison);
         }
       )
       .addCase(addNewOrEditCategory.pending, (state) => {
