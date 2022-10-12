@@ -168,6 +168,6 @@ public class CategoryController : ControllerBase
 
         var category = await this.CategoryService.Create(poco);
 
-        return this.CreatedAtAction(nameof(this.Create), category);
+        return this.CreatedAtAction(nameof(this.Create), RequestCategory.FromPoco(category));
     }
 }
