@@ -192,6 +192,14 @@ const DesktopStatsPanel: FunctionComponent<DesktopStatsPanelProps> = ({
                   (cat) => cat.categoryId === transaction.categoryId
                 ) ?? DefaultCategory
               }
+              selectedCatId={(catId: number) => {
+                if (selectedCatId === catId) {
+                  setSelectedCatId(null);
+                  return;
+                }
+
+                setSelectedCatId(catId);
+              }}
             />
           ))}
         </div>

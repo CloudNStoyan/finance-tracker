@@ -10,6 +10,7 @@ import DesktopStatsTransactionStyled from "../styles/desktop/DesktopStatsTransac
 export type DesktopStatsTransactionProps = {
   transaction: Transaction;
   category: Category;
+  selectedCatId: (catId: number) => void;
 };
 
 const CustomButton = styled(Button)<{ props: { hoverColor: string } }>(
@@ -22,7 +23,7 @@ const CustomButton = styled(Button)<{ props: { hoverColor: string } }>(
 
 const DesktopStatsTransaction: FunctionComponent<
   DesktopStatsTransactionProps
-> = ({ transaction, category }) => {
+> = ({ transaction, category, selectedCatId }) => {
   const transactionDate = new Date(transaction.transactionDate);
 
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
@@ -51,6 +52,7 @@ const DesktopStatsTransaction: FunctionComponent<
         variant="text"
         color="inherit"
         className="cats flex"
+        onClick={() => selectedCatId(category.categoryId ?? -1)}
       >
         <div>{Icons[category.icon]}</div>
         <div className="ml-2">{category.name}</div>
