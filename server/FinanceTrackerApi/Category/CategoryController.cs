@@ -136,11 +136,9 @@ public class CategoryController : ControllerBase
 
         var pocoCategories = await this.CategoryService.GetAllByUserId(session.UserId.Value);
 
-        var categories = pocoCategories.Select(RequestCategory.FromPoco).ToList();
+        var categories = pocoCategories.Select(RequestCategory.FromPoco).ToArray();
 
-        categories.Sort((firstCat, secondCat) => firstCat.Name.CompareTo(secondCat.Name));
-
-        return this.Ok(categories.ToArray());
+        return this.Ok(categories);
     }
 
     [HttpPost]
