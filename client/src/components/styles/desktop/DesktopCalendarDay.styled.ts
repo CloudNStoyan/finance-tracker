@@ -38,13 +38,11 @@ const DesktopCalendarDayStyled = styled.div`
   }
 
   .open-modal-btn {
-    animation-name: scale-animation;
-    animation-duration: 0.25s;
+    animation: custom-scale-0-1 0.25s;
   }
 
   .stats-numbers {
-    animation-name: scale-animation;
-    animation-duration: 0.25s;
+    animation: custom-scale-0-1 0.25s;
   }
 `;
 
