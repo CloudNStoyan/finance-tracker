@@ -3,17 +3,7 @@ import { styled } from "../../infrastructure/ThemeManager";
 const CalendarDayStyled = styled.button<{ isDarkMode: boolean }>`
   -webkit-tap-highlight-color: transparent;
   border-right: 2px solid transparent;
-  animation: scale-up-anim 0.25s;
-
-  @keyframes scale-up-anim {
-    from {
-      transform: scale(0);
-    }
-
-    to {
-      transform: scale(1);
-    }
-  }
+  animation: custom-scale-0-1 0.25s;
 
   &.selected {
     border-color: ${({ theme }) => theme.colors.topbarBg};

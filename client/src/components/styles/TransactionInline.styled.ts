@@ -6,17 +6,7 @@ export type TransactionInlineStyledProps = {
 
 const TransactionInlineStyled = styled.button<TransactionInlineStyledProps>`
   background-color: ${({ bgColor }) => bgColor};
-  animation: slide-up-anim 0.25s;
-
-  @keyframes slide-up-anim {
-    from {
-      transform: translateY(100%);
-    }
-
-    to {
-      transform: translateY(0);
-    }
-  }
+  animation: custom-slide-bottom-up 0.25s;
 
   .label {
     overflow: hidden;

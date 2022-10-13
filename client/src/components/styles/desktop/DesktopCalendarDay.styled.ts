@@ -2,8 +2,7 @@ import { styled } from "../../../infrastructure/ThemeManager";
 
 const DesktopCalendarDayStyled = styled.div`
   transition: opacity 0.25s linear;
-  animation-name: scale-animation;
-  animation-duration: 0.5s;
+  animation: custom-scale-0-1 0.25s;
 
   .date-number {
     font-size: 18px;
@@ -46,15 +45,6 @@ const DesktopCalendarDayStyled = styled.div`
   .stats-numbers {
     animation-name: scale-animation;
     animation-duration: 0.25s;
-  }
-
-  @keyframes scale-animation {
-    from {
-      transform: scale(0);
-    }
-    to {
-      transform: scale(1);
-    }
   }
 `;
 

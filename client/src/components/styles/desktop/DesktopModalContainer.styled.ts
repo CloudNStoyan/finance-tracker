@@ -6,19 +6,9 @@ const DesktopModalContainerStyled = styled.div`
   background-color: transparent;
 
   > * {
-    animation-name: side-animation;
-    animation-duration: 0.25s;
+    animation: custom-slide-right-left 0.25s;
     background-color: white;
     padding-top: 10px;
-  }
-
-  @keyframes side-animation {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
   }
 `;
 

@@ -9,8 +9,7 @@ const CategoryStatStyled = styled.div<{ bgColor: string; isDarkMode: boolean }>`
   padding-bottom: 10px;
   margin-bottom: 10px;
 
-  animation-name: scale-animation;
-  animation-duration: 0.25s;
+  animation: custom-scale-0-1 0.25s;
 
   .percentage {
     background-color: ${({ bgColor }) => bgColor};
@@ -27,16 +26,6 @@ const CategoryStatStyled = styled.div<{ bgColor: string; isDarkMode: boolean }>`
 
   .value {
     font-size: 20px;
-  }
-
-  @keyframes scale-animation {
-    from {
-      transform: scale(0);
-    }
-
-    to {
-      transform: scale(1);
-    }
   }
 `;
 
