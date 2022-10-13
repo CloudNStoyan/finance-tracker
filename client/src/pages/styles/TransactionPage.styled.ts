@@ -20,6 +20,10 @@ const TransactionPageStyled = styled.div<{
     background-color: ${({ isDarkMode }) => (isDarkMode ? "#222" : "#f3f4f6")};
   }
 
+  .description-container {
+    animation: custom-scale-0-1 0.25s;
+  }
+
   .description-input {
     background-color: ${({ theme }) => theme.colors.background};
     resize: none;
@@ -68,6 +72,13 @@ const TransactionPageStyled = styled.div<{
           font-weight: 500;
         }
       }
+    }
+
+    .label-button,
+    .confirmed-label,
+    .date-picker-container,
+    .repeat-selector-wrapper {
+      animation: custom-slide-bottom-up 0.25s;
     }
 
     .label-button {

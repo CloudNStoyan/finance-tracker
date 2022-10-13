@@ -33,8 +33,14 @@ const CustomTextField = styled(TextField)({
   "& .MuiInput-underline:after": {
     borderBottomColor: "white",
   },
+  "& .Mui-focused:after": {
+    borderBottom: "3px solid white",
+  },
   "& .MuiInput-underline:before": {
     borderBottomColor: "white",
+  },
+  "& .MuiInput-underline:hover:before": {
+    borderBottomColor: "white!important",
   },
   "& label": {
     color: "white",

@@ -415,6 +415,7 @@ const TransactionPage: FunctionComponent<{
             />
           }
           label="Confirmed"
+          className="confirmed-label"
         />
         <Button
           onClick={() => setDrawerIsOpen(true)}
@@ -428,7 +429,7 @@ const TransactionPage: FunctionComponent<{
         >
           {category != undefined ? category.name : "Uncategorized"}
         </Button>
-        <div>
+        <div className="date-picker-container">
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <MobileDatePicker
               className="border-none"
@@ -532,7 +533,7 @@ const TransactionPage: FunctionComponent<{
         )}
 
         {openDescription && (
-          <div className="relative grow w-full flex flex-col mt-2">
+          <div className="description-container relative grow w-full flex flex-col mt-2">
             <IconButton
               color="primary"
               className="absolute top-0 right-0"

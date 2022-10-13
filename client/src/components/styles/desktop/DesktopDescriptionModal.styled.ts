@@ -7,7 +7,7 @@ const DesktopDescriptionModalStyled = styled.div`
 
   textarea {
     background-color: ${({ theme }) => theme.colors.background};
-    padding: 5px;
+    padding: 20px;
     flex-grow: 1;
     resize: none;
 

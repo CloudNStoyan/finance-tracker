@@ -3,6 +3,7 @@ import { styled } from "../../infrastructure/ThemeManager";
 const IconComponentStyled = styled.div<{ selected: boolean }>`
   button {
     border: 2px solid ${({ theme }) => theme.colors.text};
+    animation: custom-scale-0-1 0.25s;
 
     ${({ selected, theme }) =>
       selected

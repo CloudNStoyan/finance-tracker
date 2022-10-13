@@ -16,6 +16,7 @@ const ColorComponentStyled = styled.div<ColorStyledProps>`
     align-items: center;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.15s linear;
+    animation: custom-scale-0-1 0.25s;
 
     ::after {
       content: "";

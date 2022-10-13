@@ -13,6 +13,7 @@ const CategoryPageStyled = styled.div<CategoryPageStyledProps>`
 
   .fields-wrapper {
     border: 10px solid ${({ theme }) => theme.colors.background};
+    animation: custom-slide-bottom-up 0.25s;
   }
 
   .save-btn {
