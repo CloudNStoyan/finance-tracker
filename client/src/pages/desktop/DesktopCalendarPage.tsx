@@ -188,7 +188,7 @@ const DesktopCalendarPage = () => {
         <div className="calendar-wrapper">
           <DesktopDaysOfWeek />
           {parsedNow &&
-            days.map((day, idx) => (
+            days.map((day) => (
               <DesktopCalendarDay
                 onTransactionClick={(transaction) => {
                   setCurrentTransaction(transaction);
@@ -201,7 +201,7 @@ const DesktopCalendarPage = () => {
                   setShowTransactionModal(true);
                 }}
                 month={parsedNow.getMonth()}
-                key={idx}
+                key={day.toDateString()}
                 date={day}
                 isToday={DatesAreEqualWithoutTime(day, initialNow)}
                 searchInputValue={searchInputValue}

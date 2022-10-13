@@ -185,7 +185,7 @@ const DesktopStatsPanel: FunctionComponent<DesktopStatsPanelProps> = ({
         <div className="transaction-list flex flex-col p-2 pt-0 gap-2">
           {transactions.map((transaction, idx) => (
             <DesktopStatsTransaction
-              key={idx}
+              key={`${transaction.transactionId}-${idx}`}
               transaction={transaction}
               category={
                 categories.find(
