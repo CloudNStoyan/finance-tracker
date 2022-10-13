@@ -59,7 +59,7 @@ const CalendarTransactionList = () => {
 
             return DatesAreEqualWithoutTime(transactionDate, date);
           })
-          .map((transaction, idx) => (
+          .map((transaction) => (
             <TransactionInline
               transaction={transaction}
               category={
@@ -67,7 +67,7 @@ const CalendarTransactionList = () => {
                   (cat) => cat.categoryId === transaction.categoryId
                 ) ?? DefaultCategory
               }
-              key={idx}
+              key={transaction.transactionId}
             />
           ))}
     </div>

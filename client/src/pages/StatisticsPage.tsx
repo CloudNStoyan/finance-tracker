@@ -267,7 +267,9 @@ const StatisticsPage = () => {
           <IconButton onClick={() => setNow(subMonths(now, 1))}>
             <ChevronLeft />
           </IconButton>
-          {now && <span>{format(now, "MMMM yyyy")}</span>}
+          {now && (
+            <span className="w-32 text-center">{format(now, "MMMM yyyy")}</span>
+          )}
           <IconButton onClick={() => setNow(addMonths(now, 1))}>
             <ChevronRight />
           </IconButton>
@@ -433,7 +435,7 @@ const StatisticsPage = () => {
             })
             .map((transaction, idx) => (
               <SearchTransaction
-                key={idx}
+                key={`${transaction.transactionId}-${idx}`}
                 transaction={transaction}
                 category={
                   categories.find(

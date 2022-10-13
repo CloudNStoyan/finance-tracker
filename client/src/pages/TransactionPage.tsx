@@ -583,8 +583,11 @@ const TransactionPage: FunctionComponent<{
             </AppBar>
             <div className="cat-wrapper">
               <div className="cat-container">
-                {[...categories, DefaultCategory].map((cat, idx) => (
-                  <PickCategoryStyled key={idx} bgColor={cat.bgColor}>
+                {[...categories, DefaultCategory].map((cat) => (
+                  <PickCategoryStyled
+                    key={cat.categoryId}
+                    bgColor={cat.bgColor}
+                  >
                     <button
                       className="wrapper"
                       onClick={() => {

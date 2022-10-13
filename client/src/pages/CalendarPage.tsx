@@ -136,7 +136,7 @@ const CalendarPage = () => {
           <div className="calendar-wrapper">
             <DaysOfWeek />
             {parsedNow &&
-              days.map((day, idx) => (
+              days.map((day) => (
                 <CalendarDay
                   onClick={(newSelected) => {
                     dispatch(setSelected(getTime(newSelected)));
@@ -146,7 +146,7 @@ const CalendarPage = () => {
                     }
                   }}
                   month={parsedNow.getMonth()}
-                  key={idx}
+                  key={day.toDateString()}
                   date={day}
                   isToday={DatesAreEqualWithoutTime(day, initialNow)}
                 />

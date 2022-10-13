@@ -119,6 +119,7 @@ const TransactionPageStyled = styled.div<{
     color: white;
     padding: 10px 0;
     border-radius: 10px;
+    transition: background-color 0.25s linear;
 
     .save-btn {
       position: absolute;

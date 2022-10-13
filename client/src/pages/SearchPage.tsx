@@ -137,7 +137,7 @@ const SearchPage = () => {
         {searchedTransactions.map((transaction, idx) => (
           <SearchTransaction
             transaction={transaction}
-            key={idx}
+            key={`${transaction.transactionId}-${idx}`}
             category={
               categories.find(
                 (cat) => cat.categoryId === transaction.categoryId

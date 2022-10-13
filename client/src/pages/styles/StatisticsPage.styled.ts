@@ -9,6 +9,7 @@ const StatisticsPageStyled = styled.div`
     overflow: hidden;
     overflow-y: scroll;
     margin: 10px 0;
+    max-width: 100vw;
   }
 
   .categories-list {
