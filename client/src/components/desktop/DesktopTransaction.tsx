@@ -297,6 +297,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         deleteTransaction({
           transactionId: transaction.transactionId,
           repeatMode,
+          date: date.toJSON(),
         })
       );
 

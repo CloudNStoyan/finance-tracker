@@ -74,9 +74,11 @@ export const deleteTransaction = createAsyncThunk(
   async ({
     transactionId,
     repeatMode,
+    date,
   }: {
     transactionId: number;
     repeatMode?: "onlyThis" | "thisAndForward";
+    date?: string;
   }) => {
     if (!repeatMode) {
       const resp = await deleteTransactionApi(transactionId);
@@ -84,7 +86,7 @@ export const deleteTransaction = createAsyncThunk(
       return resp.data;
     }
 
-    const resp = await deleteTransactionApi(transactionId, repeatMode);
+    const resp = await deleteTransactionApi(transactionId, repeatMode, date);
 
     return resp.data;
   }
