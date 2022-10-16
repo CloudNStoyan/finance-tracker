@@ -242,7 +242,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
 
     if (showRepeatEnd && repeat !== "none") {
-      newTransaction.repeatEnd = repeatEnd.toJSON();
+      newTransaction.repeatEnd = format(repeatEnd, "yyyy-MM-dd");
     }
 
     try {
@@ -297,7 +297,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         deleteTransaction({
           transactionId: transaction.transactionId,
           repeatMode,
-          date: date.toJSON(),
+          date,
         })
       );
 

@@ -267,7 +267,7 @@ const TransactionPage: FunctionComponent<{
     }
 
     if (showRepeatEnd && repeat !== "none") {
-      transaction.repeatEnd = repeatEnd.toJSON();
+      transaction.repeatEnd = format(repeatEnd, "yyyy-MM-dd");
     }
 
     try {
@@ -322,6 +322,7 @@ const TransactionPage: FunctionComponent<{
         deleteTransaction({
           transactionId: Number(transactionId),
           repeatMode,
+          date,
         })
       );
 
