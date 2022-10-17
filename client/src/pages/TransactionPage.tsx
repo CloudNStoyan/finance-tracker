@@ -563,9 +563,10 @@ const TransactionPage: FunctionComponent<{
           fullScreen
           open={drawerIsOpen}
           onClose={() => setDrawerIsOpen(false)}
+          container={() => document.querySelector("#app > #wrapper")}
         >
           <PickCategoriesStyled>
-            <AppBar sx={{ position: "relative" }}>
+            <AppBar className="dark:bg-[#7b1fa2]" sx={{ position: "relative" }}>
               <Toolbar sx={{ minHeight: "50px" }}>
                 <IconButton
                   edge="start"

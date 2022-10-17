@@ -16,7 +16,10 @@ const ThemesComponent: FunctionComponent<ThemesComponentProps> = ({
   );
 
   return (
-    <ThemesComponentStyled className={`${isDarkMode ? "dark" : ""}`}>
+    <ThemesComponentStyled
+      id="wrapper"
+      className={`${isDarkMode ? "dark" : ""}`}
+    >
       <StyledThemeProvider theme={styledTheme}>
         <MuiThemeProvider theme={createTheme(muiTheme)}>
           {children}
