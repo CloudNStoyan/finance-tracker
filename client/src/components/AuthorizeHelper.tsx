@@ -48,11 +48,15 @@ const AuthorizeHelper = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    const accessablePaths = ["/login", "/register"];
+
+    if (isLoggedIn && accessablePaths.includes(location.pathname)) {
+      navigate("/");
+    }
+
     if (isLoggedIn || !didTryToAuthenticate) {
       return;
     }
-
-    const accessablePaths = ["/login", "/register"];
 
     if (!accessablePaths.includes(location.pathname)) {
       navigate("/login");
