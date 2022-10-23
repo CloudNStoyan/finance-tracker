@@ -26,6 +26,17 @@ export type CalendarState = {
   startBalance: number;
   startBalanceCache: StartBalanceCache;
   fetchingStatus: "idle" | "loading" | "succeeded";
+  firstDayOfTheMonth: "monday" | "sunday";
+};
+
+const getFirstDayOfTheMonthPreference = () => {
+  const preference = localStorage.getItem("first_day_of_month_preference");
+
+  if (preference === "sunday") {
+    return "sunday";
+  }
+
+  return "monday";
 };
 
 const initialState: CalendarState = {
@@ -35,6 +46,7 @@ const initialState: CalendarState = {
   startBalance: null,
   startBalanceCache: {},
   fetchingStatus: "idle",
+  firstDayOfTheMonth: getFirstDayOfTheMonthPreference(),
 };
 
 export const fetchStartBalance = createAsyncThunk(
@@ -50,6 +62,9 @@ const calendarSlice = createSlice({
   name: "calendar",
   initialState,
   reducers: {
+    setFirstDayOfTheMonth(state, action: PayloadAction<"monday" | "sunday">) {
+      state.firstDayOfTheMonth = action.payload;
+    },
     setNow(state, action: PayloadAction<number>) {
       state.fetchingStatus = "idle";
 
@@ -140,5 +155,6 @@ const calendarSlice = createSlice({
   },
 });
 
-export const { setNow, setSelected, setStartBalance } = calendarSlice.actions;
+export const { setNow, setSelected, setStartBalance, setFirstDayOfTheMonth } =
+  calendarSlice.actions;
 export default calendarSlice.reducer;

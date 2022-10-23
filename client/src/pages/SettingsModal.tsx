@@ -17,6 +17,7 @@ import axios from "axios";
 import { logout } from "../server-api";
 import { logoutUser } from "../state/authSlice";
 import { useNavigate } from "react-router-dom";
+import { setFirstDayOfTheMonth } from "../state/calendarSlice";
 
 export type SettingsModalProps = {
   onClose: () => void;
@@ -31,6 +32,14 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
     "light" | "dark" | "system"
   >((localStorage.getItem("theme_preference") as "light" | "dark") ?? "system");
 
+  const [selectedFirstDayOfTheMonth, setSelectedFirstDayOfTheMonth] = useState<
+    "monday" | "sunday"
+  >(
+    (localStorage.getItem("first_day_of_month_preference") as
+      | "monday"
+      | "sunday") ?? "monday"
+  );
+
   useEffect(() => {
     dispatch(switchTheme(selectedTheme));
 
@@ -40,6 +49,15 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
       localStorage.setItem("theme_preference", selectedTheme);
     }
   }, [selectedTheme, dispatch]);
+
+  useEffect(() => {
+    dispatch(setFirstDayOfTheMonth(selectedFirstDayOfTheMonth));
+
+    localStorage.setItem(
+      "first_day_of_month_preference",
+      selectedFirstDayOfTheMonth
+    );
+  }, [selectedFirstDayOfTheMonth, dispatch]);
 
   const onLogout = async () => {
     try {
@@ -93,6 +111,29 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
           <ToggleButton value="dark">
             <DarkModeIcon className="mr-1" />
             <span>Dark</span>
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </div>
+      <div className="container">
+        <h2 className="mb-2 font-bold">First Day Of The Week</h2>
+        <ToggleButtonGroup
+          color="primary"
+          exclusive
+          value={selectedFirstDayOfTheMonth}
+          onChange={(e, v: "monday" | "sunday") => {
+            if (v === null) {
+              return;
+            }
+
+            setSelectedFirstDayOfTheMonth(v);
+          }}
+          className="w-full justify-center"
+        >
+          <ToggleButton value="monday">
+            <span>Monday</span>
+          </ToggleButton>
+          <ToggleButton value="sunday">
+            <span>Sunday</span>
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
