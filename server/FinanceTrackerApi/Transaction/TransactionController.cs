@@ -199,7 +199,12 @@ public class TransactionController : ControllerBase
             return this.BadRequest();
         }
 
-        return this.Ok(await this.TransactionService.GetAllByDateRange(DateOnly.FromDateTime(beforeDate!.Value), DateOnly.FromDateTime(afterDate!.Value), session.UserId.Value));
+        var transactions = await this.TransactionService.GetAllByDateRange(DateOnly.FromDateTime(beforeDate!.Value),
+            DateOnly.FromDateTime(afterDate!.Value), session.UserId.Value);
+
+        var filteredTransactions = transactions.Where(transaction => transaction.TransactionDate >= beforeDate.Value).ToArray();
+
+        return this.Ok(transactions);
     }
 
     [HttpGet("/transaction/balance")]

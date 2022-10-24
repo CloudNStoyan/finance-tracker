@@ -80,7 +80,10 @@ const calendarSlice = createSlice({
         return;
       }
 
-      const afterResult = FindDays(endOfMonth(now));
+      const afterResult = FindDays(
+        endOfMonth(now),
+        state.firstDayOfTheMonth === "monday"
+      );
 
       const after: Date[] = [];
 
@@ -93,7 +96,10 @@ const calendarSlice = createSlice({
 
       const before: Date[] = [];
 
-      const beforeResult = FindDays(startOfMonth(now));
+      const beforeResult = FindDays(
+        startOfMonth(now),
+        state.firstDayOfTheMonth === "monday"
+      );
 
       const beforeLength = now.getDate() - 1 + beforeResult.before;
 

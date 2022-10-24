@@ -20,10 +20,17 @@ export const DatesAreEqualWithoutTime = (a: Date, b: Date) => {
   return true;
 };
 
-export const FindDays = (date: Date) => {
+export const FindDays = (date: Date, mondayIsFirstDay: boolean) => {
   const day = date.getDay();
 
   if (day === 0) {
+    if (mondayIsFirstDay === true) {
+      return {
+        before: 6,
+        after: 0,
+      };
+    }
+
     return {
       before: 6,
       after: 0,
