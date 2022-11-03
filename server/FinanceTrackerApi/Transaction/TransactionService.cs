@@ -128,45 +128,31 @@ public class TransactionService
         await this.Database.Delete(poco);
     }
 
-    public async Task<TransactionEventDTO[]> UpdateRepeatInstance(UserTransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> UpdateRepeatInstance(UserTransactionDTO transaction)
     {
-        if (!inputDto.TransactionId.HasValue)
+        var originalTransaction = await this.GetById(transaction.TransactionId!.Value);
+
+        if (originalTransaction == null)
         {
             throw new Exception("UserTransaction ID was null");
         }
 
-        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
-
         var returnTransactionsList = new List<TransactionEventDTO>();
 
-        if (originalTransaction!.TransactionDate == inputDto.TransactionDate)
+        if (originalTransaction!.TransactionDate == transaction.TransactionDate)
         {
             var originalRepeatEnd = originalTransaction!.RepeatEnd;
-            string? originalRepeat = originalTransaction.Repeat;
+            string? originalRepeat = originalTransaction.Repeat!;
 
-            inputDto.RepeatEnd = null;
-            inputDto.Repeat = null;
+            transaction.RepeatEnd = null;
+            transaction.Repeat = null;
 
-            await this.Update(PocoFromDto(inputDto));
-            returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = inputDto });
+            await this.Update(PocoFromDto(transaction));
+
+            returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = transaction });
             // updating the transaction original repeat end to null
 
-            var newStartingDate = inputDto.TransactionDate;
-
-            if (originalRepeat == "weekly")
-            {
-                newStartingDate = newStartingDate.AddDays(7);
-            }
-
-            if (originalRepeat == "monthly")
-            {
-                newStartingDate = newStartingDate.AddMonths(1);
-            }
-
-            if (originalRepeat == "yearly")
-            {
-                newStartingDate = newStartingDate.AddYears(1);
-            }
+            var newStartingDate = CalculateNextOccurrence(originalRepeat, transaction.TransactionDate);
 
             if (newStartingDate > originalRepeatEnd)
             {
@@ -175,9 +161,13 @@ public class TransactionService
             }
 
             var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
-            newRepeatedTransaction.Repeat = originalRepeat;
-            newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.TransactionDate = newStartingDate;
+
+            if (newStartingDate == originalRepeatEnd)
+            {
+                newRepeatedTransaction.Repeat = null;
+                newRepeatedTransaction.RepeatEnd = null;
+            }
 
             int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
             newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
@@ -187,54 +177,34 @@ public class TransactionService
         else
         {
             var originalRepeatEnd = originalTransaction!.RepeatEnd;
-            string? originalRepeat = originalTransaction.Repeat;
+            string? originalRepeat = originalTransaction.Repeat!;
 
-            originalTransaction.RepeatEnd = CalculateNextRepeatEnd(originalTransaction, inputDto.TransactionDate);
+            originalTransaction.RepeatEnd = CalculatePreviousOccurrence(originalRepeat, transaction.TransactionDate);
 
-            if (originalTransaction.RepeatEnd == null)
+            if (originalTransaction.RepeatEnd <= originalTransaction.TransactionDate)
             {
                 originalTransaction.Repeat = null;
+                originalTransaction.RepeatEnd = null;
             }
 
             await this.Update(originalTransaction);
             returnTransactionsList.Add(new TransactionEventDTO { Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) });
             // updating the transaction original repeat end to before this day
 
-            inputDto.Repeat = null;
-            inputDto.RepeatEnd = null;
+            transaction.Repeat = null;
+            transaction.RepeatEnd = null;
 
-            int? transactionId = await this.Database.Insert(PocoFromDto(inputDto));
-            inputDto.TransactionId = transactionId;
-            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = inputDto });
+            int? transactionId = await this.Database.Insert(PocoFromDto(transaction));
+            transaction.TransactionId = transactionId;
+            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = transaction });
             // creating the new transaction for this day only
 
-            var newStartingDate = inputDto.TransactionDate;
-
-            if (originalRepeat == "weekly")
-            {
-                newStartingDate = newStartingDate.AddDays(7);
-            }
-
-            if (originalRepeat == "monthly")
-            {
-                newStartingDate = newStartingDate.AddMonths(1);
-            }
-
-            if (originalRepeat == "yearly")
-            {
-                newStartingDate = newStartingDate.AddYears(1);
-            }
+            var newStartingDate = CalculateNextOccurrence(originalRepeat, transaction.TransactionDate);
 
             if (newStartingDate > originalRepeatEnd)
             {
                 // we only want to create the new series of transactions only if there are occurrences left
                 return returnTransactionsList.ToArray();
-            }
-
-            if (originalRepeatEnd <= newStartingDate)
-            {
-                originalRepeatEnd = null;
-                originalRepeat = null;
             }
 
             var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
@@ -242,150 +212,117 @@ public class TransactionService
             newRepeatedTransaction.Repeat = originalRepeat;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
-            int? newRepeatedTransactionId = await Database.Insert(newRepeatedTransaction);
+            if (newStartingDate == originalRepeatEnd)
+            {
+                newRepeatedTransaction.Repeat = null;
+                newRepeatedTransaction.RepeatEnd = null;
+            }
+
+            int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
             newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
 
-            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) }); ;
+            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
             // creating the rest of the series
         }
 
         return returnTransactionsList.ToArray();
     }
 
-    public async Task<TransactionEventDTO[]> UpdateRepeatInstanceAndForward(UserTransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> UpdateRepeatInstanceAndForward(UserTransactionDTO transaction)
     {
-        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
+        var originalTransaction = await this.GetById(transaction.TransactionId!.Value);
 
         if (originalTransaction == null)
         {
             throw new Exception("UserTransaction ID was null");
         }
 
-        if (originalTransaction.TransactionDate == inputDto.TransactionDate)
+        if (originalTransaction.TransactionDate == transaction.TransactionDate)
         {
-            await this.Update(PocoFromDto(inputDto));
+            await this.Update(PocoFromDto(transaction));
 
             return new[]
             {
-                new TransactionEventDTO { Event = "update", Transaction = inputDto },
+                new TransactionEventDTO { Event = "update", Transaction = transaction },
             };
         }
 
-        var originalRepeatEnd = originalTransaction!.RepeatEnd;
+        originalTransaction.RepeatEnd = CalculatePreviousOccurrence(originalTransaction.Repeat!, transaction.TransactionDate);
 
-        originalTransaction.RepeatEnd = CalculateNextRepeatEnd(originalTransaction, inputDto.TransactionDate);
-
-        if (originalTransaction.RepeatEnd == null)
+        if (originalTransaction.RepeatEnd <= originalTransaction.TransactionDate)
         {
             originalTransaction.Repeat = null;
+            originalTransaction.RepeatEnd = null;
         }
 
-        inputDto.RepeatEnd = originalRepeatEnd;
-
         await this.Update(originalTransaction);
-        int? transactionId = await this.Database.Insert(PocoFromDto(inputDto));
 
-        inputDto.TransactionId = transactionId;
+        int? transactionId = await this.Database.Insert(PocoFromDto(transaction));
+
+        transaction.TransactionId = transactionId;
 
 
         return new[]
         {
             new TransactionEventDTO { Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) },
-            new TransactionEventDTO { Event = "create", Transaction = inputDto }
+            new TransactionEventDTO { Event = "create", Transaction = transaction }
         };
     }
 
-    private static DateTime? CalculateNextRepeatEnd(UserTransactionPoco transaction, DateTime instanceDate)
+    private static DateTime CalculatePreviousOccurrence(string repeatMode, DateTime date)
     {
-        if (transaction.RepeatEnd == null)
+        return repeatMode switch
         {
-            return null;
-        }
-        
-        var newRepeatEnd = transaction.RepeatEnd.Value;
-
-        if (transaction.Repeat == "weekly")
-        {
-            newRepeatEnd = instanceDate.AddDays(-7);
-        }
-
-        if (transaction.Repeat == "monthly")
-        {
-            newRepeatEnd = instanceDate.AddMonths(-1);
-        }
-
-        if (transaction.Repeat == "yearly")
-        {
-            newRepeatEnd = instanceDate.AddYears(-1);
-        }
-
-        if (transaction.TransactionDate >= newRepeatEnd)
-        {
-            return null;
-        }
-
-        return newRepeatEnd;
+            "weekly" => date.AddDays(-7),
+            "monthly" => date.AddMonths(-1),
+            "yearly" => date.AddYears(-1),
+            _ => throw new Exception("Repeat was not a valid value")
+        };
     }
 
-    public async Task<TransactionEventDTO[]> DeleteRepeatInstanceAndForward(UserTransactionDTO inputDto)
+    private static DateTime CalculateNextOccurrence(string repeatMode, DateTime date)
     {
-        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
-
-        if (originalTransaction == null)
+        return repeatMode switch
         {
-            throw new Exception("UserTransaction ID was null");
-        }
-
-        originalTransaction.RepeatEnd = CalculateNextRepeatEnd(originalTransaction, inputDto.TransactionDate);
-
-        if (originalTransaction.RepeatEnd == null)
-        {
-            originalTransaction.Repeat = null;
-        }
-
-        await this.Update(originalTransaction);
-
-        return new[] { new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) } };
+            "weekly" => date.AddDays(7),
+            "monthly" => date.AddMonths(1),
+            "yearly" => date.AddYears(1),
+            _ => throw new Exception("Repeat was not a valid value")
+        };
     }
 
-    public async Task<TransactionEventDTO[]> DeleteRepeatInstance(UserTransactionDTO inputDto)
+    public async Task<TransactionEventDTO[]> DeleteRepeatInstanceAndForward(UserTransactionPoco transactionPoco, DateTime instanceDate)
     {
-        if (!inputDto.TransactionId.HasValue)
+        var previousOccurrence = CalculatePreviousOccurrence(transactionPoco.Repeat!, instanceDate);
+
+        transactionPoco.RepeatEnd = previousOccurrence;
+
+        if (transactionPoco.TransactionDate >= previousOccurrence)
         {
-            throw new Exception("UserTransaction ID was null");
+            transactionPoco.Repeat = null;
+            transactionPoco.RepeatEnd = null;
         }
 
-        var originalTransaction = await this.GetById(inputDto.TransactionId.Value);
+        await this.Update(transactionPoco);
 
+        return new[] { new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(transactionPoco) } };
+    }
 
-        if (originalTransaction!.TransactionDate == inputDto.TransactionDate)
+    public async Task<TransactionEventDTO[]> DeleteRepeatInstance(UserTransactionPoco transactionPoco, DateTime instanceDate)
+    {
+        if (transactionPoco!.TransactionDate == instanceDate)
         {
             var returnTransactionsList = new List<TransactionEventDTO>();
 
-            var originalRepeatEnd = originalTransaction!.RepeatEnd;
-            string? originalRepeat = originalTransaction.Repeat;
+            var originalRepeatEnd = transactionPoco!.RepeatEnd;
+            string originalRepeat = transactionPoco.Repeat!;
 
-            await this.Delete(PocoFromDto(inputDto));
+            await this.Delete(transactionPoco);
             returnTransactionsList.Add(new TransactionEventDTO
-                { Event = "delete", Transaction = inputDto });
+                { Event = "delete", Transaction = UserTransactionDTO.FromPoco(transactionPoco) });
             // deleting the original transaction
 
-            var newStartingDate = inputDto.TransactionDate;
-
-            if (originalRepeat == "weekly")
-            {
-                newStartingDate = newStartingDate.AddDays(7);
-            }
-
-            if (originalRepeat == "monthly")
-            {
-                newStartingDate = newStartingDate.AddMonths(1);
-            }
-
-            if (originalRepeat == "yearly")
-            {
-                newStartingDate = newStartingDate.AddYears(1);
-            }
+            var newStartingDate = CalculateNextOccurrence(originalRepeat, instanceDate);
 
             if (newStartingDate > originalRepeatEnd)
             {
@@ -393,13 +330,7 @@ public class TransactionService
                 return returnTransactionsList.ToArray();
             }
 
-            if (originalRepeatEnd <= newStartingDate)
-            {
-                originalRepeatEnd = null;
-                originalRepeat = null;
-            }
-
-            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
+            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(transactionPoco));
             newRepeatedTransaction.Repeat = originalRepeat;
             newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.TransactionDate = newStartingDate;
@@ -416,36 +347,26 @@ public class TransactionService
         {
             var returnTransactionsList = new List<TransactionEventDTO>();
 
-            var originalRepeatEnd = originalTransaction!.RepeatEnd;
-            string? originalRepeat = originalTransaction.Repeat;
+            var originalRepeatEnd = transactionPoco!.RepeatEnd;
+            string originalRepeat = transactionPoco.Repeat!;
 
-            originalTransaction.RepeatEnd = CalculateNextRepeatEnd(originalTransaction, inputDto.TransactionDate);
+            var newRepeatEnd = CalculatePreviousOccurrence(originalRepeat, instanceDate);
 
-            if (originalTransaction.RepeatEnd == null)
+            if (newRepeatEnd > transactionPoco.TransactionDate)
             {
-                originalTransaction.Repeat = null;
+                transactionPoco.RepeatEnd = newRepeatEnd;
             }
-
-            await this.Update(originalTransaction);
-            returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction)});
-            // updating the transaction original repeat end to before this day
-
-            var newStartingDate = inputDto.TransactionDate;
-
-            if (originalRepeat == "weekly")
+            else
             {
-                newStartingDate = newStartingDate.AddDays(7);
+                transactionPoco.Repeat = null;
+                transactionPoco.RepeatEnd = null;
             }
+            
+            await this.Update(transactionPoco);
+            returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(transactionPoco) });
+            // updating the transaction original repeat end to previous occurrence
 
-            if (originalRepeat == "monthly")
-            {
-                newStartingDate = newStartingDate.AddMonths(1);
-            }
-
-            if (originalRepeat == "yearly")
-            {
-                newStartingDate = newStartingDate.AddYears(1);
-            }
+            var newStartingDate = CalculateNextOccurrence(originalRepeat, instanceDate);
 
             if (newStartingDate > originalRepeatEnd)
             {
@@ -453,16 +374,16 @@ public class TransactionService
                 return returnTransactionsList.ToArray();
             }
 
-            if (originalRepeatEnd <= newStartingDate)
-            {
-                originalRepeatEnd = null;
-                originalRepeat = null;
-            }
-
-            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
+            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(transactionPoco));
             newRepeatedTransaction.RepeatEnd = originalRepeatEnd;
             newRepeatedTransaction.Repeat = originalRepeat;
             newRepeatedTransaction.TransactionDate = newStartingDate;
+
+            if (newStartingDate >= originalRepeatEnd)
+            {
+                newRepeatedTransaction.Repeat = null;
+                newRepeatedTransaction.RepeatEnd = null;
+            }
 
             int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
             newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;

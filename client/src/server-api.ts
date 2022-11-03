@@ -134,12 +134,16 @@ export const deleteTransaction = async (
   repeatMode?: "thisAndForward" | "onlyThis",
   date?: Date
 ) => {
-  const url = !repeatMode
-    ? `${SERVER_URL}/transaction?transactionId=${transactionId}`
-    : `${SERVER_URL}/transaction?transactionId=${transactionId}&date=${format(
-        date,
-        "yyyy-MM-dd"
-      )}&${repeatMode}=true`;
+  let url = `${SERVER_URL}/transaction?transactionId=${transactionId}`;
+
+  if (repeatMode == "onlyThis") {
+    url += `&onlyThis=true`;
+  }
+
+  if (date) {
+    url = url + `&instanceDate=${format(date, "yyyy-MM-dd")}`;
+  }
+
   return axios.delete<TransactionEvent[]>(url);
 };
 

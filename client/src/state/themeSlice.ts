@@ -21,7 +21,7 @@ const getSystemPrefColorScheme = () => {
   return prefDarkMode ? "dark" : "light";
 };
 
-const getInitState = (): ThemeState => {
+const getInitState = () => {
   const themePref =
     localStorage.getItem("theme_preference") ?? getSystemPrefColorScheme();
 
@@ -40,7 +40,7 @@ const getInitState = (): ThemeState => {
   };
 };
 
-const initialState = getInitState();
+const initialState: ThemeState = getInitState();
 
 const themeSlice = createSlice({
   name: "theme",

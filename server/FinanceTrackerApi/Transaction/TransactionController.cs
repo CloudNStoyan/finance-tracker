@@ -19,7 +19,7 @@ public class TransactionController : ControllerBase
         this.SessionService = sessionService;
     }
 
-    public async Task<ActionResult<TransactionEventDTO[]>> Delete([FromQuery] int? transactionId, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis, [FromQuery] DateTime? date)
+    public async Task<ActionResult<TransactionEventDTO[]>> Delete([FromQuery] int? transactionId, [FromQuery] bool? onlyThis, [FromQuery] DateTime instanceDate)
     {
         if (transactionId == null)
         {
@@ -42,24 +42,17 @@ public class TransactionController : ControllerBase
             return this.Unauthorized();
         }
 
-        if (date.HasValue)
+        if (transaction.Repeat != null)
         {
-            transaction.TransactionDate = date.Value;
-        }
+            if (onlyThis is true)
+            {
+                return this.Ok(await this.TransactionService.DeleteRepeatInstance(transaction, instanceDate));
+            }
 
-        if (transaction.Repeat != null && thisAndForward.HasValue && thisAndForward.Value)
-        {
-            //if is repeat and the query told us we w2ant to change this repeat and all others forward
-            var dtos = await this.TransactionService.DeleteRepeatInstanceAndForward(UserTransactionDTO.FromPoco(transaction));
-
-            return this.Ok(dtos);
-        }
-
-        if (transaction.Repeat != null && onlyThis.HasValue && onlyThis.Value)
-        {
-            var dtos = await this.TransactionService.DeleteRepeatInstance(UserTransactionDTO.FromPoco(transaction));
-
-            return this.Ok(dtos);
+            if (instanceDate != transaction.TransactionDate)
+            {
+                return this.Ok(await this.TransactionService.DeleteRepeatInstanceAndForward(transaction, instanceDate));
+            }
         }
 
         await this.TransactionService.Delete(transaction);
@@ -68,7 +61,7 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult<TransactionEventDTO[]>> Edit([FromBody] UserTransactionDTO inputDto, [FromQuery] bool? thisAndForward, [FromQuery] bool? onlyThis)
+    public async Task<ActionResult<TransactionEventDTO[]>> Edit([FromBody] UserTransactionDTO inputDto, [FromQuery] bool? onlyThis)
     {
         var validatorResult = CustomValidator.Validate(inputDto);
 
@@ -100,21 +93,16 @@ public class TransactionController : ControllerBase
 
         inputDto.UserId = session.UserId;
 
-        if (inputDto.Repeat != null && thisAndForward.HasValue && thisAndForward.Value)
+        if (inputDto.Repeat != null)
         {
-            //if is repeat and the query told us we w2ant to change this repeat and all others forward
-            var dto = await this.TransactionService.UpdateRepeatInstanceAndForward(inputDto);
+            if (onlyThis.HasValue && onlyThis.Value)
+            {
+                return this.Ok(await this.TransactionService.UpdateRepeatInstance(inputDto));
+            }
 
-            return this.Ok(dto);
+            return this.Ok(await this.TransactionService.UpdateRepeatInstanceAndForward(inputDto));
         }
-
-        if (inputDto.Repeat != null && onlyThis.HasValue && onlyThis.Value)
-        {
-            var dto = await this.TransactionService.UpdateRepeatInstance(inputDto);
-
-            return this.Ok(dto);
-        }
-
+        
         await this.TransactionService.Update(TransactionService.PocoFromDto(inputDto));
 
         return this.Ok(new[] { new TransactionEventDTO { Event = "update", Transaction = inputDto }});

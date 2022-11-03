@@ -52,7 +52,8 @@ const CalendarTransactionList = () => {
                 isAfter(tillDate, transactionDate)) ||
               (transaction.repeat === "yearly" &&
                 transactionDate.getDate() === tillDate.getDate() &&
-                transactionDate.getMonth() === tillDate.getMonth())
+                transactionDate.getMonth() === tillDate.getMonth() &&
+                transactionDate.getFullYear() <= tillDate.getFullYear())
             ) {
               return true;
             }
