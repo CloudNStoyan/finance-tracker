@@ -1,4 +1,5 @@
 ﻿using FinanceTrackerApi.Auth;
+using FinanceTrackerApi.DAL;
 using FinanceTrackerApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -84,12 +85,16 @@ public class CategoryController : ControllerBase
             return this.NotFound();
         }
 
-        if (session.UserId == null || session.UserId.Value != categoryPoco.UserId!.Value)
+        if (session.UserId!.Value != categoryPoco.UserId!.Value)
         {
             return this.Unauthorized();
         }
 
-        await this.CategoryService.Update(categoryPoco);
+        var inputCatPoco = inputDto.ToPoco();
+
+        inputCatPoco.UserId = session.UserId.Value;
+
+        await this.CategoryService.Update(inputCatPoco);
 
         return this.Ok(inputDto);
     }
