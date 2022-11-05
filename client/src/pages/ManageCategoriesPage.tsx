@@ -19,6 +19,12 @@ const ManageCategoriesPage = () => {
     (state) => state.categoriesReducer.status
   );
 
+  console.log(
+    categories,
+    categoriesStatus,
+    categoriesStatus === "succeeded" && categories.length === 0
+  );
+
   useEffect(() => {
     if (categoriesStatus === "idle") {
       void dispatch(fetchCategories());
@@ -38,11 +44,19 @@ const ManageCategoriesPage = () => {
           <AddIcon />
         </IconButton>
       </div>
-      <div className="categories-container grow">
-        {categories.map((cat) => (
-          <CategoryInlineComponent category={cat} key={cat.categoryId} />
-        ))}
-      </div>
+      {categories.length > 0 && (
+        <div className="categories-container grow">
+          {categories.map((cat) => (
+            <CategoryInlineComponent category={cat} key={cat.categoryId} />
+          ))}
+        </div>
+      )}
+      {categoriesStatus === "succeeded" && categories.length === 0 && (
+        <div className="mt-3 font-semibold text-center">
+          <h2>You don&#39;t have any categories yet.</h2>
+          <h2>Try adding one!</h2>
+        </div>
+      )}
     </ManageCategoriesPageStyled>
   );
 };

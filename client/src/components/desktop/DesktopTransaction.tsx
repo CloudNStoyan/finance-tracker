@@ -145,6 +145,19 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   }, [open]);
 
   useEffect(() => {
+    if (!category?.categoryId) {
+      return;
+    }
+
+    const selectedCat =
+      categories.find((cat) => cat.categoryId === category.categoryId) ??
+      DefaultCategory;
+
+    setCategory(selectedCat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories]);
+
+  useEffect(() => {
     if (!transaction || !open) {
       return;
     }

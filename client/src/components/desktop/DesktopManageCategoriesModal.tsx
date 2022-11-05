@@ -27,15 +27,23 @@ const DesktopManageCategoriesModal: FunctionComponent<
         </IconButton>
         <h2 className="grow text-center font-medium">Manage Categories</h2>
       </div>
-      <div className="cats">
-        {categories.map((cat) => (
-          <DesktopCategoryInlineComponent
-            onSelected={selectedCat}
-            category={cat}
-            key={cat.categoryId}
-          />
-        ))}
-      </div>
+      {categories.length > 0 && (
+        <div className="cats">
+          {categories.map((cat) => (
+            <DesktopCategoryInlineComponent
+              onSelected={selectedCat}
+              category={cat}
+              key={cat.categoryId}
+            />
+          ))}
+        </div>
+      )}
+      {categories.length === 0 && (
+        <div className="my-3 font-semibold text-center">
+          <h2>You don&#39;t have any categories yet.</h2>
+          <h2>Try adding one!</h2>
+        </div>
+      )}
       <Button onClick={onAddCategory} className="ml-3 mb-1" startIcon={<Add />}>
         Add Category
       </Button>

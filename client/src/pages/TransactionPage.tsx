@@ -588,7 +588,7 @@ const TransactionPage: FunctionComponent<{
               <div className="cat-container">
                 {[...categories, DefaultCategory].map((cat) => (
                   <PickCategoryStyled
-                    key={cat.categoryId}
+                    key={cat.categoryId ?? "default"}
                     bgColor={cat.bgColor}
                   >
                     <button

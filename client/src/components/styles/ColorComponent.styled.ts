@@ -3,9 +3,21 @@ import { styled } from "../../infrastructure/ThemeManager";
 export type ColorStyledProps = {
   bgColor: string;
   textColor?: string;
+  spinning: boolean;
 };
 
 const ColorComponentStyled = styled.div<ColorStyledProps>`
+  ${({ spinning }) =>
+    spinning
+      ? `
+      animation-name: custom-spinning-full;
+      animation-duration: 5s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+
+  `
+      : ""}
+
   button {
     background-color: ${({ bgColor }) => bgColor};
     border-radius: 50%;

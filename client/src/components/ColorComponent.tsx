@@ -17,7 +17,11 @@ const ColorComponent: FunctionComponent<ColorProps> = ({
   idx,
 }) => {
   return (
-    <ColorComponentStyled bgColor={bgColor} textColor={textColor}>
+    <ColorComponentStyled
+      bgColor={bgColor}
+      textColor={textColor}
+      spinning={selected}
+    >
       <button
         className={`${
           selected
