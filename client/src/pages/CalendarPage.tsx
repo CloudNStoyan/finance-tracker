@@ -55,7 +55,7 @@ const CalendarPage = () => {
   );
 
   useEffect(() => {
-    if (categoriesStatus === "idle") {
+    if (categoriesStatus === "idle" || categoriesStatus === "failed") {
       void dispatch(fetchCategories());
     }
   }, [categoriesStatus, dispatch]);
@@ -79,7 +79,11 @@ const CalendarPage = () => {
   }, [selected, now, dispatch]);
 
   useEffect(() => {
-    if (parsedNow === null || balanceFetchingStatus !== "idle") {
+    if (
+      parsedNow === null ||
+      balanceFetchingStatus !== "idle" ||
+      days.length === 0
+    ) {
       return;
     }
 

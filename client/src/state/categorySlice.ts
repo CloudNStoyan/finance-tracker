@@ -5,6 +5,7 @@ import {
   getCategories,
   deleteCategory as deleteCategoryApi,
 } from "../server-api";
+import { logoutUser } from "./authSlice";
 
 export type CategoriesState = {
   categories: Category[];
@@ -73,6 +74,11 @@ const categoriesSlice = createSlice({
     },
   },
   extraReducers(builder) {
+    builder.addCase(logoutUser, (state) => {
+      state.categories = initialState.categories;
+      state.error = initialState.error;
+      state.status = initialState.status;
+    });
     builder
       .addCase(fetchCategories.pending, (state) => {
         state.status = "loading";
@@ -81,6 +87,7 @@ const categoriesSlice = createSlice({
         fetchCategories.fulfilled,
         (state, action: PayloadAction<Category[]>) => {
           state.status = "succeeded";
+          state.error = null;
 
           state.categories = action.payload;
           state.categories.sort(sortComparison);

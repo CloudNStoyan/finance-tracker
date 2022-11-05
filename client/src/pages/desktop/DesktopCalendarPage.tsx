@@ -65,7 +65,7 @@ const DesktopCalendarPage = () => {
   ).map(fromUnixTimeMs);
 
   useEffect(() => {
-    if (categoriesStatus === "idle") {
+    if (categoriesStatus === "idle" || categoriesStatus === "failed") {
       void dispatch(fetchCategories());
     }
   }, [categoriesStatus, dispatch]);
@@ -93,7 +93,7 @@ const DesktopCalendarPage = () => {
   }, [dispatch, now, selected]);
 
   useEffect(() => {
-    if (parsedNow === null || balanceStatus !== "idle") {
+    if (parsedNow === null || balanceStatus !== "idle" || days.length === 0) {
       return;
     }
 

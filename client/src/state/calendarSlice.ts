@@ -14,6 +14,7 @@ import {
   isValidDate,
 } from "../infrastructure/CustomDateUtils";
 import { getStartBalanceByMonth, Balance } from "../server-api";
+import { logoutUser } from "./authSlice";
 
 export type StartBalanceCache = {
   [cacheKey: string]: number;
@@ -131,6 +132,15 @@ const calendarSlice = createSlice({
     },
   },
   extraReducers(builder) {
+    builder.addCase(logoutUser, (state) => {
+      state.days = initialState.days;
+      state.fetchingStatus = initialState.fetchingStatus;
+      state.firstDayOfTheMonth = initialState.firstDayOfTheMonth;
+      state.now = initialState.now;
+      state.selected = initialState.selected;
+      state.startBalance = initialState.startBalance;
+      state.startBalanceCache = initialState.startBalanceCache;
+    });
     builder
       .addCase(fetchStartBalance.pending, (state) => {
         state.fetchingStatus = "loading";

@@ -9,6 +9,7 @@ import {
   TransactionEvent,
   deleteTransaction as deleteTransactionApi,
 } from "../server-api";
+import { logoutUser } from "./authSlice";
 
 export type TransactionState = {
   transactions: Transaction[];
@@ -142,6 +143,12 @@ const transactionsSlice = createSlice({
     },
   },
   extraReducers(builder) {
+    builder.addCase(logoutUser, (state) => {
+      state.completedTansactionQueries =
+        initialState.completedTansactionQueries;
+      state.fetchingStatus = initialState.fetchingStatus;
+      state.transactions = initialState.transactions;
+    });
     builder
       .addCase(
         fetchTransactionsByRange.fulfilled,
