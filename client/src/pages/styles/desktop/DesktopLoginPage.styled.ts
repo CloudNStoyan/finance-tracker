@@ -10,6 +10,13 @@ const DesktopLoginPageStyled = styled.div`
   form {
     background-color: ${({ theme }) => theme.colors.background};
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+
+    &.shake-errors {
+      .MuiFormHelperText-root.Mui-error {
+        width: fit-content;
+        animation: custom-shake 0.25s linear;
+      }
+    }
   }
 
   .loading {

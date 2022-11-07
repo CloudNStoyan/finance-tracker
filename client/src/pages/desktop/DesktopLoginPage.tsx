@@ -17,6 +17,7 @@ const DesktopLoginPage = () => {
   const [passwordError, setPasswordError] = useState(false);
   const [error, setError] = useState<string>(null);
   const [loading, setLoading] = useState(false);
+  const [shakeErrors, setShakeErrors] = useState(false);
 
   const [generateToken] = useReCaptcha();
   const navigate = useNavigate();
@@ -37,6 +38,10 @@ const DesktopLoginPage = () => {
 
     if (fieldsAreValid === false) {
       setLoading(false);
+      setShakeErrors(true);
+      setTimeout(() => {
+        setShakeErrors(false);
+      }, 300);
       return;
     }
 
@@ -81,7 +86,9 @@ const DesktopLoginPage = () => {
       {loading && <CircularProgress className="loading-circle" />}
       <div className="wrapper h-full w-full">
         <form
-          className={` rounded px-8 pt-6 pb-8 w-80 ${loading ? "loading" : ""}`}
+          className={` rounded px-8 pt-6 pb-8 w-80 ${
+            loading ? "loading" : ""
+          } ${shakeErrors ? "shake-errors" : ""}`}
         >
           <h1 className="text-center text-lg font-medium text-gray-600 mb-5 dark:text-white">
             Log in to Finance Tracker
