@@ -1,4 +1,4 @@
-import { differenceInDays, format, isAfter, parseJSON } from "date-fns";
+import { differenceInDays, isAfter, parseJSON } from "date-fns";
 import React, {
   FunctionComponent,
   useCallback,
@@ -298,7 +298,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
     <DesktopCalendarDayStyled
       onMouseOver={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`${format(date, "yyyy-MM-dd")} flex flex-col text-center ${
+      className={`flex flex-col text-center ${
         notFromSameMonth ? "opacity-50" : ""
       } ${notSearchRelevant ? "fade-off" : ""} ${
         isSelected ? "selected" : ""

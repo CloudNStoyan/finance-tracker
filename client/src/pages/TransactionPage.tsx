@@ -39,8 +39,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import PickCategoryStyled from "../components/styles/PickCategory.styled";
 import PickCategoriesStyled from "../components/styles/PickCategories.styled";
-import { format, parseISO, parseJSON } from "date-fns";
-import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import { parseISO, parseJSON } from "date-fns";
+import {
+  DateOnlyToString,
+  fromUnixTimeMs,
+} from "../infrastructure/CustomDateUtils";
 import DefaultCategory from "../state/DefaultCategory";
 import {
   addNewOrEditTransaction,
@@ -251,7 +254,7 @@ const TransactionPage: FunctionComponent<{
     const transaction: Transaction = {
       label: label.trim(),
       value: Number(value),
-      transactionDate: format(date, "yyyy-MM-dd"),
+      transactionDate: DateOnlyToString(date),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
       repeat: transactionRepeat,
@@ -267,7 +270,7 @@ const TransactionPage: FunctionComponent<{
     }
 
     if (showRepeatEnd && repeat !== "none") {
-      transaction.repeatEnd = format(repeatEnd, "yyyy-MM-dd");
+      transaction.repeatEnd = DateOnlyToString(repeatEnd);
     }
 
     try {

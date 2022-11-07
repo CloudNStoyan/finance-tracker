@@ -1,4 +1,4 @@
-import { fromUnixTime } from "date-fns";
+import { format, fromUnixTime } from "date-fns";
 
 export const DatesAreEqualWithoutTime = (a: Date, b: Date) => {
   if (a === null || b === null) {
@@ -42,6 +42,8 @@ export const FindDays = (date: Date, mondayIsFirstDay: boolean) => {
     after: 7 - day,
   };
 };
+
+export const DateOnlyToString = (date: Date) => format(date, "yyyy-MM-dd");
 
 export const fromUnixTimeMs = (unix: number | null) =>
   unix === null ? null : fromUnixTime(unix / 1000);

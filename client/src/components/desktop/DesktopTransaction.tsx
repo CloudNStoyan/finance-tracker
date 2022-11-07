@@ -23,9 +23,12 @@ import DesktopTransactionStyled from "../styles/desktop/DesktopTransaction.style
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import DefaultCategory from "../../state/DefaultCategory";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { fromUnixTimeMs } from "../../infrastructure/CustomDateUtils";
+import {
+  DateOnlyToString,
+  fromUnixTimeMs,
+} from "../../infrastructure/CustomDateUtils";
 import { Category, Transaction } from "../../server-api";
-import { format, parseJSON } from "date-fns";
+import { parseJSON } from "date-fns";
 import { setNotification } from "../../state/notificationSlice";
 import {
   addNewOrEditTransaction,
@@ -233,7 +236,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     const newTransaction: Transaction = {
       label: label.trim(),
       value: Number(value),
-      transactionDate: format(date, "yyyy-MM-dd"),
+      transactionDate: DateOnlyToString(date),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
       repeat:
@@ -255,7 +258,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
 
     if (showRepeatEnd && repeat !== "none") {
-      newTransaction.repeatEnd = format(repeatEnd, "yyyy-MM-dd");
+      newTransaction.repeatEnd = DateOnlyToString(repeatEnd);
     }
 
     try {
@@ -456,6 +459,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                     onChange={(e) => setConfirmed(e.target.checked)}
                   />
                 }
+                className="select-none"
                 label="Confirmed"
               />
               <Button

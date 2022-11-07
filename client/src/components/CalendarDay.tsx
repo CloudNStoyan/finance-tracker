@@ -1,10 +1,4 @@
-import {
-  differenceInDays,
-  format,
-  getDaysInMonth,
-  isAfter,
-  parseJSON,
-} from "date-fns";
+import { differenceInDays, getDaysInMonth, isAfter, parseJSON } from "date-fns";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
@@ -224,10 +218,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
       onClick={() => {
         onClick(date);
       }}
-      className={`${format(
-        date,
-        "yyyy-MM-dd"
-      )} flex flex-col text-center font-semibold ${
+      className={`flex flex-col text-center font-semibold ${
         notFromSameMonth ? "opacity-50" : ""
       } ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} `}
     >

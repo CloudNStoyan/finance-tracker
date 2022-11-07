@@ -1,5 +1,5 @@
 import axios from "axios";
-import { format } from "date-fns";
+import { DateOnlyToString } from "./infrastructure/CustomDateUtils";
 import { IconKey } from "./infrastructure/Icons";
 
 const SERVER_URL =
@@ -141,7 +141,7 @@ export const deleteTransaction = async (
   }
 
   if (date) {
-    url = url + `&instanceDate=${format(date, "yyyy-MM-dd")}`;
+    url = url + `&instanceDate=${DateOnlyToString(date)}`;
   }
 
   return axios.delete<TransactionEvent[]>(url);
@@ -156,16 +156,15 @@ export const getTransactionsBeforeAndAfterDate = async (
   beforeDate: Date
 ) => {
   return axios.get<Transaction[]>(
-    `${SERVER_URL}/transaction/all/range?afterDate=${format(
-      afterDate,
-      "yyyy-MM-dd"
-    )}&beforeDate=${format(beforeDate, "yyyy-MM-dd")}`
+    `${SERVER_URL}/transaction/all/range?afterDate=${DateOnlyToString(
+      afterDate
+    )}&beforeDate=${DateOnlyToString(beforeDate)}`
   );
 };
 
 export const getStartBalanceByMonth = async (date: Date) => {
   return axios.get<Balance>(
-    `${SERVER_URL}/transaction/balance?date=${format(date, "yyyy-MM-dd")}`
+    `${SERVER_URL}/transaction/balance?date=${DateOnlyToString(date)}`
   );
 };
 
