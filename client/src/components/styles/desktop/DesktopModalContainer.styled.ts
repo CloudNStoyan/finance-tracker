@@ -7,7 +7,7 @@ const DesktopModalContainerStyled = styled.div`
 
   > * {
     animation: custom-slide-right-left 0.25s;
-    background-color: white;
+    background-color: ${({ theme }) => theme.colors.background};
     padding-top: 10px;
   }
 `;

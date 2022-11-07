@@ -348,6 +348,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
           borderRadius: 0,
           backgroundColor: "transparent",
           boxShadow: "none",
+          backgroundImage: "none",
         },
       }}
     >
