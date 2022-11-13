@@ -151,6 +151,21 @@ const RegisterPage = () => {
               />
             </div>
           </div>
+          <div className="text-sm text-gray-400 dark:text-white mb-3 w-fit mx-auto">
+            {!/(?=.*[a-z])/.test(password) && (
+              <div className="font-bold">• One lowercase letter</div>
+            )}
+            {!/(?=.*[A-Z])/.test(password) && (
+              <div className="font-bold">• One uppercase letter</div>
+            )}
+            {password.length < 8 && (
+              <div className="font-bold">• 8 or more characters</div>
+            )}
+            {!/(?=.*[0-9])/.test(password) && <div>• One number</div>}
+            {!/(?=.*[^A-Za-z0-9])/.test(password) && (
+              <div>• One special character</div>
+            )}
+          </div>
           <div className="flex items-center justify-between">
             <Button
               variant="contained"

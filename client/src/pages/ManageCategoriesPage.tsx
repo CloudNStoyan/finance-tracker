@@ -19,12 +19,6 @@ const ManageCategoriesPage = () => {
     (state) => state.categoriesReducer.status
   );
 
-  console.log(
-    categories,
-    categoriesStatus,
-    categoriesStatus === "succeeded" && categories.length === 0
-  );
-
   useEffect(() => {
     if (categoriesStatus === "idle") {
       void dispatch(fetchCategories());
