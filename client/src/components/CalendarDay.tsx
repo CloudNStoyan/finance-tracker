@@ -111,12 +111,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
         }
 
         if (transaction.repeat === "monthly") {
-          if (
-            transactionDate.getDate() <= date.getDate() ||
-            month < date.getMonth()
-          ) {
-            return true;
-          }
+          return true;
         }
 
         if (transaction.repeat === "yearly") {
@@ -151,21 +146,13 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
           repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
 
         if (transaction.repeat === "monthly") {
-          if (
-            (transactionDate.getDate() <= tillDate.getDate() &&
-              tillDate.getMonth() === month) ||
-            (tillDate.getMonth() > month &&
-              tillDate.getDate() < transactionDate.getDate())
-          ) {
-            transactionValue = transaction.value;
-          } else if (
-            tillDate.getMonth() > month &&
-            tillDate.getDate() >= transactionDate.getDate()
-          ) {
-            transactionValue = transactionValue * 2;
-          } else {
-            return 0;
-          }
+          const occurrences = days
+            .slice(1)
+            .map((dN) => new Date(new Date(dN).setHours(0, 0, 0, 0)))
+            .filter((d) => d <= tillDate)
+            .filter((d) => d.getDate() === transactionDate.getDate()).length;
+
+          transactionValue = transactionValue * occurrences;
         }
 
         if (transaction.repeat === "weekly") {
