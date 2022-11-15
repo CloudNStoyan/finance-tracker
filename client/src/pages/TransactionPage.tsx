@@ -399,9 +399,14 @@ const TransactionPage: FunctionComponent<{
                 </InputAdornment>
               ),
             }}
+            InputLabelProps={{ shrink: true }}
+            label="Value"
+            placeholder="0.00"
           />
           <CustomTextField
             label="Label"
+            InputLabelProps={{ shrink: true }}
+            placeholder="e.g netflix"
             variant="standard"
             className="ml-4 transaction-label grow"
             value={label}
