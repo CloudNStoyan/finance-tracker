@@ -1,5 +1,5 @@
 import { Drawer, IconButton } from "@mui/material";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 import { useAppSelector } from "../state/hooks";
 import TopbarStyled from "./styles/Topbar.styled";
 import WestIcon from "@mui/icons-material/West";
@@ -9,7 +9,12 @@ import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SettingsModal from "../pages/SettingsModal";
-import { RemoveDuplicates } from "../infrastructure/Utils";
+
+const navigateBackMap: { [key: string]: string } = {
+  "/transaction": "/",
+  "/categories": "/",
+  "/category": "/categories",
+};
 
 const MobileTopbar: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -18,30 +23,17 @@ const MobileTopbar: FunctionComponent = () => {
 
   const [settingsIsOpen, setSettingsIsOpen] = useState(false);
 
-  const location = useLocation();
+  const { pathname } = useLocation();
 
-  const [history, setHistory] = useState<string[]>(["/"]);
-
-  const canGoBack = history.length > 1;
+  const canGoBack = pathname !== "/";
 
   const navigateBack = () => {
-    if (history.length > 0) {
-      navigate(history[1]);
-      history.shift();
-      setHistory(history);
-    }
-  };
-
-  useEffect(() => {
-    if (location.pathname === "/") {
-      setHistory([location.pathname]);
+    if (!canGoBack || !(pathname in navigateBackMap)) {
       return;
     }
 
-    setHistory(RemoveDuplicates([location.pathname, ...history]));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]);
+    navigate(navigateBackMap[pathname]);
+  };
 
   return (
     isLoggedIn && (
