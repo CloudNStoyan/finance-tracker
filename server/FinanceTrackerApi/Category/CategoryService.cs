@@ -17,7 +17,7 @@ public class CategoryService
     public async Task MoveAllTransactionsByCatId(int catId, int userId)
     {
         await this.Database.ExecuteNonQuery(
-            "UPDATE transaction SET category_id = null WHERE user_id=@userId AND category_id=@catId;",
+            "UPDATE user_transactions SET category_id = null WHERE user_id=@userId AND category_id=@catId;",
             new NpgsqlParameter("userId", userId), new NpgsqlParameter("catId", catId));
     }
 

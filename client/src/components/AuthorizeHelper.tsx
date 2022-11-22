@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getMe } from "../server-api";
 import { setUser, triedToAuth } from "../state/authSlice";
@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 
 let isFetching = false;
 
-const AuthorizeHelper = () => {
+const AuthorizeHelper = (): JSX.Element => {
   const location = useLocation();
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.authReducer.isLoggedIn);
@@ -62,7 +62,7 @@ const AuthorizeHelper = () => {
       navigate("/login");
     }
   }, [isLoggedIn, didTryToAuthenticate, location, navigate]);
-  return <></>;
+  return null;
 };
 
 export default AuthorizeHelper;
