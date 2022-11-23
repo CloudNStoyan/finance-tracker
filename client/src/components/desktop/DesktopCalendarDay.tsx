@@ -1,5 +1,5 @@
 import { differenceInDays, isAfter, parseJSON } from "date-fns";
-import React, {
+import {
   FunctionComponent,
   useCallback,
   useEffect,

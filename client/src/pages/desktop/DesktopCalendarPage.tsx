@@ -1,5 +1,5 @@
 import { format, getTime } from "date-fns";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,

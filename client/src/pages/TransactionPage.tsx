@@ -29,7 +29,7 @@ import {
   Typography,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./styles/TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";

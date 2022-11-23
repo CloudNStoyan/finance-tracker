@@ -1,7 +1,7 @@
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { format, getTime } from "date-fns";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CalendarDay from "../components/CalendarDay";
 import CalendarTransactionList from "../components/CalendarTransactionList";
 import DaysOfWeek from "../components/DaysOfWeek";

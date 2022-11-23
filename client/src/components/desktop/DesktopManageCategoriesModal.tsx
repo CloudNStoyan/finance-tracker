@@ -1,6 +1,6 @@
 import { Add, West } from "@mui/icons-material";
 import { Button, IconButton } from "@mui/material";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { Category } from "../../server-api";
 import { useAppSelector } from "../../state/hooks";
 import DesktopManageCategoriesStlyed from "../styles/desktop/DesktopManageCategories.styled";

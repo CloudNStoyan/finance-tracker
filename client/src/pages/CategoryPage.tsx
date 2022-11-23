@@ -1,5 +1,5 @@
 import { IconButton, styled, TextField } from "@mui/material";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import CategoryPageStyled from "./styles/CategoryPage.styled";
 import ColorComponent from "../components/ColorComponent";
 import CheckIcon from "@mui/icons-material/Check";

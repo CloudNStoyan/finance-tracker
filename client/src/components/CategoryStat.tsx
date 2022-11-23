@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { Category } from "../server-api";
 import CategoryStatStyled from "./styles/CategoryStat.styled";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";

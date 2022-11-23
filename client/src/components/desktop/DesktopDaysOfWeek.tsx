@@ -1,4 +1,3 @@
-import React from "react";
 import { useAppSelector } from "../../state/hooks";
 import DesktopDaysOfWeekStyled from "../styles/desktop/DesktopDaysOfWeek.styled";
 

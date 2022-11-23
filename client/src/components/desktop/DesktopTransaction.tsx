@@ -18,7 +18,7 @@ import {
   LoopOutlined,
   DescriptionOutlined,
 } from "@mui/icons-material";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import DesktopTransactionStyled from "../styles/desktop/DesktopTransaction.styled";
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import DefaultCategory from "../../state/DefaultCategory";

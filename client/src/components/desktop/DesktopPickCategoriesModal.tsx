@@ -1,6 +1,6 @@
 import { Add, Settings, West } from "@mui/icons-material";
 import { Button, IconButton } from "@mui/material";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { Category } from "../../server-api";
 import DesktopPickCategoriesStyled from "../styles/desktop/DesktopPickCategories.styled";
 import PickCategoryStyled from "../styles/PickCategory.styled";

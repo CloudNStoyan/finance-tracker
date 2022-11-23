@@ -1,6 +1,6 @@
 import { IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import CategoryInlineComponent from "../components/CategoryInlineComponent";
 import { useNavigate } from "react-router-dom";
 import ManageCategoriesPageStyled from "./styles/ManageCategoriesPage.styled";

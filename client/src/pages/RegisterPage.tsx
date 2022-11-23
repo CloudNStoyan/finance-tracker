@@ -1,6 +1,6 @@
 import { Button, CircularProgress, TextField } from "@mui/material";
 import { PersonOutlined, LockOutlined } from "@mui/icons-material";
-import React, { useState } from "react";
+import { useState } from "react";
 import RegisterPageStyled from "./styles/RegisterPage.styled";
 import useReCaptcha from "../useReCaptcha";
 import { Link, useNavigate } from "react-router-dom";

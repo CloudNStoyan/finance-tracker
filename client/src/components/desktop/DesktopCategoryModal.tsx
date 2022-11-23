@@ -1,5 +1,5 @@
 import { Button, IconButton, styled, TextField } from "@mui/material";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import Icons, { IconKey } from "../../infrastructure/Icons";
 import IconComponent from "../../components/IconComponent";
 import { Category } from "../../server-api";

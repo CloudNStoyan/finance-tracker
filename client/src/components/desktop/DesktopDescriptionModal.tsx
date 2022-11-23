@@ -1,6 +1,6 @@
 import { West } from "@mui/icons-material";
 import { Button, IconButton } from "@mui/material";
-import React, { FunctionComponent, useState } from "react";
+import { FunctionComponent, useState } from "react";
 import DesktopDescriptionModalStyled from "../styles/desktop/DesktopDescriptionModal.styled";
 
 export type DesktopDescriptionModalProps = {

@@ -1,11 +1,11 @@
-import React, { FunctionComponent } from "react";
+import { FunctionComponent, ReactNode } from "react";
 import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import { createTheme, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { useAppSelector } from "../state/hooks";
 import ThemesComponentStyled from "./styles/ThemesComponent.styled";
 
 export type ThemesComponentProps = {
-  children: React.ReactNode[] | React.ReactNode;
+  children: ReactNode[] | ReactNode;
 };
 
 const ThemesComponent: FunctionComponent<ThemesComponentProps> = ({

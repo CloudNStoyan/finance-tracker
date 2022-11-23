@@ -1,5 +1,5 @@
 import { Drawer, IconButton } from "@mui/material";
-import React, { FunctionComponent, useState } from "react";
+import { FunctionComponent, useState } from "react";
 import { useAppSelector } from "../state/hooks";
 import TopbarStyled from "./styles/Topbar.styled";
 import WestIcon from "@mui/icons-material/West";

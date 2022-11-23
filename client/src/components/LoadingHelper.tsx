@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useAppDispatch } from "../state/hooks";
 import { setIsLoading } from "../state/mainSlice";
 

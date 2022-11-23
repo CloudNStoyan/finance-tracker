@@ -1,6 +1,6 @@
 import { InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getTransactionsBySearch, Transaction } from "../server-api";
 import axios from "axios";
 import DefaultCategory from "../state/DefaultCategory";

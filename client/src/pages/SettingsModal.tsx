@@ -4,7 +4,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { switchTheme } from "../state/themeSlice";
 import SettingsPageStyled from "./styles/SettingsPage.styled";
@@ -114,7 +114,7 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
-      <div className="container">
+      <div className="container hidden">
         <h2 className="mb-2 font-bold">First Day Of The Week</h2>
         <ToggleButtonGroup
           color="primary"

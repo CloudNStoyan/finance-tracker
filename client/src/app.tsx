@@ -1,4 +1,4 @@
-import React, { lazy } from "react";
+import { lazy } from "react";
 import axios from "axios";
 import { useMediaQuery } from "@mui/material";
 const DesktopRoutes = lazy(() => import("./infrastructure/DesktopRoutes"));

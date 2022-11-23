@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChartData } from "chart.js";
 import { Category, Transaction } from "../../server-api";
 import DefaultCategory from "../../state/DefaultCategory";

@@ -6,7 +6,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 
 export interface DeleteDialogProps {
   open: boolean;

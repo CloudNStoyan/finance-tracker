@@ -1,4 +1,3 @@
-import React from "react";
 import { useMediaQuery } from "@mui/material";
 import { FunctionComponent } from "react";
 import DesktopTopbar from "./desktop/DesktopTopbar";

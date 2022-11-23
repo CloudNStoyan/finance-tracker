@@ -7,7 +7,6 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenterOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import DirectionsBusOutlinedIcon from "@mui/icons-material/DirectionsBusOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
-import React from "react";
 
 const Icons = {
   money: <AttachMoneyOutlinedIcon />,

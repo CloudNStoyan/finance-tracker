@@ -5,7 +5,7 @@ import {
   IconButton,
   styled,
 } from "@mui/material";
-import React, { FunctionComponent, useState } from "react";
+import { FunctionComponent, useState } from "react";
 import { useAppSelector } from "../../state/hooks";
 import { useNavigate } from "react-router-dom";
 import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";

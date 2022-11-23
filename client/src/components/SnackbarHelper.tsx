@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import Snackbar from "@mui/material/Snackbar";
 import { useAppSelector } from "../state/hooks";
 import { Alert, AlertColor } from "@mui/material";

@@ -1,4 +1,3 @@
-import React from "react";
 import NotListedLocationIcon from "@mui/icons-material/NotListedLocation";
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";

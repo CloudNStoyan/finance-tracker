@@ -1,10 +1,10 @@
-import React, { FunctionComponent } from "react";
+import { FunctionComponent, ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { useAppSelector } from "../state/hooks";
 import LoadingStyled from "./styles/Loading.styled";
 
 export type LoadingProps = {
-  children: React.ReactNode | React.ReactNode[];
+  children: ReactNode | ReactNode[];
 };
 
 const Loading: FunctionComponent<LoadingProps> = ({ children }) => {

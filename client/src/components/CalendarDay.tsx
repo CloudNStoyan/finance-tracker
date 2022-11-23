@@ -1,5 +1,5 @@
 import { differenceInDays, getDaysInMonth, isAfter, parseJSON } from "date-fns";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,

@@ -1,7 +1,7 @@
 import { AttachMoney } from "@mui/icons-material";
 import { Button, styled } from "@mui/material";
 import { format } from "date-fns";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import Icons from "../../infrastructure/Icons";
 import { Category, Transaction } from "../../server-api";
 import { useAppSelector } from "../../state/hooks";

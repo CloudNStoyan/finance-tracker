@@ -1,5 +1,5 @@
 import { IconButton } from "@mui/material";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import Icons, { IconKey } from "../infrastructure/Icons";
 import IconComponentStyled from "./styles/IconComponent.styled";
 

@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import { Category, Transaction } from "../server-api";
