@@ -10,6 +10,17 @@ const TransactionPageStyled = styled.div<{
   display: flex;
   flex-flow: column nowrap;
 
+  .loading {
+    * {
+      opacity: 0.75;
+    }
+  }
+
+  .loading-circle {
+    position: absolute;
+    z-index: 1;
+  }
+
   .repeat-end {
     display: flex;
     margin-left: 42px;

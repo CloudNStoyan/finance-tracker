@@ -46,6 +46,7 @@ import RepeatTransactionDialog, {
   OptionValue,
 } from "../RepeatTransactionDialog";
 import DeleteTransactionDialog from "../DeleteDialog";
+import LoadingCircleAnimation from "../LoadingCircleAnimation";
 
 export type DesktopTransactionProps = {
   open: boolean;
@@ -73,8 +74,20 @@ const CustomTextField = styled(TextField)({
   "& .MuiInput-underline:before": {
     borderBottomColor: "white",
   },
+  "& .MuiInput-underline.Mui-disabled:after": {
+    borderBottomStyle: "solid",
+  },
+  "& .MuiInput-underline.Mui-disabled:before": {
+    borderBottomStyle: "solid",
+  },
   "& label": {
     color: "white",
+  },
+  "& label.Mui-disabled": {
+    color: "white",
+  },
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "white",
   },
 });
 
@@ -113,9 +126,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
     useState<(option: boolean) => void>();
   const [itHasRepeat, setItHasRepeat] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();
+
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
+
   const categories = useAppSelector(
     (state) => state.categoriesReducer.categories
   );
@@ -124,28 +140,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setModalHistory([currentModal, ...modalHistory.slice(0, 4)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentModal]);
-
-  useEffect(() => {
-    if (open) {
-      return;
-    }
-
-    setValue("");
-    setLabel("");
-    setConfirmed(true);
-    setTransactionType("expense");
-    setDate(fromUnixTimeMs(calendarSelected));
-    setCategory(DefaultCategory);
-    setDescription("");
-    setRepeat("none");
-    setRepeatEnd(new Date());
-    setShowRepeatEnd(false);
-    setItHasRepeat(false);
-    setRepeatTransactionDialogOpen(false);
-    setCurrentModal("transaction");
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
 
   useEffect(() => {
     if (!category?.categoryId) {
@@ -216,6 +210,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       return;
     }
 
+    setLoading(true);
+
     if (itHasRepeat) {
       setRepeatTransactionDialogOpen(true);
       const callback = (option: OptionType) => {
@@ -272,6 +268,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       onClose();
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -279,6 +277,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     if (!transaction) {
       return;
     }
+
+    setLoading(true);
 
     if (itHasRepeat) {
       setRepeatTransactionDialogOpen(true);
@@ -327,6 +327,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       onClose();
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -401,7 +403,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
               category != undefined ? category.bgColor : DefaultCategory.bgColor
             }
             isDarkMode={isDarkMode}
+            isLoading={loading}
           >
+            {loading && <LoadingCircleAnimation className="loading-wrapper" />}
             <div className="relative fields">
               <div className="m-2 flex items-end">
                 <IconButton
@@ -411,6 +415,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                       transactionType === "expense" ? "income" : "expense"
                     );
                   }}
+                  disabled={loading}
                 >
                   {transactionType === "expense" ? <Remove /> : <Add />}
                 </IconButton>
@@ -439,6 +444,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   InputLabelProps={{ shrink: true }}
                   label="Value"
                   placeholder="0.00"
+                  disabled={loading}
                 />
                 <CustomTextField
                   InputLabelProps={{ shrink: true }}
@@ -449,6 +455,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   onBlur={(e) => setLabel(e.target.value)}
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -458,10 +465,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   <Checkbox
                     checked={confirmed}
                     onChange={(e) => setConfirmed(e.target.checked)}
+                    className="checkbox-wrapper"
                   />
                 }
                 className="select-none"
                 label="Confirmed"
+                disabled={loading}
               />
               <Button
                 onClick={() => setCurrentModal("select-category")}
@@ -472,6 +481,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                     ? Icons[category.icon]
                     : Icons[DefaultCategory.icon]
                 }
+                disabled={loading}
               >
                 {category != undefined ? category.name : "Uncategorized"}
               </Button>
@@ -505,6 +515,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                         />
                       </div>
                     )}
+                    disabled={loading}
                   />
                 </LocalizationProvider>
               </div>
@@ -518,6 +529,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   onChange={(e) => handleRepeatChange(e.target.value)}
                   label="Age"
                   sx={{ border: 0 }}
+                  disabled={loading}
                 >
                   <MenuItem value={"none"}>Does not repeat</MenuItem>
                   <MenuItem value={"weekly"}>Repeat every week</MenuItem>
@@ -536,6 +548,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                     }
                     label="End"
                     labelPlacement="start"
+                    disabled={loading}
                   />
                   {showRepeatEnd && (
                     <div>
@@ -572,6 +585,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                               )}
                             </div>
                           )}
+                          disabled={loading}
                         />
                       </LocalizationProvider>
                     </div>
@@ -584,6 +598,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                 size="large"
                 className="label-button justify-start normal-case"
                 startIcon={<DescriptionOutlined />}
+                disabled={loading}
               >
                 <span className="description-btn-text">
                   {description.trim().length === 0
@@ -597,6 +612,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                 <IconButton
                   onClick={() => void onDelete()}
                   className="text-red-500"
+                  disabled={loading}
                 >
                   <Delete />
                 </IconButton>
@@ -605,6 +621,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                 onClick={() => void onSubmit()}
                 className="block ml-auto"
                 variant="contained"
+                disabled={loading}
               >
                 {transaction ? "Save" : "Create"}
               </Button>

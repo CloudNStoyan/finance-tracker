@@ -211,8 +211,12 @@ const DesktopCalendarPage = () => {
       </div>
       <DesktopTransaction
         open={showTransactionModal}
-        onClose={() => setShowTransactionModal(false)}
+        onClose={() => {
+          setShowTransactionModal(false);
+          dispatch(setSelected(null));
+        }}
         transaction={currentTransaction}
+        key={selected}
       />
     </DesktopCalendarPageStyled>
   );

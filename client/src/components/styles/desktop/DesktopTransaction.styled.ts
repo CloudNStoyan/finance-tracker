@@ -3,12 +3,22 @@ import { styled } from "../../../infrastructure/ThemeManager";
 const DesktopTransactionStyled = styled.div<{
   bgColor: string;
   isDarkMode: boolean;
+  isLoading: boolean;
 }>`
   height: 100%;
   background-color: ${({ theme }) => theme.colors.background};
   display: flex;
   flex-flow: column nowrap;
   padding-top: 0 !important;
+
+  ${({ isLoading }) =>
+    isLoading
+      ? `
+    > *:not(.loading-wrapper) {
+      opacity: 0.75;
+    }
+  `
+      : null}
 
   .repeat-end {
     display: flex;
@@ -69,11 +79,26 @@ const DesktopTransactionStyled = styled.div<{
       }
     }
 
+    ${({ isLoading }) =>
+      isLoading
+        ? `
+      .checkbox-wrapper {
+        .MuiSvgIcon-root {
+          color: #757575;
+        }
+      }
+      `
+        : null}
+
     .label-button {
       padding: 0;
       color: ${({ isDarkMode }) => (isDarkMode ? "white" : "#333")};
       transition: none;
       height: 40px;
+
+      &.Mui-disabled {
+        color: rgba(0, 0, 0, 0.38);
+      }
 
       .MuiButton-startIcon {
         width: 42px;
