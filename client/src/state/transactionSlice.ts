@@ -15,12 +15,14 @@ export type TransactionState = {
   transactions: Transaction[];
   completedTansactionQueries: string[];
   fetchingStatus: "idle" | "loading";
+  addOrEditTransactionStatus: "idle" | "loading" | "failed" | "success";
 };
 
 const initialState: TransactionState = {
   transactions: [],
   completedTansactionQueries: [],
   fetchingStatus: "idle",
+  addOrEditTransactionStatus: "idle",
 };
 
 export const fetchTransactionById = createAsyncThunk(
@@ -206,7 +208,7 @@ const transactionsSlice = createSlice({
       .addCase(
         addNewOrEditTransaction.fulfilled,
         (state, action: PayloadAction<TransactionEvent[]>) => {
-          state.fetchingStatus = "idle";
+          state.addOrEditTransactionStatus = "success";
           const changes = action.payload;
 
           changes.forEach((change) => {
@@ -242,10 +244,10 @@ const transactionsSlice = createSlice({
         }
       )
       .addCase(addNewOrEditTransaction.pending, (state) => {
-        state.fetchingStatus = "loading";
+        state.addOrEditTransactionStatus = "loading";
       })
       .addCase(addNewOrEditTransaction.rejected, (state) => {
-        state.fetchingStatus = "idle";
+        state.addOrEditTransactionStatus = "failed";
       })
       .addCase(
         deleteTransaction.fulfilled,

@@ -127,6 +127,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     useState<(option: boolean) => void>();
   const [itHasRepeat, setItHasRepeat] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { addOrEditTransactionStatus } = useAppSelector(
+    (state) => state.transactionsReducer
+  );
 
   const dispatch = useAppDispatch();
 
@@ -199,6 +202,26 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setRepeat(newRepeat);
   };
 
+  useEffect(() => {
+    switch (addOrEditTransactionStatus) {
+      case "success":
+        onClose();
+        return;
+      case "failed":
+        dispatch(
+          setNotification({
+            message: "General error!",
+            color: "error",
+          })
+        );
+        return;
+      case "idle":
+        return;
+      case "loading":
+        return;
+    }
+  }, [addOrEditTransactionStatus, onClose, dispatch]);
+
   const onSubmit = () => {
     if (Number(value) === 0 || label.trim().length === 0) {
       dispatch(
@@ -207,6 +230,10 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
           color: "error",
         })
       );
+      return;
+    }
+
+    if (addOrEditTransactionStatus === "loading") {
       return;
     }
 
@@ -264,8 +291,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
           repeatMode,
         })
       );
-
-      onClose();
     } catch (error) {
       console.error(error);
     } finally {
