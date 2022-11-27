@@ -632,7 +632,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                 </span>
               </Button>
             </div>
-            <div className="p-2 w-full flex">
+            <div className="p-4 w-full flex">
               {transaction && (
                 <IconButton
                   onClick={() => void onDelete()}

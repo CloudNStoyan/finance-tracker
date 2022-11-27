@@ -42,6 +42,10 @@ const DesktopTransactionStyled = styled.div<{
     display: flex;
     flex-flow: column wrap;
 
+    & > * {
+      padding: 5px 0;
+    }
+
     .repeat-selector-wrapper {
       .icon {
         color: #757575;
