@@ -45,21 +45,21 @@ const DesktopTopbar: FunctionComponent = () => {
           <BottomNavigationAction
             value="/"
             label="Calendar"
-            icon={<CalendarMonthRoundedIcon fontSize="large" />}
+            icon={<CalendarMonthRoundedIcon fontSize="medium" />}
           />
           <BottomNavigationAction
             value="/stats"
             label="Statistics"
-            icon={<BarChartRoundedIcon fontSize="large" />}
+            icon={<BarChartRoundedIcon fontSize="medium" />}
           />
         </CustomBottomNavigation>
         <div>
           <IconButton
             className="text-white"
-            size="large"
+            size="medium"
             onClick={() => setSettingsIsOpen(true)}
           >
-            <SettingsOutlinedIcon fontSize="large" />
+            <SettingsOutlinedIcon fontSize="medium" />
           </IconButton>
         </div>
         <Drawer

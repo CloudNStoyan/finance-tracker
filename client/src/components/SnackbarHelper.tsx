@@ -55,6 +55,7 @@ const SnackbarHelper = () => {
       autoHideDuration={3000}
       onClose={handleClose}
       TransitionProps={{ onExited: handleExited }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
     >
       <Alert
         onClose={handleClose}
