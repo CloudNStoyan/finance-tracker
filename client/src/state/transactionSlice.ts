@@ -143,6 +143,9 @@ const transactionsSlice = createSlice({
         ),
       ];
     },
+    resetAddOrEditTransactionStatus(state) {
+      state.addOrEditTransactionStatus = "idle";
+    },
   },
   extraReducers(builder) {
     builder.addCase(logoutUser, (state) => {
@@ -303,5 +306,6 @@ export const {
   editTransaction,
   addTransactions,
   addQuery,
+  resetAddOrEditTransactionStatus,
 } = transactionsSlice.actions;
 export default transactionsSlice.reducer;

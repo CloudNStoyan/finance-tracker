@@ -33,6 +33,7 @@ import { setNotification } from "../../state/notificationSlice";
 import {
   addNewOrEditTransaction,
   deleteTransaction,
+  resetAddOrEditTransactionStatus,
 } from "../../state/transactionSlice";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
@@ -206,6 +207,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     switch (addOrEditTransactionStatus) {
       case "success":
         onClose();
+        dispatch(resetAddOrEditTransactionStatus());
         return;
       case "failed":
         dispatch(
@@ -214,6 +216,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
             color: "error",
           })
         );
+        dispatch(resetAddOrEditTransactionStatus());
         return;
       case "idle":
         return;
