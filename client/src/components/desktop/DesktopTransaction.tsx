@@ -34,6 +34,7 @@ import {
   addNewOrEditTransaction,
   deleteTransaction,
   resetAddOrEditTransactionStatus,
+  resetDeleteTransactionStatus,
 } from "../../state/transactionSlice";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
@@ -128,9 +129,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     useState<(option: boolean) => void>();
   const [itHasRepeat, setItHasRepeat] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addOrEditTransactionStatus } = useAppSelector(
-    (state) => state.transactionsReducer
-  );
+  const { addOrEditTransactionStatus, deleteTransactionStatus } =
+    useAppSelector((state) => state.transactionsReducer);
+  const [error, setError] = useState<string>(null);
 
   const dispatch = useAppDispatch();
 
@@ -206,6 +207,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   useEffect(() => {
     switch (addOrEditTransactionStatus) {
       case "success":
+        dispatch(
+          setNotification({
+            message: "Transaction created.",
+            color: "success",
+          })
+        );
         onClose();
         dispatch(resetAddOrEditTransactionStatus());
         return;
@@ -216,6 +223,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
             color: "error",
           })
         );
+        setError("General error! Please try again later.");
         dispatch(resetAddOrEditTransactionStatus());
         return;
       case "idle":
@@ -224,6 +232,35 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         return;
     }
   }, [addOrEditTransactionStatus, onClose, dispatch]);
+
+  useEffect(() => {
+    switch (deleteTransactionStatus) {
+      case "success":
+        dispatch(
+          setNotification({
+            message: "Transaction deleted.",
+            color: "success",
+          })
+        );
+        onClose();
+        dispatch(resetDeleteTransactionStatus());
+        return;
+      case "failed":
+        dispatch(
+          setNotification({
+            message: "General error!",
+            color: "error",
+          })
+        );
+        setError("General error! Please try again later.");
+        dispatch(resetDeleteTransactionStatus());
+        return;
+      case "idle":
+        return;
+      case "loading":
+        return;
+    }
+  }, [deleteTransactionStatus, onClose, dispatch]);
 
   const onSubmit = () => {
     if (Number(value) === 0 || label.trim().length === 0) {
@@ -239,6 +276,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     if (addOrEditTransactionStatus === "loading") {
       return;
     }
+
+    setError(null);
 
     setLoading(true);
 
@@ -302,11 +341,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   };
 
   const onDelete = () => {
-    if (!transaction) {
+    if (!transaction || deleteTransactionStatus !== "idle") {
       return;
     }
-
-    setLoading(true);
 
     if (itHasRepeat) {
       setRepeatTransactionDialogOpen(true);
@@ -336,6 +373,9 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   };
 
   const deleteTransactionCallback = async (repeatMode?: OptionValue) => {
+    setLoading(true);
+    setError(null);
+
     try {
       await dispatch(
         deleteTransaction({
@@ -344,15 +384,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
           date,
         })
       );
-
-      dispatch(
-        setNotification({
-          message: "Transaction deleted.",
-          color: "success",
-        })
-      );
-
-      onClose();
     } catch (error) {
       console.error(error);
     } finally {
@@ -645,6 +676,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   <Delete />
                 </IconButton>
               )}
+
               <Button
                 onClick={() => void onSubmit()}
                 className="block ml-auto"
@@ -654,6 +686,11 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                 {transaction ? "Save" : "Create"}
               </Button>
             </div>
+            {error && (
+              <div className="text-red-500 font-medium p-4 text-center">
+                {error}
+              </div>
+            )}
           </DesktopTransactionStyled>
         )}
         <RepeatTransactionDialog

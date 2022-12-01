@@ -16,6 +16,7 @@ export type TransactionState = {
   completedTansactionQueries: string[];
   fetchingStatus: "idle" | "loading";
   addOrEditTransactionStatus: "idle" | "loading" | "failed" | "success";
+  deleteTransactionStatus: "idle" | "loading" | "failed" | "success";
 };
 
 const initialState: TransactionState = {
@@ -23,6 +24,7 @@ const initialState: TransactionState = {
   completedTansactionQueries: [],
   fetchingStatus: "idle",
   addOrEditTransactionStatus: "idle",
+  deleteTransactionStatus: "idle",
 };
 
 export const fetchTransactionById = createAsyncThunk(
@@ -146,6 +148,9 @@ const transactionsSlice = createSlice({
     resetAddOrEditTransactionStatus(state) {
       state.addOrEditTransactionStatus = "idle";
     },
+    resetDeleteTransactionStatus(state) {
+      state.deleteTransactionStatus = "idle";
+    },
   },
   extraReducers(builder) {
     builder.addCase(logoutUser, (state) => {
@@ -255,7 +260,7 @@ const transactionsSlice = createSlice({
       .addCase(
         deleteTransaction.fulfilled,
         (state, action: PayloadAction<TransactionEvent[]>) => {
-          state.fetchingStatus = "idle";
+          state.deleteTransactionStatus = "success";
           const changes = action.payload;
 
           changes.forEach((change) => {
@@ -291,10 +296,10 @@ const transactionsSlice = createSlice({
         }
       )
       .addCase(deleteTransaction.pending, (state) => {
-        state.fetchingStatus = "loading";
+        state.deleteTransactionStatus = "loading";
       })
       .addCase(deleteTransaction.rejected, (state) => {
-        state.fetchingStatus = "idle";
+        state.deleteTransactionStatus = "failed";
       });
   },
 });
@@ -307,5 +312,6 @@ export const {
   addTransactions,
   addQuery,
   resetAddOrEditTransactionStatus,
+  resetDeleteTransactionStatus,
 } = transactionsSlice.actions;
 export default transactionsSlice.reducer;
