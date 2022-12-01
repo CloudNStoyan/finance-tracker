@@ -7,6 +7,7 @@ export type ColorProps = {
   idx: number;
   onClick: (bgColor: string, idx: number) => void;
   selected: boolean;
+  disabled?: boolean;
 };
 
 const ColorComponent: FunctionComponent<ColorProps> = ({
@@ -15,19 +16,21 @@ const ColorComponent: FunctionComponent<ColorProps> = ({
   onClick,
   selected,
   idx,
+  disabled,
 }) => {
   return (
     <ColorComponentStyled
       bgColor={bgColor}
       textColor={textColor}
-      spinning={selected}
+      spinning={disabled ? false : selected}
     >
       <button
+        disabled={disabled}
         className={`${
           selected
             ? "border-2 border-black dark:border-white border-dashed scale-125"
             : ""
-        }`}
+        } ${disabled && !selected ? "opacity-50" : ""}`}
         onClick={() => onClick(bgColor, idx)}
       ></button>
     </ColorComponentStyled>

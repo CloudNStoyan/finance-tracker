@@ -10,12 +10,14 @@ import { logoutUser } from "./authSlice";
 export type CategoriesState = {
   categories: Category[];
   status: "loading" | "succeeded" | "failed" | "idle";
+  addOrEditStatus: "loading" | "succeeded" | "failed" | "idle";
   error: string;
 };
 
 const initialState: CategoriesState = {
   categories: [],
   status: "idle",
+  addOrEditStatus: "idle",
   error: null,
 };
 
@@ -72,6 +74,9 @@ const categoriesSlice = createSlice({
         (cat) => cat.categoryId !== action.payload.categoryId
       );
     },
+    resetAddOrEditStatus(state) {
+      state.addOrEditStatus = "idle";
+    },
   },
   extraReducers(builder) {
     builder.addCase(logoutUser, (state) => {
@@ -103,7 +108,7 @@ const categoriesSlice = createSlice({
           state,
           action: PayloadAction<{ category: Category; status: number }>
         ) => {
-          state.status = "succeeded";
+          state.addOrEditStatus = "succeeded";
           const { category, status } = action.payload;
 
           if (status === 200) {
@@ -117,10 +122,10 @@ const categoriesSlice = createSlice({
         }
       )
       .addCase(addNewOrEditCategory.pending, (state) => {
-        state.status = "loading";
+        state.addOrEditStatus = "loading";
       })
       .addCase(addNewOrEditCategory.rejected, (state, action) => {
-        state.status = "failed";
+        state.addOrEditStatus = "failed";
         state.error = action.error.message;
       })
       .addCase(
@@ -143,6 +148,10 @@ const categoriesSlice = createSlice({
   },
 });
 
-export const { editCategory, addCategory, removeCategory } =
-  categoriesSlice.actions;
+export const {
+  editCategory,
+  addCategory,
+  removeCategory,
+  resetAddOrEditStatus,
+} = categoriesSlice.actions;
 export default categoriesSlice.reducer;

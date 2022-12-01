@@ -3,7 +3,7 @@ import { FunctionComponent, useEffect, useState } from "react";
 import Icons, { IconKey } from "../../infrastructure/Icons";
 import IconComponent from "../../components/IconComponent";
 import { Category } from "../../server-api";
-import { useAppDispatch } from "../../state/hooks";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
 import ColorComponent from "../ColorComponent";
 import { Delete, West } from "@mui/icons-material";
@@ -11,12 +11,14 @@ import DesktopCategoryModalStyled from "../styles/desktop/DesktopCategoryModal.s
 import {
   addNewOrEditCategory,
   deleteCategory,
+  resetAddOrEditStatus,
 } from "../../state/categorySlice";
 import DeleteDialog from "../DeleteDialog";
 import {
   COLORS,
   INITIAL_COLOR_INDEX,
 } from "../../infrastructure/CategoryColors";
+import LoadingCircleAnimation from "../LoadingCircleAnimation";
 
 export type DesktopCategoryModalProps = {
   category?: Category;
@@ -45,6 +47,18 @@ const CustomTextField = styled(TextField)({
   "& label": {
     color: "white",
   },
+  "& .MuiInput-underline.Mui-disabled:after": {
+    borderBottomStyle: "solid",
+  },
+  "& .MuiInput-underline.Mui-disabled:before": {
+    borderBottomStyle: "solid",
+  },
+  "& label.Mui-disabled": {
+    color: "white",
+  },
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "white",
+  },
 });
 
 const categoryIcons = Object.keys(Icons);
@@ -64,6 +78,12 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>(null);
+
+  const { addOrEditStatus } = useAppSelector(
+    (state) => state.categoriesReducer
+  );
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -78,6 +98,44 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
     setIconIdx(categoryIcons.indexOf(category.icon));
   }, [category]);
 
+  useEffect(() => {
+    switch (addOrEditStatus) {
+      case "succeeded":
+        if (category?.categoryId) {
+          dispatch(
+            setNotification({
+              message: "Category edited.",
+              color: "success",
+            })
+          );
+        } else {
+          dispatch(
+            setNotification({
+              message: "Category created.",
+              color: "success",
+            })
+          );
+        }
+        onClose();
+        dispatch(resetAddOrEditStatus());
+        return;
+      case "failed":
+        dispatch(
+          setNotification({
+            message: "General error!",
+            color: "error",
+          })
+        );
+        setError("General error! Please try again later.");
+        dispatch(resetAddOrEditStatus());
+        return;
+      case "idle":
+        return;
+      case "loading":
+        return;
+    }
+  }, [addOrEditStatus, onClose, dispatch, category]);
+
   const onColorClick = (bgColor: string, idx: number) => {
     setColor(bgColor);
     setColorIdx(idx);
@@ -89,6 +147,8 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
   };
 
   const onSubmit = async () => {
+    setError(null);
+
     if (categoryName.length === 0) {
       dispatch(
         setNotification({
@@ -110,27 +170,13 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         newCategory.categoryId = category.categoryId;
       }
 
+      setLoading(true);
+
       await dispatch(addNewOrEditCategory(newCategory));
-
-      if (newCategory.categoryId) {
-        dispatch(
-          setNotification({
-            message: "Category edited.",
-            color: "success",
-          })
-        );
-      } else {
-        dispatch(
-          setNotification({
-            message: "Category created.",
-            color: "success",
-          })
-        );
-      }
-
-      onClose();
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -155,9 +201,10 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
   };
 
   return (
-    <DesktopCategoryModalStyled categoryColor={color}>
+    <DesktopCategoryModalStyled categoryColor={color} isLoading={loading}>
+      {loading && <LoadingCircleAnimation className="loading-wrapper" />}
       <div className="flex items-center justify-start mx-2 mt-1">
-        <IconButton onClick={() => onClose()}>
+        <IconButton disabled={loading} onClick={() => onClose()}>
           <West />
         </IconButton>
         <h2 className="grow text-center font-medium">
@@ -167,12 +214,14 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
       <div className="relative fields-wrapper">
         <div className="pt-5 pb-10 flex items-center fields shadow-md">
           <IconButton
+            disabled={loading}
             onClick={() => setShowIcons(!showIcons)}
             className="border-2 text-white border-white border-dashed mx-5"
           >
             {Icons[iconKey]}
           </IconButton>
           <CustomTextField
+            disabled={loading}
             label="Category name"
             variant="standard"
             color="primary"
@@ -187,6 +236,7 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
         {showIcons
           ? categoryIcons.map((iconKey: IconKey, idx: number) => (
               <IconComponent
+                disabled={loading}
                 onClick={onIconClick}
                 iconKey={iconKey}
                 idx={idx}
@@ -196,6 +246,7 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
             ))
           : COLORS.map((color: string, idx: number) => (
               <ColorComponent
+                disabled={loading}
                 bgColor={color}
                 selected={idx === colorIdx}
                 onClick={onColorClick}
@@ -206,11 +257,16 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
       </div>
       <div className="p-2 w-full flex">
         {category && (
-          <IconButton onClick={() => handleDelete()} className="text-red-500">
+          <IconButton
+            disabled={loading}
+            onClick={() => handleDelete()}
+            className="text-red-500"
+          >
             <Delete />
           </IconButton>
         )}
         <Button
+          disabled={loading}
           onClick={() => void onSubmit()}
           className="block ml-auto"
           variant="contained"
@@ -218,6 +274,9 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
           {category ? "Save" : "Create"}
         </Button>
       </div>
+      {error && (
+        <div className="text-red-500 font-medium p-4 text-center">{error}</div>
+      )}
       <DeleteDialog
         type="category"
         open={deleteDialogOpen}

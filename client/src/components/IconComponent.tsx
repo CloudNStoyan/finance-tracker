@@ -8,6 +8,7 @@ export type IconComponentProps = {
   idx: number;
   onClick: (iconKey: IconKey, idx: number) => void;
   selected: boolean;
+  disabled?: boolean;
 };
 
 const IconComponent: FunctionComponent<IconComponentProps> = ({
@@ -15,11 +16,14 @@ const IconComponent: FunctionComponent<IconComponentProps> = ({
   idx,
   onClick,
   selected,
+  disabled,
 }) => {
   const icon = Icons[iconKey];
   return (
     <IconComponentStyled selected={selected}>
-      <IconButton onClick={() => onClick(iconKey, idx)}>{icon}</IconButton>
+      <IconButton disabled={disabled} onClick={() => onClick(iconKey, idx)}>
+        {icon}
+      </IconButton>
     </IconComponentStyled>
   );
 };

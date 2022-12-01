@@ -2,9 +2,19 @@ import { styled } from "../../../infrastructure/ThemeManager";
 
 export type DesktopCategoryModalStyledProps = {
   categoryColor: string;
+  isLoading: boolean;
 };
 
 const DesktopCategoryModalStyled = styled.div<DesktopCategoryModalStyledProps>`
+  ${({ isLoading }) =>
+    isLoading
+      ? `
+    > *:not(.loading-wrapper) {
+      opacity: 0.75;
+    }
+  `
+      : null}
+
   .fields {
     background-color: ${({ categoryColor }) => categoryColor};
     border-radius: 6px;
