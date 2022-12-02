@@ -42,13 +42,13 @@ const SearchPage = () => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getTransactionsBySearch(search);
+        const httpResponse = await getTransactionsBySearch(search);
 
-        if (resp.status !== 200) {
+        if (httpResponse.status !== 200) {
           return;
         }
 
-        const newTransactions = resp.data.filter(
+        const newTransactions = httpResponse.data.filter(
           (newTransaction) =>
             transactions.findIndex(
               (transaction) =>

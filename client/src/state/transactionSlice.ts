@@ -30,9 +30,9 @@ const initialState: TransactionState = {
 export const fetchTransactionById = createAsyncThunk(
   "transactions/fetchTransactionById",
   async (transactionId: number) => {
-    const resp = await getTransactionById(transactionId);
+    const httpResponse = await getTransactionById(transactionId);
 
-    return resp.data;
+    return httpResponse.data;
   }
 );
 
@@ -47,9 +47,9 @@ export const fetchTransactionsByRange = createAsyncThunk(
     before: Date;
     now: number;
   }) => {
-    const resp = await getTransactionsBeforeAndAfterDate(after, before);
+    const httpResponse = await getTransactionsBeforeAndAfterDate(after, before);
 
-    return { transactions: resp.data, now };
+    return { transactions: httpResponse.data, now };
   }
 );
 
@@ -63,14 +63,14 @@ export const addNewOrEditTransaction = createAsyncThunk(
     repeatMode?: "onlyThis" | "thisAndForward";
   }) => {
     if (!repeatMode) {
-      const resp = await createOrEditTransaction(transaction);
+      const httpResponse = await createOrEditTransaction(transaction);
 
-      return resp.data;
+      return httpResponse.data;
     }
 
-    const resp = await createOrEditTransaction(transaction, repeatMode);
+    const httpResponse = await createOrEditTransaction(transaction, repeatMode);
 
-    return resp.data;
+    return httpResponse.data;
   }
 );
 
@@ -86,14 +86,18 @@ export const deleteTransaction = createAsyncThunk(
     date?: Date;
   }) => {
     if (!repeatMode) {
-      const resp = await deleteTransactionApi(transactionId);
+      const httpResponse = await deleteTransactionApi(transactionId);
 
-      return resp.data;
+      return httpResponse.data;
     }
 
-    const resp = await deleteTransactionApi(transactionId, repeatMode, date);
+    const httpResponse = await deleteTransactionApi(
+      transactionId,
+      repeatMode,
+      date
+    );
 
-    return resp.data;
+    return httpResponse.data;
   }
 );
 

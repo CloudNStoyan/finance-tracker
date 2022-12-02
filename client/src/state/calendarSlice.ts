@@ -53,9 +53,9 @@ const initialState: CalendarState = {
 export const fetchStartBalance = createAsyncThunk(
   "calendar/fetchStartBalance",
   async (date: Date) => {
-    const resp = await getStartBalanceByMonth(date);
+    const httpResponse = await getStartBalanceByMonth(date);
 
-    return resp.data;
+    return httpResponse.data;
   }
 );
 

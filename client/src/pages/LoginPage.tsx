@@ -42,13 +42,13 @@ const LoginPage = () => {
 
     generateToken(async (token) => {
       try {
-        const resp = await login(username, password, token);
+        const httpResponse = await login(username, password, token);
 
-        if (resp.status !== 200) {
+        if (httpResponse.status !== 200) {
           return;
         }
 
-        const session = resp.data;
+        const session = httpResponse.data;
 
         document.cookie = `__session__=${session.sessionKey}`;
 

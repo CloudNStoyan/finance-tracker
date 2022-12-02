@@ -24,17 +24,17 @@ const initialState: CategoriesState = {
 export const fetchCategories = createAsyncThunk(
   "categories/fetchCategories",
   async () => {
-    const response = await getCategories();
-    return response.data;
+    const httpResponse = await getCategories();
+    return httpResponse.data;
   }
 );
 
 export const addNewOrEditCategory = createAsyncThunk(
   "categories/addNewOrEditCategory",
   async (category: Category) => {
-    const resp = await createOrEditCategory(category);
+    const httpResponse = await createOrEditCategory(category);
 
-    return { category: resp.data, status: resp.status };
+    return { category: httpResponse.data, status: httpResponse.status };
   }
 );
 

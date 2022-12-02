@@ -27,13 +27,13 @@ const AuthorizeHelper = (): JSX.Element => {
 
     const fetchApi = async () => {
       try {
-        const resp = await getMe();
+        const httpResponse = await getMe();
 
-        if (resp.status !== 200) {
+        if (httpResponse.status !== 200) {
           return;
         }
 
-        dispatch(setUser(resp.data));
+        dispatch(setUser(httpResponse.data));
       } catch (error) {
         if (!axios.isAxiosError(error)) {
           return;

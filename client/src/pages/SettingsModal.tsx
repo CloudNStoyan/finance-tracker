@@ -61,9 +61,9 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
 
   const onLogout = async () => {
     try {
-      const resp = await logout();
+      const httpResponse = await logout();
 
-      if (resp.status !== 200) {
+      if (httpResponse.status !== 200) {
         return;
       }
 

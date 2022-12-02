@@ -45,9 +45,9 @@ const RegisterPage = () => {
 
     generateToken(async (token) => {
       try {
-        const resp = await register(username, password, token);
+        const httpResponse = await register(username, password, token);
 
-        if (resp.status !== 200) {
+        if (httpResponse.status !== 200) {
           return;
         }
 
