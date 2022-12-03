@@ -1,17 +1,22 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User } from "../server-api";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import { getMe, User } from "../server-api";
 
 export type AuthState = {
-  triedToAuth: boolean;
   isLoggedIn: boolean;
   user?: User;
+  status: "loading" | "succeeded" | "failed" | "idle";
 };
 
 const initialState: AuthState = {
-  triedToAuth: false,
   isLoggedIn: false,
   user: null,
+  status: "idle",
 };
+
+export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
+  const httpResponse = await getMe();
+  return httpResponse.data;
+});
 
 const authSlice = createSlice({
   name: "auth",
@@ -20,16 +25,28 @@ const authSlice = createSlice({
     setUser(state, action: PayloadAction<User>) {
       state.user = action.payload;
       state.isLoggedIn = true;
-    },
-    triedToAuth(state) {
-      state.triedToAuth = true;
+      state.status = "succeeded";
     },
     logoutUser(state) {
       state.isLoggedIn = false;
       state.user = null;
     },
   },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchMe.fulfilled, (state, action: PayloadAction<User>) => {
+        state.user = action.payload;
+        state.isLoggedIn = true;
+        state.status = "succeeded";
+      })
+      .addCase(fetchMe.rejected, (state) => {
+        state.status = "failed";
+      })
+      .addCase(fetchMe.pending, (state) => {
+        state.status = "loading";
+      });
+  },
 });
 
-export const { setUser, triedToAuth, logoutUser } = authSlice.actions;
+export const { setUser, logoutUser } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,51 +1,26 @@
-import axios from "axios";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getMe } from "../server-api";
-import { setUser, triedToAuth } from "../state/authSlice";
+import { fetchMe } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
-
-let isFetching = false;
 
 const AuthorizeHelper = (): JSX.Element => {
   const location = useLocation();
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector((state) => state.authReducer.isLoggedIn);
 
-  const didTryToAuthenticate = useAppSelector(
-    (state) => state.authReducer.triedToAuth
+  const autenticationStatus = useAppSelector(
+    (state) => state.authReducer.status
   );
 
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (isFetching) {
+    if (autenticationStatus != "idle") {
       return;
     }
 
-    isFetching = true;
-
-    const fetchApi = async () => {
-      try {
-        const httpResponse = await getMe();
-
-        if (httpResponse.status !== 200) {
-          return;
-        }
-
-        dispatch(setUser(httpResponse.data));
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-      } finally {
-        dispatch(triedToAuth());
-        isFetching = false;
-      }
-    };
-
-    void fetchApi();
-  }, [dispatch]);
+    void dispatch(fetchMe());
+  }, [dispatch, autenticationStatus]);
 
   useEffect(() => {
     const accessablePaths = ["/login", "/register"];
@@ -54,14 +29,17 @@ const AuthorizeHelper = (): JSX.Element => {
       navigate("/");
     }
 
-    if (isLoggedIn || !didTryToAuthenticate) {
+    if (isLoggedIn || autenticationStatus === "loading") {
       return;
     }
 
-    if (!accessablePaths.includes(location.pathname)) {
+    if (
+      !accessablePaths.includes(location.pathname) &&
+      autenticationStatus === "failed"
+    ) {
       navigate("/login");
     }
-  }, [isLoggedIn, didTryToAuthenticate, location, navigate]);
+  }, [isLoggedIn, autenticationStatus, location, navigate]);
   return null;
 };
 
