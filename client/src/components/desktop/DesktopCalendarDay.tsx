@@ -307,8 +307,13 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
             </IconButton>
           ) : (
             <div className="flex gap-1 numbers stats-numbers">
-              <div>{total.toFixed(2)}</div>
-              {"|"}
+              {transactions.length > 0 && (
+                <>
+                  <div>{total.toFixed(2)}</div>
+                  {"|"}
+                </>
+              )}
+
               <div>{balance.toFixed(2)}</div>
             </div>
           )}
