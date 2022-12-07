@@ -1,5 +1,5 @@
 import { format, getTime } from "date-fns";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
@@ -12,14 +12,12 @@ import {
   setStartBalance,
 } from "../../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import CalendarNavigation from "../../components/CalendarNavigation";
+
 import DesktopTransaction from "../../components/desktop/DesktopTransaction";
 import DesktopCalendarPageStyled from "../styles/desktop/DesktopCalendarPage.styled";
 import DesktopCalendarDay from "../../components/desktop/DesktopCalendarDay";
 import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
-import { IconButton, InputAdornment, TextField } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
+
 import { fetchTransactionsByRange } from "../../state/transactionSlice";
 import { fetchCategories } from "../../state/categorySlice";
 
@@ -34,9 +32,6 @@ const DesktopCalendarPage = () => {
   const selected = useAppSelector((state) => state.calendarReducer.selected);
 
   const [parsedNow, setParsedNow] = useState<Date>(null);
-  const [searchInputValue, setSearchInputValue] = useState("");
-  const [showSearchInput, setShowSearchInput] = useState(false);
-  const searchInputRef = useRef<HTMLDivElement>();
 
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
@@ -44,7 +39,7 @@ const DesktopCalendarPage = () => {
     (state) => state.categoriesReducer.status
   );
 
-  const { now, startBalanceCache } = useAppSelector(
+  const { now, startBalanceCache, searchValue } = useAppSelector(
     (state) => state.calendarReducer
   );
 
@@ -69,14 +64,6 @@ const DesktopCalendarPage = () => {
       void dispatch(fetchCategories());
     }
   }, [categoriesStatus, dispatch]);
-
-  useEffect(() => {
-    if (!showSearchInput) {
-      return;
-    }
-
-    searchInputRef.current.querySelector("input").focus();
-  }, [showSearchInput, searchInputValue]);
 
   useEffect(() => {
     setParsedNow(fromUnixTimeMs(now));
@@ -145,46 +132,6 @@ const DesktopCalendarPage = () => {
       hasSixRows={days.length === 42}
     >
       <div className="shadow h-full flex flex-col">
-        <div className="flex justify-end mt-2 mr-1">
-          {showSearchInput && (
-            <TextField
-              placeholder="e.g. car or 19.99"
-              value={searchInputValue}
-              ref={searchInputRef}
-              variant="standard"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setSearchInputValue("")}
-                      className={`${
-                        searchInputValue.trim().length === 0 ? "invisible" : ""
-                      }`}
-                    >
-                      <ClearIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              onChange={(e) => {
-                setSearchInputValue(e.target.value);
-              }}
-              onBlur={(e) => {
-                setSearchInputValue(e.target.value);
-
-                if (e.target.value.trim().length > 0) {
-                  return;
-                }
-
-                setShowSearchInput(false);
-              }}
-            />
-          )}
-          <IconButton onClick={() => setShowSearchInput(true)}>
-            <SearchIcon />
-          </IconButton>
-          <CalendarNavigation />
-        </div>
         <div className="calendar-wrapper">
           <DesktopDaysOfWeek />
           {parsedNow &&
@@ -204,7 +151,7 @@ const DesktopCalendarPage = () => {
                 key={day.toDateString()}
                 date={day}
                 isToday={DatesAreEqualWithoutTime(day, initialNow)}
-                searchInputValue={searchInputValue}
+                searchInputValue={searchValue}
               />
             ))}
         </div>

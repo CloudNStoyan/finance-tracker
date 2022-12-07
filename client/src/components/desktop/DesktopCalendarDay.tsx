@@ -24,7 +24,7 @@ export type DesktopCalendarDayProps = {
   isToday: boolean;
   onClick: (date: Date) => void;
   onTransactionClick: (transaction: Transaction) => void;
-  searchInputValue: string;
+  searchInputValue?: string;
 };
 
 const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
@@ -57,7 +57,9 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   const compareTransactionToSearchValue = useCallback(
     (transaction: Transaction) => {
       if (
-        transaction.label.toLowerCase().includes(searchInputValue.toLowerCase())
+        transaction.label
+          .toLowerCase()
+          .includes(searchInputValue?.toLowerCase())
       ) {
         return transaction;
       }
@@ -66,7 +68,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         transaction.details &&
         transaction.details
           .toLowerCase()
-          .includes(searchInputValue.toLowerCase())
+          .includes(searchInputValue?.toLowerCase())
       ) {
         return transaction;
       }
@@ -82,7 +84,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       if (
         transactionCategory?.name
           .toLowerCase()
-          .includes(searchInputValue.toLowerCase())
+          .includes(searchInputValue?.toLowerCase())
       ) {
         return transaction;
       }
@@ -91,7 +93,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   );
 
   useEffect(() => {
-    if (searchInputValue.trim().length === 0) {
+    if (!searchInputValue || searchInputValue.trim().length === 0) {
       setNotSearchRelevant(false);
       return;
     }
@@ -320,7 +322,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         </div>
       </div>
       <div className="transactions flex flex-col">
-        {(searchInputValue.trim().length > 0
+        {(searchInputValue?.trim().length > 0
           ? transactions.filter(compareTransactionToSearchValue)
           : transactions
         ).map((transaction, idx) => (

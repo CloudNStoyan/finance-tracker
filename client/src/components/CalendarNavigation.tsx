@@ -28,6 +28,7 @@ const CalendarNavigation = () => {
       <div className="flex justify-center items-center">
         <IconButton
           onClick={() => dispatch(setNow(getTime(subMonths(nowParsed, 1))))}
+          className="text-white"
         >
           <ChevronLeft />
         </IconButton>
@@ -38,6 +39,7 @@ const CalendarNavigation = () => {
         )}
         <IconButton
           onClick={() => dispatch(setNow(getTime(addMonths(nowParsed, 1))))}
+          className="text-white"
         >
           <ChevronRight />
         </IconButton>

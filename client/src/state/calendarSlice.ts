@@ -26,6 +26,7 @@ export type CalendarState = {
   selected: number;
   startBalance: number;
   startBalanceCache: StartBalanceCache;
+  searchValue: string;
   fetchingStatus: "idle" | "loading" | "succeeded";
   firstDayOfTheMonth: "monday" | "sunday";
 };
@@ -46,6 +47,7 @@ const initialState: CalendarState = {
   selected: null,
   startBalance: null,
   startBalanceCache: {},
+  searchValue: "",
   fetchingStatus: "idle",
   firstDayOfTheMonth: getFirstDayOfTheMonthPreference(),
 };
@@ -63,6 +65,9 @@ const calendarSlice = createSlice({
   name: "calendar",
   initialState,
   reducers: {
+    setSearchValue(state, action: PayloadAction<string>) {
+      state.searchValue = action.payload;
+    },
     setFirstDayOfTheMonth(state, action: PayloadAction<"monday" | "sunday">) {
       state.firstDayOfTheMonth = action.payload;
     },
@@ -171,6 +176,11 @@ const calendarSlice = createSlice({
   },
 });
 
-export const { setNow, setSelected, setStartBalance, setFirstDayOfTheMonth } =
-  calendarSlice.actions;
+export const {
+  setNow,
+  setSelected,
+  setStartBalance,
+  setFirstDayOfTheMonth,
+  setSearchValue,
+} = calendarSlice.actions;
 export default calendarSlice.reducer;

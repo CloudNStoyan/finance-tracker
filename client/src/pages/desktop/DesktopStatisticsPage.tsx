@@ -2,25 +2,16 @@ import { useEffect, useState } from "react";
 import { ChartData } from "chart.js";
 import { Category, Transaction } from "../../server-api";
 import DefaultCategory from "../../state/DefaultCategory";
-import { IconButton } from "@mui/material";
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import {
-  addMonths,
   addWeeks,
   differenceInWeeks,
   format,
-  getTime,
   lastDayOfMonth,
   parseJSON,
   setDate,
-  subMonths,
 } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import {
-  fetchStartBalance,
-  setNow as setNowCalendar,
-  setStartBalance,
-} from "../../state/calendarSlice";
+import { fetchStartBalance, setStartBalance } from "../../state/calendarSlice";
 import DesktopStatisticsPageStyled from "../styles/desktop/DesktopStatisticsPage.styled";
 import DesktopStatsPanel from "../../components/desktop/DesktopStatsPanel";
 import { fetchTransactionsByRange } from "../../state/transactionSlice";
@@ -81,7 +72,6 @@ const GenerateData = (
 };
 
 const DesktopStatisticsPage = () => {
-  const [now, setNow] = useState(new Date());
   const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>(
     []
   );
@@ -109,9 +99,11 @@ const DesktopStatisticsPage = () => {
     (state) => state.calendarReducer.fetchingStatus
   );
 
-  const { days, startBalanceCache } = useAppSelector(
+  const { days, startBalanceCache, now } = useAppSelector(
     (state) => state.calendarReducer
   );
+
+  const [parsedNow, setParsedNow] = useState<Date>(fromUnixTimeMs(now));
 
   const categories = useAppSelector(
     (state) => state.categoriesReducer.categories
@@ -120,6 +112,10 @@ const DesktopStatisticsPage = () => {
   const categoriesStatus = useAppSelector(
     (state) => state.categoriesReducer.status
   );
+
+  useEffect(() => {
+    setParsedNow(fromUnixTimeMs(now));
+  }, [now]);
 
   useEffect(() => {
     if (categoriesStatus === "idle") {
@@ -151,11 +147,12 @@ const DesktopStatisticsPage = () => {
   }, [currentTransactions]);
 
   useEffect(() => {
-    dispatch(setNowCalendar(getTime(now)));
-  }, [now, dispatch]);
+    if (!parsedNow) {
+      return;
+    }
 
-  useEffect(() => {
     const transactionRepeats: Transaction[][] = [];
+
     allTransactions.forEach((t) => {
       if (t.repeat === null) {
         return;
@@ -163,8 +160,8 @@ const DesktopStatisticsPage = () => {
 
       const transactionDate = parseJSON(t.transactionDate);
 
-      const lastDay = lastDayOfMonth(now);
-      const firstDay = setDate(new Date(now).setHours(0, 0, 0, 0), 1);
+      const lastDay = lastDayOfMonth(parsedNow);
+      const firstDay = setDate(new Date(parsedNow).setHours(0, 0, 0, 0), 1);
 
       if (t.repeat === "weekly") {
         const transactions: Transaction[] = [];
@@ -199,18 +196,22 @@ const DesktopStatisticsPage = () => {
           const transactionDate = new Date(transaction.transactionDate);
 
           return (
-            transactionDate.getMonth() === now.getMonth() &&
-            transactionDate.getFullYear() === now.getFullYear()
+            transactionDate.getMonth() === parsedNow.getMonth() &&
+            transactionDate.getFullYear() === parsedNow.getFullYear()
           );
         })
         .sort((a, b) =>
           new Date(a.transactionDate) > new Date(b.transactionDate) ? 1 : -1
         )
     );
-  }, [allTransactions, now]);
+  }, [allTransactions, parsedNow]);
 
   useEffect(() => {
-    if (now === null || balanceFetchingStatus !== "idle" || days.length === 0) {
+    if (
+      parsedNow === null ||
+      balanceFetchingStatus !== "idle" ||
+      days.length === 0
+    ) {
       return;
     }
 
@@ -227,14 +228,18 @@ const DesktopStatisticsPage = () => {
     }
 
     void dispatch(fetchStartBalance(fromUnixTimeMs(days[0])));
-  }, [now, dispatch, startBalanceCache, days, balanceFetchingStatus]);
+  }, [parsedNow, dispatch, startBalanceCache, days, balanceFetchingStatus]);
 
   useEffect(() => {
-    if (now === null || transactionsStatus !== "idle" || days.length === 0) {
+    if (
+      parsedNow === null ||
+      transactionsStatus !== "idle" ||
+      days.length === 0
+    ) {
       return;
     }
 
-    const query = format(now, "yyyy-MMMM");
+    const query = format(parsedNow, "yyyy-MMMM");
 
     if (completedTansactionQueries.includes(query)) {
       return;
@@ -244,24 +249,19 @@ const DesktopStatisticsPage = () => {
       fetchTransactionsByRange({
         after: fromUnixTimeMs(days[0]),
         before: fromUnixTimeMs(days[days.length - 1]),
-        now: now.getTime(),
+        now: parsedNow.getTime(),
       })
     );
-  }, [dispatch, completedTansactionQueries, days, now, transactionsStatus]);
+  }, [
+    dispatch,
+    completedTansactionQueries,
+    days,
+    parsedNow,
+    transactionsStatus,
+  ]);
 
   return (
     <DesktopStatisticsPageStyled isDarkMode={isDarkMode}>
-      <div className="nav-wrapper flex flex-wrap flex-col items-center m-2 mb-0">
-        <div className="nav flex justify-center items-center">
-          <IconButton onClick={() => setNow(subMonths(now, 1))}>
-            <ChevronLeft />
-          </IconButton>
-          {now && <span>{format(now, "MMMM yyyy")}</span>}
-          <IconButton onClick={() => setNow(addMonths(now, 1))}>
-            <ChevronRight />
-          </IconButton>
-        </div>
-      </div>
       <div className="charts-container">
         <DesktopStatsPanel
           chartData={expensesChartData}

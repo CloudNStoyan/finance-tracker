@@ -13,6 +13,7 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SettingsModal from "../../pages/SettingsModal";
 import DesktopTopbarStyled from "../styles/desktop/DesktopTopbar.styled";
+import DesktopCalendarSearch from "./DesktopCalendarSearch";
 
 const CustomBottomNavigation = styled(BottomNavigation)({
   backgroundColor: "transparent",
@@ -53,7 +54,8 @@ const DesktopTopbar: FunctionComponent = () => {
             icon={<BarChartRoundedIcon fontSize="medium" />}
           />
         </CustomBottomNavigation>
-        <div>
+        <div className="flex text-white">
+          <DesktopCalendarSearch />
           <IconButton
             className="text-white"
             size="medium"
