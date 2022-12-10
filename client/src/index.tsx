@@ -11,7 +11,6 @@ import Loading from "./components/Loading";
 import App from "./app";
 import { BrowserRouter } from "react-router-dom";
 import SnackbarHelper from "./components/SnackbarHelper";
-import AuthorizeHelper from "./components/AuthorizeHelper";
 
 const root = createRoot(document.getElementById("app"));
 
@@ -20,7 +19,6 @@ root.render(
     <Provider store={store}>
       <ThemesComponent>
         <BrowserRouter>
-          <AuthorizeHelper />
           <GlobalStyles />
           <Topbar />
           <Loading>
