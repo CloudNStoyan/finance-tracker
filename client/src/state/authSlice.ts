@@ -1,22 +1,45 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { getMe, User } from "../server-api";
+import { getMe, login, User } from "../server-api";
+
+type LoginCredentials = {
+  username: string;
+  password: string;
+  recaptchaToken: string;
+};
 
 export type AuthState = {
   isLoggedIn: boolean;
   user?: User;
   status: "loading" | "succeeded" | "failed" | "idle";
+  sessionKey: string;
 };
 
 const initialState: AuthState = {
   isLoggedIn: false,
   user: null,
   status: "idle",
+  sessionKey: null,
 };
 
 export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
   const httpResponse = await getMe();
   return httpResponse.data;
 });
+
+export const sendLogin = createAsyncThunk(
+  "auth/sendLogin",
+  async (loginCredentials: LoginCredentials) => {
+    const httpResponse = await login(
+      loginCredentials.username,
+      loginCredentials.password,
+      loginCredentials.recaptchaToken
+    );
+
+    const sessionKey: string = httpResponse.data;
+
+    return sessionKey;
+  }
+);
 
 const authSlice = createSlice({
   name: "auth",
@@ -45,6 +68,12 @@ const authSlice = createSlice({
       .addCase(fetchMe.pending, (state) => {
         state.status = "loading";
       });
+    builder.addCase(
+      sendLogin.fulfilled,
+      (state, action: PayloadAction<string>) => {
+        state.sessionKey = action.payload;
+      }
+    );
   },
 });
 
