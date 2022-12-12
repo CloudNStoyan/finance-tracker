@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { getMe, login, User } from "../server-api";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { getMe, login, register, ServerError, User } from "../server-api";
 
-type LoginCredentials = {
+type AuthCredentials = {
   username: string;
   password: string;
   recaptchaToken: string;
@@ -11,6 +12,7 @@ export type AuthState = {
   isLoggedIn: boolean;
   user?: User;
   status: "loading" | "succeeded" | "failed" | "idle";
+  registerError: string;
   sessionKey: string;
 };
 
@@ -19,6 +21,7 @@ const initialState: AuthState = {
   user: null,
   status: "idle",
   sessionKey: null,
+  registerError: null,
 };
 
 export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
@@ -28,16 +31,27 @@ export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
 
 export const sendLogin = createAsyncThunk(
   "auth/sendLogin",
-  async (loginCredentials: LoginCredentials) => {
+  async (loginCredentials: AuthCredentials) => {
     const httpResponse = await login(
       loginCredentials.username,
       loginCredentials.password,
       loginCredentials.recaptchaToken
     );
 
-    const sessionKey: string = httpResponse.data;
+    const sessionKey: string = httpResponse.data.sessionKey;
 
     return sessionKey;
+  }
+);
+
+export const sendRegister = createAsyncThunk(
+  "auth/sendRegister",
+  async (authCredentials: AuthCredentials) => {
+    return await register(
+      authCredentials.username,
+      authCredentials.password,
+      authCredentials.recaptchaToken
+    );
   }
 );
 
@@ -72,6 +86,17 @@ const authSlice = createSlice({
       sendLogin.fulfilled,
       (state, action: PayloadAction<string>) => {
         state.sessionKey = action.payload;
+      }
+    );
+    builder.addCase(
+      sendRegister.fulfilled,
+      (state, action: PayloadAction<AxiosResponse<ServerError>>) => {
+        if (!axios.isAxiosError(action.payload)) {
+          return;
+        }
+
+        const serverError = action.payload as AxiosError<ServerError>;
+        state.registerError = serverError.response.data.error;
       }
     );
   },
