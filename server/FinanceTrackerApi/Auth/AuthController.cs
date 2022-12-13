@@ -86,7 +86,7 @@ public class AuthController : ControllerBase
 
         if (sessionKey == null)
         {
-            return this.Unauthorized();
+            return this.Unauthorized(new { status = 400, error = "No account found" });
         }
 
         return this.Ok(new {status = 200, sessionKey});

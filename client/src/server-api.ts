@@ -48,6 +48,26 @@ export interface Balance {
   balance: number;
 }
 
+export const loginV2 = async (
+  username: string,
+  password: string,
+  recaptchaToken: string
+) => {
+  const response = await fetch(`${SERVER_URL}/auth/login`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password, recaptchaToken }),
+    method: "POST",
+    credentials: "include",
+  });
+
+  const data = (await response.json()) as SessionData | ServerError;
+
+  return data;
+};
+
 export const login = async (
   username: string,
   password: string,

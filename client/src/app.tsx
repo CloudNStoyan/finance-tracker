@@ -23,7 +23,9 @@ const App = () => {
   const autenticationStatus = useAppSelector(
     (state) => state.authReducer.status
   );
-  const { isLoggedIn } = useAppSelector((state) => state.authReducer);
+  const { isLoggedIn, sessionKey } = useAppSelector(
+    (state) => state.authReducer
+  );
 
   useEffect(() => {
     if (autenticationStatus != "idle") {
@@ -40,6 +42,14 @@ const App = () => {
 
     navigate("/");
   }, [isLoggedIn, autenticationStatus, navigate]);
+
+  useEffect(() => {
+    if (!sessionKey) {
+      return;
+    }
+
+    document.cookie = `__session__=${sessionKey}`;
+  }, [sessionKey]);
 
   if (!isLoggedIn) {
     return isDesktop ? <DesktopAuthRoutes /> : <MobileAuthRoutes />;

@@ -2,25 +2,20 @@ import { Button, CircularProgress, TextField } from "@mui/material";
 import { PersonOutlined, LockOutlined } from "@mui/icons-material";
 import { useState } from "react";
 import useReCaptcha from "../../useReCaptcha";
-import { Link, useNavigate } from "react-router-dom";
-import { login } from "../../server-api";
-import axios from "axios";
+import { Link } from "react-router-dom";
 import DesktopLoginPageStyled from "../styles/desktop/DesktopLoginPage.styled";
-import { useAppDispatch } from "../../state/hooks";
-import { setUser } from "../../state/authSlice";
+import useAuth from "../../components/useAuth";
 
 const DesktopLoginPage = () => {
-  const dispatch = useAppDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [error, setError] = useState<string>(null);
   const [loading, setLoading] = useState(false);
   const [shakeErrors, setShakeErrors] = useState(false);
+  const { login, authError } = useAuth();
 
   const [generateToken] = useReCaptcha();
-  const navigate = useNavigate();
 
   const validateFields = () => {
     const usernameIsValid = username.trim().length > 0;
@@ -45,39 +40,8 @@ const DesktopLoginPage = () => {
       return;
     }
 
-    generateToken(async (token) => {
-      try {
-        const httpResponse = await login(username, password, token);
-
-        if (httpResponse.status !== 200) {
-          return;
-        }
-
-        const session = httpResponse.data;
-
-        document.cookie = `__session__=${session.sessionKey}`;
-
-        dispatch(setUser({ username }));
-
-        navigate("/");
-      } catch (error) {
-        console.log(error);
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-
-        if (error.code === "ERR_NETWORK") {
-          setError("Something went wrong, try again later.");
-          return;
-        }
-
-        if (error.response.status === 401) {
-          setError("Username or password did not match");
-          return;
-        }
-      } finally {
-        setLoading(false);
-      }
+    generateToken((token) => {
+      login({ username, password, recaptchaToken: token });
     });
   };
 
@@ -108,12 +72,10 @@ const DesktopLoginPage = () => {
               onChange={(e) => {
                 setUsernameError(e.target.value.trim().length === 0);
                 setUsername(e.target.value);
-                setError(null);
               }}
               onBlur={(e) => {
                 setUsernameError(e.target.value.trim().length === 0);
                 setUsername(e.target.value);
-                setError(null);
               }}
             />
           </div>
@@ -133,12 +95,10 @@ const DesktopLoginPage = () => {
               onChange={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
-                setError(null);
               }}
               onBlur={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
-                setError(null);
               }}
             />
           </div>
@@ -157,10 +117,10 @@ const DesktopLoginPage = () => {
               Sign In
             </Button>
           </div>
-          {error && (
+          {authError && (
             <div className="text-red-400 text-center mt-2">
               <p className="font-medium">Login failed</p>
-              <p>{error}</p>
+              <p>{authError}</p>
             </div>
           )}
           <div>

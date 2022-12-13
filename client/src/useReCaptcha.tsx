@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export type ReCaptchaCallback = (token: string) => Promise<void>;
+export type ReCaptchaCallback = (token: string) => Promise<void> | void;
 
 const RECAPTCHA_SITE_KEY = "6Le9jQAiAAAAAL3zoGwIFGTFzFKpexQKBpF9djw0";
 

@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { getMe, login, register, ServerError, User } from "../server-api";
+import { getMe, loginV2, register, ServerError, User } from "../server-api";
 
-type AuthCredentials = {
+export type AuthCredentials = {
   username: string;
   password: string;
   recaptchaToken: string;
@@ -12,7 +12,7 @@ export type AuthState = {
   isLoggedIn: boolean;
   user?: User;
   status: "loading" | "succeeded" | "failed" | "idle";
-  registerError: string;
+  error: string;
   sessionKey: string;
 };
 
@@ -21,7 +21,7 @@ const initialState: AuthState = {
   user: null,
   status: "idle",
   sessionKey: null,
-  registerError: null,
+  error: null,
 };
 
 export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
@@ -31,16 +31,18 @@ export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
 
 export const sendLogin = createAsyncThunk(
   "auth/sendLogin",
-  async (loginCredentials: AuthCredentials) => {
-    const httpResponse = await login(
+  async (loginCredentials: AuthCredentials): Promise<[string, User]> => {
+    const httpResponse = await loginV2(
       loginCredentials.username,
       loginCredentials.password,
       loginCredentials.recaptchaToken
     );
 
-    const sessionKey: string = httpResponse.data.sessionKey;
+    if ("sessionKey" in httpResponse) {
+      return [httpResponse.sessionKey, { username: loginCredentials.username }];
+    }
 
-    return sessionKey;
+    return [httpResponse.error, null];
   }
 );
 
@@ -82,12 +84,31 @@ const authSlice = createSlice({
       .addCase(fetchMe.pending, (state) => {
         state.status = "loading";
       });
-    builder.addCase(
-      sendLogin.fulfilled,
-      (state, action: PayloadAction<string>) => {
-        state.sessionKey = action.payload;
-      }
-    );
+    builder
+      .addCase(
+        sendLogin.fulfilled,
+        (state, action: PayloadAction<[string, User]>) => {
+          const [data, user] = action.payload;
+
+          if (user === null) {
+            state.status = "failed";
+            state.error = data;
+            return;
+          }
+
+          state.sessionKey = data;
+          state.user = user;
+          state.status = "succeeded";
+          state.isLoggedIn = true;
+        }
+      )
+      .addCase(sendLogin.rejected, (state) => {
+        state.error = "General error";
+        state.status = "failed";
+      })
+      .addCase(sendLogin.pending, (state) => {
+        state.status = "loading";
+      });
     builder.addCase(
       sendRegister.fulfilled,
       (state, action: PayloadAction<AxiosResponse<ServerError>>) => {
@@ -96,7 +117,7 @@ const authSlice = createSlice({
         }
 
         const serverError = action.payload as AxiosError<ServerError>;
-        state.registerError = serverError.response.data.error;
+        state.error = serverError.response.data.error;
       }
     );
   },
