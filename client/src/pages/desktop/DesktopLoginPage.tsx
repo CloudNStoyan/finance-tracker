@@ -1,6 +1,6 @@
 import { Button, CircularProgress, TextField } from "@mui/material";
 import { PersonOutlined, LockOutlined } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useReCaptcha from "../../useReCaptcha";
 import { Link } from "react-router-dom";
 import DesktopLoginPageStyled from "../styles/desktop/DesktopLoginPage.styled";
@@ -13,7 +13,7 @@ const DesktopLoginPage = () => {
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shakeErrors, setShakeErrors] = useState(false);
-  const { login, authError } = useAuth();
+  const { login, authError, authStatus } = useAuth();
 
   const [generateToken] = useReCaptcha();
 
@@ -44,6 +44,14 @@ const DesktopLoginPage = () => {
       login({ username, password, recaptchaToken: token });
     });
   };
+
+  useEffect(() => {
+    if (authStatus === "loading") {
+      return;
+    }
+
+    setLoading(false);
+  }, [authStatus]);
 
   return (
     <DesktopLoginPageStyled>

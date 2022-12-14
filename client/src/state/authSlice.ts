@@ -14,6 +14,7 @@ export type AuthState = {
   status: "loading" | "succeeded" | "failed" | "idle";
   error: string;
   sessionKey: string;
+  checkedSession: boolean;
 };
 
 const initialState: AuthState = {
@@ -22,6 +23,7 @@ const initialState: AuthState = {
   status: "idle",
   sessionKey: null,
   error: null,
+  checkedSession: false,
 };
 
 export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
@@ -77,9 +79,11 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isLoggedIn = true;
         state.status = "succeeded";
+        state.checkedSession = true;
       })
       .addCase(fetchMe.rejected, (state) => {
         state.status = "failed";
+        state.checkedSession = true;
       })
       .addCase(fetchMe.pending, (state) => {
         state.status = "loading";
@@ -100,6 +104,7 @@ const authSlice = createSlice({
           state.user = user;
           state.status = "succeeded";
           state.isLoggedIn = true;
+          state.error = null;
         }
       )
       .addCase(sendLogin.rejected, (state) => {
@@ -108,6 +113,7 @@ const authSlice = createSlice({
       })
       .addCase(sendLogin.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       });
     builder.addCase(
       sendRegister.fulfilled,
