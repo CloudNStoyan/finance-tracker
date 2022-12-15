@@ -4,7 +4,7 @@ Clone the repository and create the necessary .env files as shown below.
 
 Template for app.env
 ```env
-# Things you need to 
+# Things you need to configure
 DatabaseConnectionString=Server=YourDatabaseIp;Port=DatabasePort;Database=DatabaseName;Uid=DatabaseUser;Pwd=DatabasePassword;
 ReCaptchaSecretKey=YourGoogleReCaptchaKey
 
