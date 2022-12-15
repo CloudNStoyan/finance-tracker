@@ -6,6 +6,8 @@ services:
       - db
     build:
       dockerfile: AppDockerfile
+    env_file:
+      - app.env
     ports:
       - "5050:80"
     environment:

@@ -6,3 +6,5 @@ node_modules
 bin
 obj
 *.DotSettings.user
+appsettings.*.json
+*.env
