@@ -1,13 +1,24 @@
-import { Button, CircularProgress, TextField } from "@mui/material";
-import { PersonOutlined, LockOutlined } from "@mui/icons-material";
-import { useState } from "react";
+import {
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
+import {
+  PersonOutlined,
+  LockOutlined,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
+import { useCallback, useEffect, useState } from "react";
 import LoginPageStyled from "./styles/LoginPage.styled";
-import useReCaptcha from "../useReCaptcha";
-import { Link, useNavigate } from "react-router-dom";
-import { login } from "../server-api";
-import axios from "axios";
+import { Link } from "react-router-dom";
 import { useAppDispatch } from "../state/hooks";
-import { setUser } from "../state/authSlice";
+import { setNotification } from "../state/notificationSlice";
+import useAuth from "../components/useAuth";
+import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
+import { clearError } from "../state/authSlice";
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -15,11 +26,10 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [error, setError] = useState<string>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const [generateToken] = useReCaptcha();
-  const navigate = useNavigate();
+  const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
+  const { login, authError, authStatus } = useAuth();
 
   const validateFields = () => {
     const usernameIsValid = username.trim().length > 0;
@@ -28,7 +38,9 @@ const LoginPage = () => {
     const passwordIsValid = password.trim().length > 0;
     setPasswordError(!passwordIsValid);
 
-    return usernameIsValid === true && passwordIsValid === true;
+    const fieldsAreValid = usernameIsValid === true && passwordIsValid === true;
+
+    return fieldsAreValid && recaptchaToken !== null;
   };
 
   const initLogin = () => {
@@ -37,49 +49,54 @@ const LoginPage = () => {
 
     if (fieldsAreValid === false) {
       setLoading(false);
+
+      if (recaptchaToken === null) {
+        dispatch(
+          setNotification({
+            message: "Please solve the captcha!",
+            color: "error",
+          })
+        );
+      }
+
       return;
     }
 
-    generateToken(async (token) => {
-      try {
-        const httpResponse = await login(username, password, token);
-
-        if (httpResponse.status !== 200) {
-          return;
-        }
-
-        const session = httpResponse.data;
-
-        document.cookie = `__session__=${session.sessionKey}`;
-
-        dispatch(setUser({ username }));
-
-        navigate("/");
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-
-        if (error.code === "ERR_NETWORK") {
-          setError("Something went wrong, try again later.");
-          return;
-        }
-
-        if (error.response.status === 401) {
-          setError("Username or password did not match");
-          return;
-        }
-      } finally {
-        setLoading(false);
-      }
-    });
+    login({ username, password, recaptchaToken });
   };
+
+  const onRecaptchaSolve = useCallback(
+    (token: string) => {
+      setRecaptchaToken(token);
+    },
+    [setRecaptchaToken]
+  );
+
+  const onRecaptchaExpired = useCallback(() => {
+    setRecaptchaToken(null);
+  }, [setRecaptchaToken]);
+
+  useEffect(() => {
+    if (authStatus === "loading") {
+      return;
+    }
+
+    setLoading(false);
+  }, [authStatus]);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   return (
     <LoginPageStyled>
       {loading && <CircularProgress className="loading-circle" />}
       <div className="wrapper h-full w-full">
-        <form className={`px-8 pt-6 pb-8 w-80 ${loading ? "opacity-50" : ""}`}>
+        <form
+          className={`rounded px-2 pt-3 mb-8 pb-2 w-fit ${
+            loading ? "opacity-50" : ""
+          }`}
+        >
           <h1 className="text-center text-lg font-medium text-gray-600 mb-5 dark:text-white">
             Log in to Finance Tracker
           </h1>
@@ -98,12 +115,10 @@ const LoginPage = () => {
               onChange={(e) => {
                 setUsernameError(e.target.value.trim().length === 0);
                 setUsername(e.target.value);
-                setError(null);
               }}
               onBlur={(e) => {
                 setUsernameError(e.target.value.trim().length === 0);
                 setUsername(e.target.value);
-                setError(null);
               }}
             />
           </div>
@@ -115,7 +130,7 @@ const LoginPage = () => {
               data-testid="password-mui"
               className="w-full"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               variant="standard"
               value={password}
               error={passwordError}
@@ -123,15 +138,29 @@ const LoginPage = () => {
               onChange={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
-                setError(null);
               }}
               onBlur={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
-                setError(null);
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
               }}
             />
           </div>
+          <RecaptchaCheckbox
+            onSolve={onRecaptchaSolve}
+            onExpired={onRecaptchaExpired}
+          />
           <div className="flex items-center justify-between">
             <Button
               variant="contained"
@@ -147,10 +176,10 @@ const LoginPage = () => {
               Sign In
             </Button>
           </div>
-          {error && (
+          {authError && (
             <div className="text-red-400 text-center mt-2">
               <p className="font-medium">Login failed</p>
-              <p>{error}</p>
+              <p>{authError}</p>
             </div>
           )}
           <div>

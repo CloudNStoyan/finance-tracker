@@ -1,4 +1,4 @@
-import { AuthCredentials, sendLogin } from "../state/authSlice";
+import { AuthCredentials, sendLogin, sendRegister } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 
 const useAuth = () => {
@@ -11,7 +11,11 @@ const useAuth = () => {
     void dispatch(sendLogin(authCredentials));
   };
 
-  return { authError, authStatus, login };
+  const register = (authCredentials: AuthCredentials) => {
+    void dispatch(sendRegister(authCredentials));
+  };
+
+  return { authError, authStatus, login, register };
 };
 
 export default useAuth;

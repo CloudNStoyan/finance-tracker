@@ -48,7 +48,24 @@ export interface Balance {
   balance: number;
 }
 
-export const loginV2 = async (
+export const register = async (
+  username: string,
+  password: string,
+  recaptchaToken: string
+) => {
+  const response = await fetch(`${SERVER_URL}/auth/register`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password, recaptchaToken }),
+    method: "POST",
+  });
+
+  return response.status;
+};
+
+export const login = async (
   username: string,
   password: string,
   recaptchaToken: string
@@ -66,30 +83,6 @@ export const loginV2 = async (
   const data = (await response.json()) as SessionData | ServerError;
 
   return data;
-};
-
-export const login = async (
-  username: string,
-  password: string,
-  recaptchaToken: string
-) => {
-  return axios.post<SessionData>(`${SERVER_URL}/auth/login`, {
-    username,
-    password,
-    recaptchaToken,
-  });
-};
-
-export const register = async (
-  username: string,
-  password: string,
-  recaptchaToken: string
-) => {
-  return axios.post<ServerError>(`${SERVER_URL}/auth/register`, {
-    username,
-    password,
-    recaptchaToken,
-  });
 };
 
 export const getMe = async () => {

@@ -1,10 +1,24 @@
-import { Button, CircularProgress, TextField } from "@mui/material";
-import { PersonOutlined, LockOutlined } from "@mui/icons-material";
-import { useEffect, useState } from "react";
-import useReCaptcha from "../../useReCaptcha";
+import {
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
+import {
+  PersonOutlined,
+  LockOutlined,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DesktopLoginPageStyled from "../styles/desktop/DesktopLoginPage.styled";
 import useAuth from "../../components/useAuth";
+import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
+import { useAppDispatch } from "../../state/hooks";
+import { setNotification } from "../../state/notificationSlice";
+import { clearError } from "../../state/authSlice";
 
 const DesktopLoginPage = () => {
   const [username, setUsername] = useState("");
@@ -13,9 +27,10 @@ const DesktopLoginPage = () => {
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shakeErrors, setShakeErrors] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, authError, authStatus } = useAuth();
-
-  const [generateToken] = useReCaptcha();
+  const dispatch = useAppDispatch();
 
   const validateFields = () => {
     const usernameIsValid = username.trim().length > 0;
@@ -24,7 +39,9 @@ const DesktopLoginPage = () => {
     const passwordIsValid = password.trim().length > 0;
     setPasswordError(!passwordIsValid);
 
-    return usernameIsValid === true && passwordIsValid === true;
+    const fieldsAreValid = usernameIsValid === true && passwordIsValid === true;
+
+    return fieldsAreValid && recaptchaToken !== null;
   };
 
   const initLogin = () => {
@@ -37,13 +54,32 @@ const DesktopLoginPage = () => {
       setTimeout(() => {
         setShakeErrors(false);
       }, 300);
+
+      if (recaptchaToken === null) {
+        dispatch(
+          setNotification({
+            message: "Please solve the captcha!",
+            color: "error",
+          })
+        );
+      }
+
       return;
     }
 
-    generateToken((token) => {
-      login({ username, password, recaptchaToken: token });
-    });
+    login({ username, password, recaptchaToken });
   };
+
+  const onRecaptchaSolve = useCallback(
+    (token: string) => {
+      setRecaptchaToken(token);
+    },
+    [setRecaptchaToken]
+  );
+
+  const onRecaptchaExpired = useCallback(() => {
+    setRecaptchaToken(null);
+  }, [setRecaptchaToken]);
 
   useEffect(() => {
     if (authStatus === "loading") {
@@ -53,12 +89,16 @@ const DesktopLoginPage = () => {
     setLoading(false);
   }, [authStatus]);
 
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
   return (
     <DesktopLoginPageStyled>
       {loading && <CircularProgress className="loading-circle" />}
       <div className="wrapper h-full w-full">
         <form
-          className={` rounded px-8 pt-6 pb-8 w-80 ${
+          className={` rounded px-8 pt-6 pb-8 w-fit ${
             loading ? "loading" : ""
           } ${shakeErrors ? "shake-errors" : ""}`}
         >
@@ -95,7 +135,7 @@ const DesktopLoginPage = () => {
               data-testid="password-mui"
               className="w-full"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               variant="standard"
               value={password}
               error={passwordError}
@@ -108,8 +148,24 @@ const DesktopLoginPage = () => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);
               }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
           </div>
+          <RecaptchaCheckbox
+            onSolve={onRecaptchaSolve}
+            onExpired={onRecaptchaExpired}
+          />
           <div className="flex items-center justify-between">
             <Button
               variant="contained"
@@ -131,6 +187,7 @@ const DesktopLoginPage = () => {
               <p>{authError}</p>
             </div>
           )}
+
           <div>
             <p className="text-sm text-gray-400 font-medium text-center mt-3">
               Don&#39;t have an account?{" "}

@@ -15,7 +15,7 @@ const usePasswordStrength = (password: string): [number, string, string] => {
   useEffect(() => {
     const passwordLength = password.trim().length;
 
-    if (passwordLength >= 12 && VERY_STRONG_PASSWORD_REGEX.test(password)) {
+    if (passwordLength >= 11 && VERY_STRONG_PASSWORD_REGEX.test(password)) {
       setScore(4);
       setText("strong");
       setColor("#2e7d32");
@@ -23,7 +23,7 @@ const usePasswordStrength = (password: string): [number, string, string] => {
     }
 
     if (
-      passwordLength >= 10 &&
+      passwordLength > 9 &&
       ALL_CASE_LETTERS_AND_NUMBERS_REGEX.test(password)
     ) {
       setScore(3);

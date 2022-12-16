@@ -28,12 +28,7 @@ public class ReCaptchaService
 
         var result = JsonConvert.DeserializeObject<VerifyResponse>(json);
 
-        if (result == null)
-        {
-            return false;
-        }
-
-        return (result.Success && result.Score >= 0.5m);
+        return result is { Success: true };
     }
 }
 
@@ -41,10 +36,6 @@ public class VerifyResponse
 {
     [JsonProperty("success")]
     public bool Success { get; set; }
-    [JsonProperty("score")]
-    public decimal Score { get; set; }
-    [JsonProperty("action")]
-    public string Action { get; set; }
     [JsonProperty("challenge_ts")]
     public DateTime ChallengeTimeStamp { get; set; }
     [JsonProperty("hostname")]

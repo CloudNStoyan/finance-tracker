@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { getMe, loginV2, register, ServerError, User } from "../server-api";
+import { getMe, login, register, User } from "../server-api";
 
 export type AuthCredentials = {
   username: string;
@@ -34,7 +33,7 @@ export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
 export const sendLogin = createAsyncThunk(
   "auth/sendLogin",
   async (loginCredentials: AuthCredentials): Promise<[string, User]> => {
-    const httpResponse = await loginV2(
+    const httpResponse = await login(
       loginCredentials.username,
       loginCredentials.password,
       loginCredentials.recaptchaToken
@@ -71,6 +70,9 @@ const authSlice = createSlice({
     logoutUser(state) {
       state.isLoggedIn = false;
       state.user = null;
+    },
+    clearError(state) {
+      state.error = null;
     },
   },
   extraReducers(builder) {
@@ -115,19 +117,31 @@ const authSlice = createSlice({
         state.status = "loading";
         state.error = null;
       });
-    builder.addCase(
-      sendRegister.fulfilled,
-      (state, action: PayloadAction<AxiosResponse<ServerError>>) => {
-        if (!axios.isAxiosError(action.payload)) {
-          return;
-        }
+    builder
+      .addCase(
+        sendRegister.fulfilled,
+        (state, action: PayloadAction<number>) => {
+          const statusCode = action.payload;
 
-        const serverError = action.payload as AxiosError<ServerError>;
-        state.error = serverError.response.data.error;
-      }
-    );
+          if (statusCode !== 200) {
+            state.error = "Something went wrong with your registration.";
+            state.status = "failed";
+            return;
+          }
+
+          state.status = "succeeded";
+        }
+      )
+      .addCase(sendRegister.rejected, (state) => {
+        state.error = "General error";
+        state.status = "failed";
+      })
+      .addCase(sendRegister.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      });
   },
 });
 
-export const { setUser, logoutUser } = authSlice.actions;
+export const { setUser, logoutUser, clearError } = authSlice.actions;
 export default authSlice.reducer;

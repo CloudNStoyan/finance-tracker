@@ -7,6 +7,10 @@ const LoginPageStyled = styled.div`
   justify-content: center;
   align-items: center;
 
+  form {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+
   ::before {
     content: "";
     position: absolute;

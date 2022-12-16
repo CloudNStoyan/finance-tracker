@@ -3,6 +3,7 @@ import {
   ToggleButton,
   IconButton,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
@@ -18,6 +19,7 @@ import { logout } from "../server-api";
 import { logoutUser } from "../state/authSlice";
 import { useNavigate } from "react-router-dom";
 import { setFirstDayOfTheMonth } from "../state/calendarSlice";
+import { setNotification } from "../state/notificationSlice";
 
 export type SettingsModalProps = {
   onClose: () => void;
@@ -27,6 +29,7 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [selectedTheme, setSelectedTheme] = useState<
     "light" | "dark" | "system"
@@ -60,6 +63,7 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   }, [selectedFirstDayOfTheMonth, dispatch]);
 
   const onLogout = async () => {
+    setIsLoggingOut(true);
     try {
       const httpResponse = await logout();
 
@@ -71,9 +75,12 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
       navigate("/login");
       onClose();
     } catch (error) {
+      dispatch(setNotification({ message: "General error!", color: "error" }));
       if (!axios.isAxiosError(error)) {
         return;
       }
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -142,9 +149,16 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
         <Button
           onClick={() => void onLogout()}
           variant="contained"
-          endIcon={<LogoutIcon />}
+          endIcon={
+            isLoggingOut ? (
+              <CircularProgress size={16} className="text-white" />
+            ) : (
+              <LogoutIcon />
+            )
+          }
+          disabled={isLoggingOut}
         >
-          Log out
+          {isLoggingOut ? "Logging out" : "Log out"}
         </Button>
       </div>
     </SettingsPageStyled>

@@ -1,25 +1,41 @@
-import { Button, CircularProgress, TextField } from "@mui/material";
-import { PersonOutlined, LockOutlined } from "@mui/icons-material";
-import { useState } from "react";
+import {
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
+import {
+  PersonOutlined,
+  LockOutlined,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
+import { useCallback, useEffect, useState } from "react";
 import RegisterPageStyled from "./styles/RegisterPage.styled";
-import useReCaptcha from "../useReCaptcha";
 import { Link, useNavigate } from "react-router-dom";
-import { register, ServerError } from "../server-api";
-import axios, { AxiosError } from "axios";
 import PasswordStrengthIndicator from "../components/PasswordStrengthIndicator";
 import usePasswordStrength from "../components/usePasswordStrength";
+import useAuth from "../components/useAuth";
+import { useAppDispatch } from "../state/hooks";
+import { setNotification } from "../state/notificationSlice";
+import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
+import PasswordHints from "../components/PasswordHints";
+import { clearError } from "../state/authSlice";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-  const [error, setError] = useState<string>(null);
   const [loading, setLoading] = useState(false);
   const [score, color, text] = usePasswordStrength(password);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [generateToken] = useReCaptcha();
+  const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
+  const { register, authStatus, authError } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const validateFields = () => {
     const usernameIsValid = username.trim().length >= 6;
@@ -30,10 +46,21 @@ const RegisterPage = () => {
     const passwordIsValid = score >= 2;
     setPasswordError(!passwordIsValid);
 
-    return usernameIsValid === true && passwordIsValid === true;
+    const fieldsAreValid = usernameIsValid === true && passwordIsValid === true;
+
+    if (recaptchaToken === null && fieldsAreValid) {
+      dispatch(
+        setNotification({
+          message: "Please solve the captcha!",
+          color: "error",
+        })
+      );
+    }
+
+    return fieldsAreValid && recaptchaToken !== null;
   };
 
-  const initLogin = () => {
+  const initRegister = () => {
     setLoading(true);
 
     const fieldsAreValid = validateFields();
@@ -43,42 +70,46 @@ const RegisterPage = () => {
       return;
     }
 
-    generateToken(async (token) => {
-      try {
-        const httpResponse = await register(username, password, token);
-
-        if (httpResponse.status !== 200) {
-          return;
-        }
-
-        navigate("/login");
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-
-        const serverError = error as AxiosError<ServerError>;
-
-        if (error.code === "ERR_NETWORK") {
-          setError("Something went wrong, try again later.");
-          return;
-        }
-
-        if (serverError.response.status === 400) {
-          setError(serverError.response.data.error);
-          return;
-        }
-      } finally {
-        setLoading(false);
-      }
-    });
+    void register({ username, password, recaptchaToken });
   };
+
+  const onRecaptchaSolve = useCallback(
+    (token: string) => {
+      setRecaptchaToken(token);
+    },
+    [setRecaptchaToken]
+  );
+
+  const onRecaptchaExpired = useCallback(() => {
+    setRecaptchaToken(null);
+  }, [setRecaptchaToken]);
+
+  useEffect(() => {
+    if (authStatus === "loading") {
+      return;
+    }
+
+    if (authStatus === "succeeded") {
+      navigate("/login");
+      return;
+    }
+
+    setLoading(false);
+  }, [authStatus, navigate]);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   return (
     <RegisterPageStyled>
       {loading && <CircularProgress className="loading-circle" />}
       <div className="wrapper h-full w-full">
-        <form className={`px-8 pt-6 pb-8 w-80 ${loading ? "opacity-50" : ""}`}>
+        <form
+          className={`rounded px-2 pt-3 mb-8 pb-2 w-fit ${
+            loading ? "opacity-50" : ""
+          }`}
+        >
           <h1 className="text-center text-lg font-medium text-gray-600 mb-5 dark:text-white">
             Sign up to Finance Tracker
           </h1>
@@ -101,7 +132,6 @@ const RegisterPage = () => {
                 }
 
                 setUsername(e.target.value);
-                setError(null);
               }}
               onBlur={(e) => {
                 if (e.target.value.trim().length < 6) {
@@ -111,7 +141,6 @@ const RegisterPage = () => {
                 }
 
                 setUsername(e.target.value);
-                setError(null);
               }}
             />
           </div>
@@ -127,7 +156,7 @@ const RegisterPage = () => {
               <TextField
                 className="w-full"
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 variant="standard"
                 value={password}
                 error={passwordError}
@@ -135,12 +164,22 @@ const RegisterPage = () => {
                 onChange={(e) => {
                   setPasswordError(e.target.value.trim().length === 0);
                   setPassword(e.target.value);
-                  setError(null);
                 }}
                 onBlur={(e) => {
                   setPasswordError(e.target.value.trim().length === 0);
                   setPassword(e.target.value);
-                  setError(null);
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
                 }}
               />
               <PasswordStrengthIndicator
@@ -151,21 +190,11 @@ const RegisterPage = () => {
               />
             </div>
           </div>
-          <div className="text-sm text-gray-400 dark:text-white mb-3 w-fit mx-auto">
-            {!/(?=.*[a-z])/.test(password) && (
-              <div className="font-bold">• One lowercase letter</div>
-            )}
-            {!/(?=.*[A-Z])/.test(password) && (
-              <div className="font-bold">• One uppercase letter</div>
-            )}
-            {password.length < 8 && (
-              <div className="font-bold">• 8 or more characters</div>
-            )}
-            {!/(?=.*[0-9])/.test(password) && <div>• One number</div>}
-            {!/(?=.*[^A-Za-z0-9])/.test(password) && (
-              <div>• One special character</div>
-            )}
-          </div>
+          <PasswordHints password={password} />
+          <RecaptchaCheckbox
+            onSolve={onRecaptchaSolve}
+            onExpired={onRecaptchaExpired}
+          />
           <div className="flex items-center justify-between">
             <Button
               variant="contained"
@@ -173,20 +202,21 @@ const RegisterPage = () => {
               onClick={(e) => {
                 e.preventDefault();
 
-                initLogin();
+                initRegister();
               }}
               disabled={loading}
             >
               Sign Up
             </Button>
           </div>
-          {error && (
+          {authError && (
             <div className="text-red-400 text-center mt-2">
-              <p>{error}</p>
+              <p className="font-medium">Register failed</p>
+              <p>{authError}</p>
             </div>
           )}
           <div>
-            <p className="text-sm text-gray-400 font-medium text-center mt-3">
+            <p className="text-sm text-gray-400 font-medium text-center pt-3">
               Already have an account?{" "}
               <Link to="/login" className="text-blue-400 dark:text-purple-400">
                 Log in
