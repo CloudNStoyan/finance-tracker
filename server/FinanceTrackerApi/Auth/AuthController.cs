@@ -1,4 +1,5 @@
 ﻿using FinanceTrackerApi.Infrastructure;
+using FinanceTrackerApi.Smtp;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceTrackerApi.Auth;
@@ -10,12 +11,15 @@ public class AuthController : ControllerBase
     private AuthenticationService AuthenticationService { get; }
     private ReCaptchaService ReCaptchaService { get; }
     private SessionService SessionService { get; }
+    private MailService MailService { get; }
 
-    public AuthController(AuthenticationService authenticationService, ReCaptchaService reCaptchaService, SessionService sessionService)
+    public AuthController(AuthenticationService authenticationService, ReCaptchaService reCaptchaService,
+        SessionService sessionService, MailService mailService)
     {
         this.AuthenticationService = authenticationService;
         this.ReCaptchaService = reCaptchaService;
         this.SessionService = sessionService;
+        this.MailService = mailService;
     }
 
     [HttpGet("/auth/me")]
@@ -61,6 +65,14 @@ public class AuthController : ControllerBase
         }
 
         await this.AuthenticationService.Register(credentials);
+
+        return this.Ok();
+    }
+
+    [HttpGet("/auth/test")]
+    public async Task<ActionResult> Test()
+    {
+        await this.MailService.SendConfirmRegistrationEmail("stoyan.a.kolev@gmail.com", "dwarf");
 
         return this.Ok();
     }
