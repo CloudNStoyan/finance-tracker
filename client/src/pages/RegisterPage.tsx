@@ -24,9 +24,9 @@ import PasswordHints from "../components/PasswordHints";
 import { clearError } from "../state/authSlice";
 
 const RegisterPage = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [usernameError, setUsernameError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [score, color, text] = usePasswordStrength(password);
@@ -38,15 +38,15 @@ const RegisterPage = () => {
   const dispatch = useAppDispatch();
 
   const validateFields = () => {
-    const usernameIsValid = username.trim().length >= 6;
-    if (!usernameIsValid) {
-      setUsernameError("Too short");
+    const emailIsValid = email.trim().length >= 6;
+    if (!emailIsValid) {
+      setEmailError("Too short");
     }
 
     const passwordIsValid = score >= 2;
     setPasswordError(!passwordIsValid);
 
-    const fieldsAreValid = usernameIsValid === true && passwordIsValid === true;
+    const fieldsAreValid = emailIsValid === true && passwordIsValid === true;
 
     if (recaptchaToken === null && fieldsAreValid) {
       dispatch(
@@ -70,7 +70,7 @@ const RegisterPage = () => {
       return;
     }
 
-    void register({ username, password, recaptchaToken });
+    void register({ email, password, recaptchaToken });
   };
 
   const onRecaptchaSolve = useCallback(
@@ -115,32 +115,33 @@ const RegisterPage = () => {
           </h1>
           <div className="mb-4 flex flex-row items-end">
             <PersonOutlined
-              className={`mr-1 icon ${usernameError ? "mb-6" : "mb-1"}`}
+              className={`mr-1 icon ${emailError ? "mb-6" : "mb-1"}`}
             />
             <TextField
               className="w-full"
-              label="Username"
+              label="Email"
               variant="standard"
-              value={username}
-              error={usernameError.length > 0}
-              helperText={usernameError}
+              type="email"
+              value={email}
+              error={emailError.length > 0}
+              helperText={emailError}
               onChange={(e) => {
                 if (e.target.value.trim().length < 6) {
-                  setUsernameError("Too short");
+                  setEmailError("Too short");
                 } else {
-                  setUsernameError("");
+                  setEmailError("");
                 }
 
-                setUsername(e.target.value);
+                setEmail(e.target.value);
               }}
               onBlur={(e) => {
                 if (e.target.value.trim().length < 6) {
-                  setUsernameError("Too short");
+                  setEmailError("Too short");
                 } else {
-                  setUsernameError("");
+                  setEmailError("");
                 }
 
-                setUsername(e.target.value);
+                setEmail(e.target.value);
               }}
             />
           </div>

@@ -1,6 +1,7 @@
 ﻿using FinanceTrackerApi.Infrastructure;
 using FinanceTrackerApi.Smtp;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace FinanceTrackerApi.Auth;
 
@@ -37,7 +38,7 @@ public class AuthController : ControllerBase
 
         var user = await this.AuthenticationService.GetUserById(session.UserId!.Value);
 
-        return this.Ok(new MeDTO { Username = user.Username });
+        return this.Ok(new MeDTO { Email = user.Email });
     }
 
     [HttpPost("/auth/register")]
@@ -57,22 +58,47 @@ public class AuthController : ControllerBase
             return this.BadRequest(new { status = 400, error = "Captcha Failed" });
         }
 
-        bool usernameIsFree = await this.AuthenticationService.IsUsernameFree(credentials.Username!);
+        bool emailFree = await this.AuthenticationService.IsEmailFree(credentials.Email!);
 
-        if (!usernameIsFree)
+        if (!emailFree)
         {
-            return this.BadRequest(new { status = 400, error = "Username is taken!" });
+            return this.BadRequest(new { status = 400, error = "Email is already registered!" });
         }
 
-        await this.AuthenticationService.Register(credentials);
+        string verifyToken = await this.AuthenticationService.Register(credentials);
+
+        await this.MailService.SendConfirmRegistrationEmail(credentials.Email!.ToLower(), verifyToken);
 
         return this.Ok();
     }
 
-    [HttpGet("/auth/test")]
-    public async Task<ActionResult> Test()
+    [HttpPost("/auth/verify-email")]
+    public async Task<ActionResult> VerifyEmail([FromBody]VerifyAccountDTO verifyAccount)
     {
-        await this.MailService.SendConfirmRegistrationEmail("stoyan.a.kolev@gmail.com", "dwarf");
+        var validatorResult = CustomValidator.Validate(verifyAccount);
+
+        if (!validatorResult.IsValid)
+        {
+            return this.BadRequest();
+        }
+
+        bool captchaIsValid = await this.ReCaptchaService.VerifyToken(verifyAccount.ReCaptchaToken!);
+
+        if (!captchaIsValid)
+        {
+            return this.BadRequest(new { status = 400, error = "Captcha Failed" });
+        }
+
+        var verifyUserPoco = await this.AuthenticationService.GetVerifyUserByToken(verifyAccount.VerifyToken);
+
+        var now = DateTime.Now;
+
+        if (verifyUserPoco == null || verifyUserPoco.Consumed || verifyUserPoco.ExpirationDate <= now)
+        {
+            return this.BadRequest(new {status = 400, error = "Expired token"});
+        }
+
+        await this.AuthenticationService.ActivateAccount(verifyUserPoco.UserId);
 
         return this.Ok();
     }
@@ -94,14 +120,14 @@ public class AuthController : ControllerBase
             return this.BadRequest(new { status = 400, error = "Captcha Failed" });
         }
 
-        string? sessionKey = await this.AuthenticationService.Login(credentials);
+        var loginAttempt = await this.AuthenticationService.Login(credentials);
 
-        if (sessionKey == null)
+        if (!loginAttempt.Success)
         {
-            return this.Unauthorized(new { status = 400, error = "No account found" });
+            return this.Unauthorized(new { status = 400, error = loginAttempt.Error });
         }
 
-        return this.Ok(new {status = 200, sessionKey});
+        return this.Ok(new {status = 200, sessionKey = loginAttempt.SessionKey});
     }
 
     [HttpPost("/auth/logout")]

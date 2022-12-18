@@ -65,11 +65,33 @@ public class UserPoco
     [Column(Name = "user_id", IsPrimaryKey = true)]
     public int UserId { get; set; }
 
-    [Column(Name = "username")]
-    public string Username { get; set; }
+    [Column(Name = "email")]
+    public string Email { get; set; }
 
     [Column(Name = "password")]
     public byte[] Password { get; set; }
+
+    [Column(Name = "activated")]
+    public bool Activated { get; set; }
+}
+
+[Table(Name = "verify_users", Schema = "public")]
+public class VerifyUserPoco
+{
+    [Column(Name = "verify_id", IsPrimaryKey = true)]
+    public int VerifyId { get; set; }
+
+    [Column(Name = "verify_token")]
+    public string VerifyToken { get; set; }
+
+    [Column(Name = "expiration_date")]
+    public DateTime ExpirationDate { get; set; }
+
+    [Column(Name = "user_id")]
+    public int UserId { get; set; }
+
+    [Column(Name = "consumed")]
+    public bool Consumed { get; set; }
 }
 
 [Table(Name = "sessions", Schema = "public")]

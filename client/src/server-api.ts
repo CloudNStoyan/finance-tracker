@@ -41,7 +41,7 @@ export interface TransactionEvent {
 }
 
 export interface User {
-  username: string;
+  email: string;
 }
 
 export interface Balance {
@@ -49,7 +49,7 @@ export interface Balance {
 }
 
 export const register = async (
-  username: string,
+  email: string,
   password: string,
   recaptchaToken: string
 ) => {
@@ -58,7 +58,7 @@ export const register = async (
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ username, password, recaptchaToken }),
+    body: JSON.stringify({ email, password, recaptchaToken }),
     method: "POST",
   });
 
@@ -66,7 +66,7 @@ export const register = async (
 };
 
 export const login = async (
-  username: string,
+  email: string,
   password: string,
   recaptchaToken: string
 ) => {
@@ -75,12 +75,31 @@ export const login = async (
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ username, password, recaptchaToken }),
+    body: JSON.stringify({ email, password, recaptchaToken }),
     method: "POST",
     credentials: "include",
   });
 
   const data = (await response.json()) as SessionData | ServerError;
+
+  return data;
+};
+
+export const verifyEmail = async (
+  verifyToken: string,
+  recaptchaToken: string
+) => {
+  const response = await fetch(`${SERVER_URL}/auth/verify-email`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ verifyToken, recaptchaToken }),
+    method: "POST",
+    credentials: "include",
+  });
+
+  const data = (await response.json()) as ServerError;
 
   return data;
 };

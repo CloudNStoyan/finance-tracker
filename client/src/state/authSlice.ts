@@ -2,7 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { getMe, login, register, User } from "../server-api";
 
 export type AuthCredentials = {
-  username: string;
+  email: string;
   password: string;
   recaptchaToken: string;
 };
@@ -34,13 +34,13 @@ export const sendLogin = createAsyncThunk(
   "auth/sendLogin",
   async (loginCredentials: AuthCredentials): Promise<[string, User]> => {
     const httpResponse = await login(
-      loginCredentials.username,
+      loginCredentials.email,
       loginCredentials.password,
       loginCredentials.recaptchaToken
     );
 
     if ("sessionKey" in httpResponse) {
-      return [httpResponse.sessionKey, { username: loginCredentials.username }];
+      return [httpResponse.sessionKey, { email: loginCredentials.email }];
     }
 
     return [httpResponse.error, null];
@@ -51,7 +51,7 @@ export const sendRegister = createAsyncThunk(
   "auth/sendRegister",
   async (authCredentials: AuthCredentials) => {
     return await register(
-      authCredentials.username,
+      authCredentials.email,
       authCredentials.password,
       authCredentials.recaptchaToken
     );

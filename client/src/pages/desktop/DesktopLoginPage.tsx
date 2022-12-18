@@ -21,9 +21,9 @@ import { setNotification } from "../../state/notificationSlice";
 import { clearError } from "../../state/authSlice";
 
 const DesktopLoginPage = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [usernameError, setUsernameError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shakeErrors, setShakeErrors] = useState(false);
@@ -33,13 +33,13 @@ const DesktopLoginPage = () => {
   const dispatch = useAppDispatch();
 
   const validateFields = () => {
-    const usernameIsValid = username.trim().length > 0;
-    setUsernameError(!usernameIsValid);
+    const emailIsValid = email.trim().length > 0;
+    setEmailError(!emailIsValid);
 
     const passwordIsValid = password.trim().length > 0;
     setPasswordError(!passwordIsValid);
 
-    const fieldsAreValid = usernameIsValid === true && passwordIsValid === true;
+    const fieldsAreValid = emailIsValid === true && passwordIsValid === true;
 
     return fieldsAreValid && recaptchaToken !== null;
   };
@@ -67,7 +67,7 @@ const DesktopLoginPage = () => {
       return;
     }
 
-    login({ username, password, recaptchaToken });
+    login({ email, password, recaptchaToken });
   };
 
   const onRecaptchaSolve = useCallback(
@@ -107,23 +107,24 @@ const DesktopLoginPage = () => {
           </h1>
           <div className="mb-4 flex flex-row items-end">
             <PersonOutlined
-              className={`mr-1 icon ${usernameError ? "mb-6" : "mb-1"}`}
+              className={`mr-1 icon ${emailError ? "mb-6" : "mb-1"}`}
             />
             <TextField
-              data-testid="username-mui"
+              data-testid="email-mui"
               className="w-full text-white"
-              label="Username"
+              label="Email"
               variant="standard"
-              value={username}
-              error={usernameError}
-              helperText={usernameError ? "Username is required." : ""}
+              value={email}
+              error={emailError}
+              type="email"
+              helperText={emailError ? "email is required." : ""}
               onChange={(e) => {
-                setUsernameError(e.target.value.trim().length === 0);
-                setUsername(e.target.value);
+                setEmailError(e.target.value.trim().length === 0);
+                setEmail(e.target.value);
               }}
               onBlur={(e) => {
-                setUsernameError(e.target.value.trim().length === 0);
-                setUsername(e.target.value);
+                setEmailError(e.target.value.trim().length === 0);
+                setEmail(e.target.value);
               }}
             />
           </div>

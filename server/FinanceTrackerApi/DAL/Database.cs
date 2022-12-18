@@ -96,7 +96,7 @@ public class Database
     /// </summary>
     /// <typeparam name="T">Class that will be filled with the result from the query.</typeparam>
     /// <returns>Single row in type <typeparamref name="T"/>.</returns>
-    public async Task<T> QueryOne<T>(string sql, params NpgsqlParameter[] parametars) where T : class, new()
+    public async Task<T?> QueryOne<T>(string sql, params NpgsqlParameter[] parametars) where T : class, new()
     {
         ThrowIfSqlOrParamsAreNull(sql, parametars);
 
@@ -120,7 +120,7 @@ public class Database
     /// </summary>
     /// <typeparam name="T">Class that will be filled with the result from the query.</typeparam>
     /// <returns>Single row in type <typeparamref name="T"/>.</returns>
-    public Task<T> QueryOne<T>(string sql, Dictionary<string, object> parametars) where T : class, new()
+    public Task<T?> QueryOne<T>(string sql, Dictionary<string, object> parametars) where T : class, new()
     {
         return this.QueryOne<T>(sql, ConvertDictionaryToParametars(parametars));
     }

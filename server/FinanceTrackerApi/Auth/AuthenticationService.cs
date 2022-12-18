@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace FinanceTrackerApi.Auth;
 
-// ReSharper disable once UnusedType.Global
+// ReSharper disable once ClassNeverInstantiated.Global
 public class AuthenticationService
 {
     private Database Database { get; }
@@ -15,7 +15,7 @@ public class AuthenticationService
         this.Database = database;
     }
 
-    public async Task<UserPoco> GetUserById(int userId)
+    public async Task<UserPoco?> GetUserById(int userId)
     {
         var userPoco = await this.Database.QueryOne<UserPoco>("SELECT * FROM user_accounts WHERE user_id=@userId;",
             new NpgsqlParameter("userId", userId));
@@ -23,7 +23,29 @@ public class AuthenticationService
         return userPoco;
     }
 
-    public async Task Register(UserCredentialsDTO dto)
+    public async Task<VerifyUserPoco?> GetVerifyUserByToken(string verifyToken)
+    {
+        var verifyUserPoco = await this.Database.QueryOne<VerifyUserPoco>("SELECT * FROM verify_users WHERE verify_token=@verifyToken;",
+            new NpgsqlParameter("verifyToken", verifyToken));
+
+        return verifyUserPoco;
+    }
+
+    public async Task ActivateAccount(int userId)
+    {
+        var userPoco = await this.GetUserById(userId);
+
+        if (userPoco == null)
+        {
+            return;
+        }
+
+        userPoco.Activated = true;
+
+        await this.Database.Update(userPoco);
+    }
+
+    public async Task<string> Register(UserCredentialsDTO dto)
     {
         byte[] passwordBytes = Encoding.ASCII.GetBytes(dto.Password!);
 
@@ -34,16 +56,32 @@ public class AuthenticationService
             result = shaM.ComputeHash(passwordBytes);
         }
 
-        var poco = new UserPoco
+        var userPoco = new UserPoco
         {
             Password = result,
-            Username = dto.Username!
+            Email = dto.Email!.ToLower()
         };
 
-        await this.Database.Insert(poco);
+        int? userId = await this.Database.Insert(userPoco);
+
+        var now = DateTime.Now;
+
+        string verifyToken = Guid.NewGuid().ToString();
+
+        var verifyUserPoco = new VerifyUserPoco
+        {
+            ExpirationDate = now.AddDays(1),
+            UserId = userId!.Value,
+            VerifyToken = verifyToken,
+            Consumed = false
+        };
+
+        await this.Database.Insert(verifyUserPoco);
+
+        return verifyToken;
     }
 
-    public async Task<string?> Login(UserCredentialsDTO dto)
+    public async Task<LoginAttempt> Login(UserCredentialsDTO dto)
     {
         byte[] passwordBytes = Encoding.ASCII.GetBytes(dto.Password!);
 
@@ -54,17 +92,31 @@ public class AuthenticationService
             hashedPassword = shaM.ComputeHash(passwordBytes);
         }
 
-
         var userPoco = await this.Database.QueryOne<UserPoco>(
-            "SELECT * FROM user_accounts u WHERE u.username=@username AND u.password=@password;",
-            new NpgsqlParameter("username", dto.Username!), new NpgsqlParameter("password", hashedPassword));
+            "SELECT * FROM user_accounts u WHERE u.email=@email AND u.password=@password;",
+            new NpgsqlParameter("email", dto.Email!), new NpgsqlParameter("password", hashedPassword));
 
         if (userPoco == null)
         {
-            return null;
+            return new LoginAttempt
+            {
+                Success = false,
+                Error = "Your email and password do not match. Please try again."
+            };
+        }
+
+        if (!userPoco.Activated)
+        {
+            return new LoginAttempt
+            {
+                Success = false,
+                Error = "You have not activated your account yet. Please, check your inbox and confirm your account."
+            };
         }
 
         var now = DateTime.UtcNow;
+
+        string sessionKey = GetRandomSessionKey();
 
         var sessionPoco = new SessionPoco
         {
@@ -72,12 +124,16 @@ public class AuthenticationService
             ExpirationDate = now.AddDays(1),
             LoginTime = now,
             UserId = userPoco.UserId,
-            SessionKey = GetRandomSessionKey()
+            SessionKey = sessionKey
         };
 
         await this.Database.Insert(sessionPoco);
 
-        return sessionPoco.SessionKey;
+        return new LoginAttempt
+        {
+            Success = true,
+            SessionKey = sessionKey
+        };
     }
 
     public async Task Logout(int sessionId)
@@ -106,11 +162,11 @@ public class AuthenticationService
         return sessionPoco;
     }
 
-    public async Task<bool> IsUsernameFree(string username)
+    public async Task<bool> IsEmailFree(string email)
     {
         var userPoco = await this.Database.QueryOne<UserPoco>(
-            "SELECT * FROM user_accounts u WHERE u.username=@username;",
-            new NpgsqlParameter("username", username));
+            "SELECT * FROM user_accounts u WHERE u.email=lower(@email);",
+            new NpgsqlParameter("email", email));
 
         return userPoco == null;
     }

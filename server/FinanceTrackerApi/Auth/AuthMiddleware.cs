@@ -13,7 +13,7 @@ public class AuthMiddleware
     public async Task Invoke(HttpContext context, AuthenticationService authService,
         SessionCookieService sessionCookieService)
     {
-        await Task.Delay(2000);
+        //await Task.Delay(2000);
         context.SetSession(new RequestSession());
 
         string sessionKey = sessionCookieService.GetSessionKey();
