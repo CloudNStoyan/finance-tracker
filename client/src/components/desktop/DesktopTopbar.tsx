@@ -29,12 +29,13 @@ const CustomBottomNavigation = styled(BottomNavigation)({
 const DesktopTopbar: FunctionComponent = () => {
   const navigate = useNavigate();
 
-  const isLoggedIn = useAppSelector((state) => state.authReducer.isLoggedIn);
+  const { isLoggedIn, user } = useAppSelector((state) => state.authReducer);
 
   const [settingsIsOpen, setSettingsIsOpen] = useState(false);
 
   return (
-    isLoggedIn && (
+    isLoggedIn &&
+    user.activated && (
       <DesktopTopbarStyled className="flex justify-between items-center py-2">
         <CustomBottomNavigation
           showLabels

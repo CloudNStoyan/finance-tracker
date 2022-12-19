@@ -20,6 +20,17 @@ import { useAppDispatch } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
 import { clearError } from "../../state/authSlice";
 
+const ConvertServerErrorToHuman = (error: string) => {
+  switch (error) {
+    case "AccountNotFound":
+      return "Your email and password do not match. Please try again.";
+    case "AccountNotActivated":
+      return "You have not activated your account yet. Please, check your inbox and confirm your account.";
+  }
+
+  return "General Error";
+};
+
 const DesktopLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,8 +40,12 @@ const DesktopLoginPage = () => {
   const [shakeErrors, setShakeErrors] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [humanError, setHumanError] = useState<string>(null);
   const { login, authError, authStatus } = useAuth();
   const dispatch = useAppDispatch();
+  const [recaptchaInstanceKey, setRecaptchaInstanceKey] = useState(
+    new Date().getTime()
+  );
 
   const validateFields = () => {
     const emailIsValid = email.trim().length > 0;
@@ -68,6 +83,7 @@ const DesktopLoginPage = () => {
     }
 
     login({ email, password, recaptchaToken });
+    setRecaptchaInstanceKey(new Date().getTime());
   };
 
   const onRecaptchaSolve = useCallback(
@@ -92,6 +108,14 @@ const DesktopLoginPage = () => {
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!authError || authError.trim().length === 0) {
+      return;
+    }
+
+    setHumanError(ConvertServerErrorToHuman(authError));
+  }, [authError]);
 
   return (
     <DesktopLoginPageStyled>
@@ -164,6 +188,7 @@ const DesktopLoginPage = () => {
             />
           </div>
           <RecaptchaCheckbox
+            key={recaptchaInstanceKey}
             onSolve={onRecaptchaSolve}
             onExpired={onRecaptchaExpired}
           />
@@ -182,10 +207,11 @@ const DesktopLoginPage = () => {
               Sign In
             </Button>
           </div>
-          {authError && (
-            <div className="text-red-400 text-center mt-2">
+
+          {humanError && (
+            <div className="text-red-400 text-center mt-2 human-error">
               <p className="font-medium">Login failed</p>
-              <p>{authError}</p>
+              <p>{humanError}</p>
             </div>
           )}
 

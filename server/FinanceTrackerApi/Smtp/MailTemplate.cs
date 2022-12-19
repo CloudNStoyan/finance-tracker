@@ -134,7 +134,7 @@ public static class MailTemplate
                                                             <table role=""presentation"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;"">
                                                                 <tbody>
                                                                     <tr>
-                                                                        <td style=""font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #0066ff;"" valign=""top"" align=""center"" bgcolor=""#0066ff""> <a href=""http://localhost:8001/api/auth/verify-email?token={{TOKEN}}"" target=""_blank"" style=""border: solid 1px #0066ff; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; background-color: #0066ff; border-color: #0066ff; color: #ffffff;"">ACTIVATE ACCOUNT</a> </td>
+                                                                        <td style=""font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #0066ff;"" valign=""top"" align=""center"" bgcolor=""#0066ff""> <a href=""http://localhost:8001/?verification_token={{TOKEN}}"" target=""_blank"" style=""border: solid 1px #0066ff; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; background-color: #0066ff; border-color: #0066ff; color: #ffffff;"">ACTIVATE ACCOUNT</a> </td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>
@@ -143,7 +143,7 @@ public static class MailTemplate
                                                 </tbody>
                                             </table>
                                             <p style=""font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"">Alternatively, you can directly paste this link in your browser</p>
-                                            <a style=""color: #0052cc; text-decoration: none; font-weight: 600;"" href=""http://localhost:8001/api/auth/verify-email?token={{TOKEN}}"">http://localhost:8001/api/auth/verify-email?token={{TOKEN}}</a>
+                                            <a style=""color: #0052cc; text-decoration: none; font-weight: 600;"" href=""http://localhost:8001/?verification_token={{TOKEN}}"">http://localhost:8001/?verification_token={{TOKEN}}</a>
                                         </td>
                                     </tr>
                                 </table>

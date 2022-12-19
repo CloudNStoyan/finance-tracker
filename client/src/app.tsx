@@ -2,8 +2,10 @@ import { lazy, useEffect } from "react";
 import axios from "axios";
 import { useMediaQuery } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "./state/hooks";
-import { fetchMe } from "./state/authSlice";
-import { useNavigate } from "react-router-dom";
+import { fetchMe, setVerificationToken } from "./state/authSlice";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import useQuery from "./infrastructure/useQuery";
+import DesktopVerifyEmail from "./pages/desktop/DesktopVerifyEmail";
 
 const DesktopAuthRoutes = lazy(
   () => import("./infrastructure/DesktopAuthRoutes")
@@ -23,9 +25,17 @@ const App = () => {
   const autenticationStatus = useAppSelector(
     (state) => state.authReducer.status
   );
-  const { isLoggedIn, sessionKey } = useAppSelector(
+  const { isLoggedIn, sessionKey, user } = useAppSelector(
     (state) => state.authReducer
   );
+
+  const query = useQuery();
+
+  const token = query.get("verification_token");
+
+  if (token) {
+    dispatch(setVerificationToken(token));
+  }
 
   useEffect(() => {
     if (autenticationStatus != "idle") {
@@ -53,6 +63,14 @@ const App = () => {
 
   if (!isLoggedIn) {
     return isDesktop ? <DesktopAuthRoutes /> : <MobileAuthRoutes />;
+  }
+
+  if (!user.activated) {
+    return (
+      <Routes>
+        <Route path="*" element={<DesktopVerifyEmail />} />
+      </Routes>
+    );
   }
 
   return isDesktop ? <DesktopRoutes /> : <MobileRoutes />;

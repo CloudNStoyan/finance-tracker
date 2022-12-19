@@ -6,6 +6,12 @@ const DesktopVerifyEmailStyled = styled.div`
   align-items: center;
   justify-content: center;
 
+  .loading {
+    * {
+      opacity: 0.75;
+    }
+  }
+
   ::before {
     content: "";
     position: absolute;
@@ -42,7 +48,6 @@ const DesktopVerifyEmailStyled = styled.div`
 
   p {
     text-align: center;
-    color: #333;
   }
 
   input {

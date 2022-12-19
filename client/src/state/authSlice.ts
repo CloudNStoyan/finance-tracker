@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { getMe, login, register, User } from "../server-api";
+import {
+  AuthError,
+  getMe,
+  login,
+  LoginResponse,
+  register,
+  ServerError,
+  User,
+} from "../server-api";
 
 export type AuthCredentials = {
   email: string;
@@ -11,18 +19,20 @@ export type AuthState = {
   isLoggedIn: boolean;
   user?: User;
   status: "loading" | "succeeded" | "failed" | "idle";
-  error: string;
+  error: AuthError;
   sessionKey: string;
   checkedSession: boolean;
+  verificationToken: string;
 };
 
 const initialState: AuthState = {
   isLoggedIn: false,
   user: null,
   status: "idle",
-  sessionKey: null,
   error: null,
+  sessionKey: null,
   checkedSession: false,
+  verificationToken: null,
 };
 
 export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
@@ -32,18 +42,16 @@ export const fetchMe = createAsyncThunk("auth/fetchMe", async () => {
 
 export const sendLogin = createAsyncThunk(
   "auth/sendLogin",
-  async (loginCredentials: AuthCredentials): Promise<[string, User]> => {
+  async (
+    loginCredentials: AuthCredentials
+  ): Promise<LoginResponse | ServerError<AuthError>> => {
     const httpResponse = await login(
       loginCredentials.email,
       loginCredentials.password,
       loginCredentials.recaptchaToken
     );
 
-    if ("sessionKey" in httpResponse) {
-      return [httpResponse.sessionKey, { email: loginCredentials.email }];
-    }
-
-    return [httpResponse.error, null];
+    return httpResponse;
   }
 );
 
@@ -66,6 +74,9 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isLoggedIn = true;
       state.status = "succeeded";
+    },
+    setVerificationToken(state, action: PayloadAction<string>) {
+      state.verificationToken = action.payload;
     },
     logoutUser(state) {
       state.isLoggedIn = false;
@@ -93,24 +104,27 @@ const authSlice = createSlice({
     builder
       .addCase(
         sendLogin.fulfilled,
-        (state, action: PayloadAction<[string, User]>) => {
-          const [data, user] = action.payload;
+        (
+          state,
+          action: PayloadAction<LoginResponse | ServerError<AuthError>>
+        ) => {
+          const data = action.payload;
 
-          if (user === null) {
-            state.status = "failed";
-            state.error = data;
+          if ("sessionKey" in data) {
+            state.user = data.user;
+            state.sessionKey = data.sessionKey;
+            state.status = "succeeded";
+            state.isLoggedIn = true;
+            state.error = null;
             return;
           }
 
-          state.sessionKey = data;
-          state.user = user;
-          state.status = "succeeded";
-          state.isLoggedIn = true;
-          state.error = null;
+          state.status = "failed";
+          state.error = data.error;
         }
       )
       .addCase(sendLogin.rejected, (state) => {
-        state.error = "General error";
+        state.error = "GeneralError";
         state.status = "failed";
       })
       .addCase(sendLogin.pending, (state) => {
@@ -124,7 +138,7 @@ const authSlice = createSlice({
           const statusCode = action.payload;
 
           if (statusCode !== 200) {
-            state.error = "Something went wrong with your registration.";
+            state.error = "GeneralError";
             state.status = "failed";
             return;
           }
@@ -133,7 +147,7 @@ const authSlice = createSlice({
         }
       )
       .addCase(sendRegister.rejected, (state) => {
-        state.error = "General error";
+        state.error = "GeneralError";
         state.status = "failed";
       })
       .addCase(sendRegister.pending, (state) => {
@@ -143,5 +157,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logoutUser, clearError } = authSlice.actions;
+export const { setUser, logoutUser, clearError, setVerificationToken } =
+  authSlice.actions;
 export default authSlice.reducer;

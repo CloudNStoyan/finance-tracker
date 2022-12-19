@@ -1,5 +1,5 @@
 import { Button } from "@mui/material";
-import { FunctionComponent, useEffect, useRef } from "react";
+import { FunctionComponent, useCallback, useEffect, useRef } from "react";
 import { useAppSelector } from "../state/hooks";
 
 const RECAPTCHA_SITE_KEY = "6LdaF38jAAAAANwP7FO0MvHdTIGrKfXSjksWDM_z";
@@ -83,6 +83,52 @@ const RecaptchaCheckbox: FunctionComponent<RecaptchaCheckboxProps> = ({
   const divRef = useRef();
   const isDarkMode = useAppSelector((state) => state.themeReducer.isDarkMode);
 
+  const initializedRecaptcha = useCallback(() => {
+    const captchaClientExists = DoesRecaptchaClientExists();
+
+    if (captchaClientExists) {
+      return;
+    }
+
+    const containerEl: HTMLElement = divRef.current;
+
+    window.grecaptcha.ready(() => {
+      window.grecaptcha.render(containerEl, {
+        sitekey: RECAPTCHA_SITE_KEY,
+        callback: onSolve,
+        "expired-callback": onExpired,
+        "error-callback": onError,
+        size: compact === true ? "compact" : undefined,
+        theme: isDarkMode ? "dark" : "light",
+      });
+    });
+  }, [compact, isDarkMode, onError, onExpired, onSolve]);
+
+  const resetRecaptcha = () => {
+    if (!window.grecaptcha || !divRef.current) {
+      return;
+    }
+
+    try {
+      window.grecaptcha.reset();
+    } catch (error: unknown) {
+      const isErrorWithMessage =
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as Record<string, unknown>).message === "string";
+
+      if (
+        !isErrorWithMessage ||
+        error.message !== "No reCAPTCHA clients exist."
+      ) {
+        return;
+      }
+
+      initializedRecaptcha();
+    }
+  };
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = `https://www.google.com/recaptcha/api.js?render=explicit`;
@@ -111,32 +157,26 @@ const RecaptchaCheckbox: FunctionComponent<RecaptchaCheckboxProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!window.grecaptcha || !divRef.current) {
-      return;
-    }
+    const timer = setInterval(() => {
+      if (!window.grecaptcha) {
+        return;
+      }
 
-    const captchaClientExists = DoesRecaptchaClientExists();
+      initializedRecaptcha();
+      clearInterval(timer);
+    }, 500);
 
-    if (captchaClientExists) {
-      return;
-    }
-
-    const containerEl: HTMLElement = divRef.current;
-
-    window.grecaptcha.render(containerEl, {
-      sitekey: RECAPTCHA_SITE_KEY,
-      callback: onSolve,
-      "expired-callback": onExpired,
-      "error-callback": onError,
-      size: compact === true ? "compact" : undefined,
-      theme: isDarkMode ? "dark" : "light",
-    });
-  }, [onSolve, onExpired, onError, compact, isDarkMode]);
+    return () => clearInterval(timer);
+  }, [initializedRecaptcha]);
 
   return (
     <div>
-      <div ref={divRef} className="my-2 w-fit mx-auto" />
-      <Button onClick={() => window.grecaptcha.reset()} className="my-2">
+      <div
+        ref={divRef}
+        className="my-2 w-fit mx-auto"
+        style={{ width: 304, height: 78 }}
+      />
+      <Button onClick={resetRecaptcha} className="my-2">
         Reset captcha
       </Button>
     </div>

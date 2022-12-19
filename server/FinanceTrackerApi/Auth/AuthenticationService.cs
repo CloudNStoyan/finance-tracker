@@ -31,7 +31,7 @@ public class AuthenticationService
         return verifyUserPoco;
     }
 
-    public async Task ActivateAccount(int userId)
+    public async Task ActivateAccount(int userId, string verifyToken)
     {
         var userPoco = await this.GetUserById(userId);
 
@@ -43,6 +43,36 @@ public class AuthenticationService
         userPoco.Activated = true;
 
         await this.Database.Update(userPoco);
+
+        var verifyUserPoco = await this.GetVerifyUserByToken(verifyToken);
+
+        if (verifyUserPoco == null)
+        {
+            return;
+        }
+
+        verifyUserPoco.Consumed = true;
+
+        await this.Database.Update(verifyUserPoco);
+    }
+
+    public async Task<string> CreateVerifyToken(int userId)
+    {
+        var now = DateTime.Now;
+
+        string verifyToken = GetRandomString(6);
+
+        var verifyUserPoco = new VerifyUserPoco
+        {
+            ExpirationDate = now.AddDays(1),
+            UserId = userId,
+            VerifyToken = verifyToken,
+            Consumed = false
+        };
+
+        await this.Database.Insert(verifyUserPoco);
+
+        return verifyToken;
     }
 
     public async Task<string> Register(UserCredentialsDTO dto)
@@ -64,19 +94,7 @@ public class AuthenticationService
 
         int? userId = await this.Database.Insert(userPoco);
 
-        var now = DateTime.Now;
-
-        string verifyToken = Guid.NewGuid().ToString();
-
-        var verifyUserPoco = new VerifyUserPoco
-        {
-            ExpirationDate = now.AddDays(1),
-            UserId = userId!.Value,
-            VerifyToken = verifyToken,
-            Consumed = false
-        };
-
-        await this.Database.Insert(verifyUserPoco);
+        string verifyToken = await this.CreateVerifyToken(userId!.Value);
 
         return verifyToken;
     }
@@ -101,22 +119,13 @@ public class AuthenticationService
             return new LoginAttempt
             {
                 Success = false,
-                Error = "Your email and password do not match. Please try again."
-            };
-        }
-
-        if (!userPoco.Activated)
-        {
-            return new LoginAttempt
-            {
-                Success = false,
-                Error = "You have not activated your account yet. Please, check your inbox and confirm your account."
-            };
+                Error = LoginError.AccountNotFound
+            };  
         }
 
         var now = DateTime.UtcNow;
 
-        string sessionKey = GetRandomSessionKey();
+        string sessionKey = GetRandomString();
 
         var sessionPoco = new SessionPoco
         {
@@ -132,7 +141,8 @@ public class AuthenticationService
         return new LoginAttempt
         {
             Success = true,
-            SessionKey = sessionKey
+            SessionKey = sessionKey,
+            User = userPoco
         };
     }
 
@@ -171,7 +181,7 @@ public class AuthenticationService
         return userPoco == null;
     }
     
-    private static string GetRandomSessionKey()
+    private static string GetRandomString(int length = 40)
     {
         var builder = new StringBuilder();
 
@@ -179,11 +189,9 @@ public class AuthenticationService
 
         const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-        const int length = 40;
-
         for (int i = 0; i < length; i++)
         {
-            builder.Append(letters[random.Next(length)]);
+            builder.Append(letters[random.Next(letters.Length)]);
         }
 
         return builder.ToString();

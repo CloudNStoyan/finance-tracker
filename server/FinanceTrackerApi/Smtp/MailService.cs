@@ -40,7 +40,7 @@ public class MailService
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress("Finance Tracker", "no-reply@financetracker.xyz"));
         message.To.Add(new MailboxAddress("", emailAddress));
-        message.Subject = "Welcome to Finance Tracker";
+        message.Subject = "Verify your Finance Tracker account.";
 
         message.Body = new TextPart("html")
         {

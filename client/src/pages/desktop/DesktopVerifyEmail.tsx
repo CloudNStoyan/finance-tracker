@@ -1,8 +1,9 @@
 import { Button, CircularProgress, TextField } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
-import useQuery from "../../infrastructure/useQuery";
-import { verifyEmail } from "../../server-api";
+import { resendVerificationEmail, verifyEmail } from "../../server-api";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import { setNotification } from "../../state/notificationSlice";
 import DesktopVerifyEmailStyled from "../styles/desktop/DesktopVerifyEmail.styled";
 
 const DesktopVerifyEmail = () => {
@@ -10,16 +11,15 @@ const DesktopVerifyEmail = () => {
   const [verifyToken, setVerifyToken] = useState("");
   const [verifyError, setVerifyError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const query = useQuery();
-
-  const email = query.get("email");
-
-  useEffect(() => {
-    const initialVerifyToken = query.get("token");
-
-    setVerifyToken(initialVerifyToken);
-  }, [query]);
+  const [validationError, setValidationError] = useState(false);
+  const { user, verificationToken } = useAppSelector(
+    (state) => state.authReducer
+  );
+  const dispatch = useAppDispatch();
+  const [resendDisabled, setResendDisabled] = useState(false);
+  const [recaptchaInstanceKey, setRecaptchaInstanceKey] = useState(
+    new Date().getTime()
+  );
 
   const onRecaptchaSolve = useCallback(
     (token: string) => {
@@ -34,6 +34,17 @@ const DesktopVerifyEmail = () => {
 
   const initAccountVerification = async () => {
     if (!recaptchaToken || recaptchaToken.length === 0) {
+      dispatch(
+        setNotification({
+          message: "Please solve the captcha!",
+          color: "error",
+        })
+      );
+      return;
+    }
+
+    if (!verifyToken || verifyToken.trim().length < 6) {
+      setValidationError(true);
       return;
     }
 
@@ -41,6 +52,8 @@ const DesktopVerifyEmail = () => {
     setVerifyError(null);
 
     const response = await verifyEmail(verifyToken, recaptchaToken);
+
+    setRecaptchaInstanceKey(new Date().getTime());
 
     setLoading(false);
 
@@ -51,39 +64,79 @@ const DesktopVerifyEmail = () => {
     setVerifyError(response.error);
   };
 
+  const initResendCode = async () => {
+    if (!recaptchaToken || recaptchaToken.length === 0) {
+      dispatch(
+        setNotification({
+          message: "Please solve the captcha!",
+          color: "error",
+        })
+      );
+      return;
+    }
+
+    setLoading(true);
+    setVerifyError(null);
+
+    setResendDisabled(true);
+
+    await resendVerificationEmail(recaptchaToken);
+
+    setRecaptchaInstanceKey(new Date().getTime());
+
+    setLoading(false);
+
+    dispatch(
+      setNotification({ message: "A new email was sent.", color: "success" })
+    );
+  };
+
+  useEffect(() => {
+    if (!verificationToken) {
+      return;
+    }
+
+    setVerifyToken(verificationToken);
+  }, [verificationToken]);
+
   return (
     <DesktopVerifyEmailStyled>
       {loading && <CircularProgress className="loading-circle" />}
+      <div></div>
       <form
-        className={`rounded px-8 pt-6 pb-8 w-fit ${
-          loading ? "opacity-50" : ""
-        }`}
+        className={`rounded px-8 pt-6 pb-8 w-fit ${loading ? "loading" : ""}`}
       >
-        <h1>Finance Tracker</h1>
-        <h2>Account verification</h2>
+        <h1>Account verification</h1>
         <p>An email with a verification code was just sent to</p>
-        <p>{email}</p>
+        <p>{user.email}</p>
         <div className="w-full flex justify-center mt-2">
           <TextField
             className="text-white"
             variant="outlined"
             value={verifyToken}
+            error={validationError}
+            helperText={validationError ? "Verification code is required." : ""}
             onChange={(e) => {
               setVerifyToken(e.target.value);
               setVerifyError(null);
+              setValidationError(false);
             }}
             onBlur={(e) => {
               setVerifyToken(e.target.value);
               setVerifyError(null);
+              setValidationError(false);
             }}
             inputProps={{
               maxLength: 6,
             }}
             disabled={loading}
-            placeholder="******"
+            placeholder="......"
+            color={verifyToken.trim().length < 6 ? "primary" : "success"}
+            focused={verifyToken.trim().length === 6}
           />
         </div>
         <RecaptchaCheckbox
+          key={recaptchaInstanceKey}
           onSolve={onRecaptchaSolve}
           onExpired={onRecaptchaExpired}
         />
@@ -99,6 +152,19 @@ const DesktopVerifyEmail = () => {
             color="primary"
           >
             Verify
+          </Button>
+        </div>
+        <div className="flex flex-col items-center justify-between mt-2">
+          <p className="mb-2">Didn&apos;t recieve email?</p>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              void initResendCode();
+            }}
+            className="w-full"
+            disabled={resendDisabled || loading}
+          >
+            Request another one
           </Button>
         </div>
         {verifyError && (

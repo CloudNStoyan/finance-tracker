@@ -5,15 +5,15 @@ import { IconKey } from "./infrastructure/Icons";
 const SERVER_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:5010";
 
-export interface SessionData {
+export interface ServerError<ErrorType = string> {
   status: number;
-  sessionKey: string;
+  error: ErrorType;
 }
 
-export interface ServerError {
-  status: number;
-  error: string;
-}
+export type AuthError =
+  | "AccountNotFound"
+  | "AccountNotActivated"
+  | "GeneralError";
 
 export interface Category {
   categoryId?: number;
@@ -42,6 +42,12 @@ export interface TransactionEvent {
 
 export interface User {
   email: string;
+  activated: boolean;
+}
+
+export interface LoginResponse {
+  user: User;
+  sessionKey: string;
 }
 
 export interface Balance {
@@ -80,7 +86,9 @@ export const login = async (
     credentials: "include",
   });
 
-  const data = (await response.json()) as SessionData | ServerError;
+  const data = (await response.json()) as
+    | LoginResponse
+    | ServerError<AuthError>;
 
   return data;
 };
@@ -102,6 +110,18 @@ export const verifyEmail = async (
   const data = (await response.json()) as ServerError;
 
   return data;
+};
+
+export const resendVerificationEmail = async (recaptchaToken: string) => {
+  await fetch(`${SERVER_URL}/auth/resend-email`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ recaptchaToken }),
+    method: "POST",
+    credentials: "include",
+  });
 };
 
 export const getMe = async () => {

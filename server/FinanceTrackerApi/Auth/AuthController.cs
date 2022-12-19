@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
 
         var user = await this.AuthenticationService.GetUserById(session.UserId!.Value);
 
-        return this.Ok(new MeDTO { Email = user.Email });
+        return this.Ok(new MeDTO { Email = user.Email, Activated = user.Activated });
     }
 
     [HttpPost("/auth/register")]
@@ -82,11 +82,27 @@ public class AuthController : ControllerBase
             return this.BadRequest();
         }
 
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession)
+        {
+            return this.BadRequest();
+        }
+
+        var userPoco = await this.AuthenticationService.GetUserById(session.UserId!.Value);
+
+        if (userPoco!.Activated)
+        {
+            return this.BadRequest();
+        }
+
         bool captchaIsValid = await this.ReCaptchaService.VerifyToken(verifyAccount.ReCaptchaToken!);
 
         if (!captchaIsValid)
         {
-            return this.BadRequest(new { status = 400, error = "Captcha Failed" });
+            return this.BadRequest(new { status = 400, error = "CaptchaFailed" });
         }
 
         var verifyUserPoco = await this.AuthenticationService.GetVerifyUserByToken(verifyAccount.VerifyToken);
@@ -95,10 +111,45 @@ public class AuthController : ControllerBase
 
         if (verifyUserPoco == null || verifyUserPoco.Consumed || verifyUserPoco.ExpirationDate <= now)
         {
-            return this.BadRequest(new {status = 400, error = "Expired token"});
+            return this.BadRequest(new {status = 400, error = "ExpiredToken"});
         }
 
-        await this.AuthenticationService.ActivateAccount(verifyUserPoco.UserId);
+        await this.AuthenticationService.ActivateAccount(verifyUserPoco.UserId, verifyAccount.VerifyToken);
+
+        return this.Ok();
+    }
+
+    [HttpPost("/auth/resend-email")]
+    public async Task<ActionResult> ResendEmail([FromBody] ResendEmailDTO resendEmail)
+    {
+        var validatorResult = CustomValidator.Validate(resendEmail);
+
+        if (!validatorResult.IsValid)
+        {
+            return this.BadRequest();
+        }
+
+        bool captchaIsValid = await this.ReCaptchaService.VerifyToken(resendEmail.RecaptchaToken!);
+
+        if (!captchaIsValid)
+        {
+            return this.BadRequest(new { status = 400, error = "CaptchaFailed" });
+        }
+
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession)
+        {
+            return this.BadRequest();
+        }
+
+        var user = await this.AuthenticationService.GetUserById(session.UserId!.Value);
+
+        string verifyToken = await this.AuthenticationService.CreateVerifyToken(user.UserId);
+
+        await this.MailService.SendConfirmRegistrationEmail(user.Email!.ToLower(), verifyToken);
 
         return this.Ok();
     }
@@ -117,17 +168,17 @@ public class AuthController : ControllerBase
 
         if (!captchaIsValid)
         {
-            return this.BadRequest(new { status = 400, error = "Captcha Failed" });
+            return this.BadRequest(new { status = 400, error = "CaptchaFailed" });
         }
 
         var loginAttempt = await this.AuthenticationService.Login(credentials);
 
         if (!loginAttempt.Success)
         {
-            return this.Unauthorized(new { status = 400, error = loginAttempt.Error });
+            return this.Unauthorized(new { status = 400, error = loginAttempt.Error.ToString() });
         }
 
-        return this.Ok(new {status = 200, sessionKey = loginAttempt.SessionKey});
+        return this.Ok(new {user = new MeDTO { Activated = loginAttempt.User!.Activated, Email = loginAttempt.User.Email }, sessionKey = loginAttempt.SessionKey});
     }
 
     [HttpPost("/auth/logout")]

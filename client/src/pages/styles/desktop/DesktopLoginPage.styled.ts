@@ -53,6 +53,10 @@ const DesktopLoginPageStyled = styled.div`
     position: absolute;
     z-index: 1;
   }
+
+  .human-error {
+    max-width: 300px;
+  }
 `;
 
 export default DesktopLoginPageStyled;
