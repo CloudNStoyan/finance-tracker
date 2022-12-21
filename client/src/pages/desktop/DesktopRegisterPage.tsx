@@ -169,7 +169,14 @@ const DesktopRegisterPage = () => {
                     <InputAdornment position="end">
                       <IconButton
                         size="small"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onTouchStart={() => setShowPassword(true)}
+                        onMouseDown={() => setShowPassword(true)}
+                        onTouchEnd={() => setShowPassword(false)}
+                        onTouchCancel={() => setShowPassword(false)}
+                        onTouchMove={() => setShowPassword(false)}
+                        onMouseUp={() => setShowPassword(false)}
+                        onMouseLeave={() => setShowPassword(false)}
+                        title={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
