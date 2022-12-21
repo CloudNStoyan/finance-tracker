@@ -1,14 +1,14 @@
 import { AlertColor } from "@mui/material";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type Notification = {
+export interface Notification {
   message: string;
   color: AlertColor;
-};
+}
 
-export type NotificationState = {
+export interface NotificationState {
   notification: Notification;
-};
+}
 
 const initialState: NotificationState = {
   notification: null,

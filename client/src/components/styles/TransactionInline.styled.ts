@@ -1,8 +1,8 @@
 import { styled } from "../../infrastructure/ThemeManager";
 
-export type TransactionInlineStyledProps = {
+export interface TransactionInlineStyledProps {
   bgColor: string;
-};
+}
 
 const TransactionInlineStyled = styled.button<TransactionInlineStyledProps>`
   background-color: ${({ bgColor }) => bgColor};

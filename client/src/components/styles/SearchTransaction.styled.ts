@@ -1,8 +1,8 @@
 import { styled } from "../../infrastructure/ThemeManager";
 
-export type SearchTransactionStyledProps = {
+export interface SearchTransactionStyledProps {
   bgColor: string;
-};
+}
 
 const SearchTransactionStyled = styled.button<SearchTransactionStyledProps>`
   background-color: ${({ bgColor }) => bgColor};

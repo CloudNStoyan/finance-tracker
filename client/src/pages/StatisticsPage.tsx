@@ -31,7 +31,9 @@ import { differenceInWeeks, lastDayOfMonth } from "date-fns/esm";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
-export type CategoryData = { [name: string]: number };
+export interface CategoryData {
+  [name: string]: number;
+}
 
 const GenerateChartDataset = (data: CategoryData, categories: Category[]) => {
   if (!data || Object.keys(data).length === 0) {

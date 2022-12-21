@@ -3,13 +3,13 @@ import { FunctionComponent } from "react";
 import Icons, { IconKey } from "../infrastructure/Icons";
 import IconComponentStyled from "./styles/IconComponent.styled";
 
-export type IconComponentProps = {
+export interface IconComponentProps {
   iconKey: IconKey;
   idx: number;
   onClick: (iconKey: IconKey, idx: number) => void;
   selected: boolean;
   disabled?: boolean;
-};
+}
 
 const IconComponent: FunctionComponent<IconComponentProps> = ({
   iconKey,

@@ -4,9 +4,9 @@ import { createTheme, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { useAppSelector } from "../state/hooks";
 import ThemesComponentStyled from "./styles/ThemesComponent.styled";
 
-export type ThemesComponentProps = {
+export interface ThemesComponentProps {
   children: ReactNode[] | ReactNode;
-};
+}
 
 const ThemesComponent: FunctionComponent<ThemesComponentProps> = ({
   children,

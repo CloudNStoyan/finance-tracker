@@ -1,10 +1,10 @@
 import { styled } from "../../infrastructure/ThemeManager";
 
-export type ColorStyledProps = {
+export interface ColorStyledProps {
   bgColor: string;
   textColor?: string;
   spinning: boolean;
-};
+}
 
 const ColorComponentStyled = styled.div<ColorStyledProps>`
   ${({ spinning }) =>

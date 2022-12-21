@@ -7,12 +7,12 @@ import {
 } from "../server-api";
 import { logoutUser } from "./authSlice";
 
-export type CategoriesState = {
+export interface CategoriesState {
   categories: Category[];
   status: "loading" | "succeeded" | "failed" | "idle";
   addOrEditStatus: "loading" | "succeeded" | "failed" | "idle";
   error: string;
-};
+}
 
 const initialState: CategoriesState = {
   categories: [],

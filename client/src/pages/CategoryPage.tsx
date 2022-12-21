@@ -18,7 +18,9 @@ import {
 import DeleteDialog from "../components/DeleteDialog";
 import { COLORS, INITIAL_COLOR_INDEX } from "../infrastructure/CategoryColors";
 
-export type UseParamsCategoryType = { categoryId: number };
+export interface UseParamsCategoryType {
+  categoryId: number;
+}
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {

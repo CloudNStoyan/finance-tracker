@@ -5,10 +5,10 @@ import Icons from "../infrastructure/Icons";
 import { Category, Transaction } from "../server-api";
 import SearchTransactionStyled from "./styles/SearchTransaction.styled";
 
-export type SearchTransactionProps = {
+export interface SearchTransactionProps {
   transaction: Transaction;
   category: Category;
-};
+}
 
 const SearchTransaction: FunctionComponent<SearchTransactionProps> = ({
   transaction,

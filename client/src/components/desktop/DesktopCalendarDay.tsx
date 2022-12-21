@@ -18,14 +18,14 @@ import DesktopCalendarTransaction from "./DesktopCalendarTransaction";
 import { IconButton } from "@mui/material";
 import { Add } from "@mui/icons-material";
 
-export type DesktopCalendarDayProps = {
+export interface DesktopCalendarDayProps {
   date: Date;
   month: number;
   isToday: boolean;
   onClick: (date: Date) => void;
   onTransactionClick: (transaction: Transaction) => void;
   searchInputValue?: string;
-};
+}
 
 const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   date,

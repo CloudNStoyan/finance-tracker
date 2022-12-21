@@ -7,12 +7,12 @@ import {
 import { useAppSelector } from "../state/hooks";
 import CalendarDayStyled from "./styles/CalendarDay.styled";
 
-export type CalendarDayProps = {
+export interface CalendarDayProps {
   date: Date;
   month: number;
   isToday: boolean;
   onClick: (date: Date) => void;
-};
+}
 
 const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   date,

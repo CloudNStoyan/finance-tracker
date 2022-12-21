@@ -18,7 +18,9 @@ import { fetchTransactionsByRange } from "../../state/transactionSlice";
 import { fromUnixTimeMs } from "../../infrastructure/CustomDateUtils";
 import { fetchCategories } from "../../state/categorySlice";
 
-export type CategoryData = { [name: string]: number };
+export interface CategoryData {
+  [name: string]: number;
+}
 
 const GenerateChartDataset = (data: CategoryData, categories: Category[]) => {
   if (!data) {

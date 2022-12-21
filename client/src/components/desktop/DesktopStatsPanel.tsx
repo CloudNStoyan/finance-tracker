@@ -12,12 +12,12 @@ import { Transaction } from "../../server-api";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
-export type DesktopStatsPanelProps = {
+export interface DesktopStatsPanelProps {
   chartType: "income" | "expense";
   chartData: ChartData<"doughnut">;
   categoryData: CategoryData;
   allTransactions: Transaction[];
-};
+}
 
 const DesktopStatsPanel: FunctionComponent<DesktopStatsPanelProps> = ({
   chartData,

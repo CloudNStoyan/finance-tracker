@@ -1,9 +1,9 @@
 import { styled } from "../../../infrastructure/ThemeManager";
 
-export type DesktopCategoryModalStyledProps = {
+export interface DesktopCategoryModalStyledProps {
   categoryColor: string;
   isLoading: boolean;
-};
+}
 
 const DesktopCategoryModalStyled = styled.div<DesktopCategoryModalStyledProps>`
   ${({ isLoading }) =>

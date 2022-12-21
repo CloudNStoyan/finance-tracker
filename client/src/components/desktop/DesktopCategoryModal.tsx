@@ -20,10 +20,10 @@ import {
 } from "../../infrastructure/CategoryColors";
 import LoadingCircleAnimation from "../LoadingCircleAnimation";
 
-export type DesktopCategoryModalProps = {
+export interface DesktopCategoryModalProps {
   category?: Category;
   onClose: () => void;
-};
+}
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {

@@ -5,10 +5,10 @@ import { IconButton } from "@mui/material";
 import CategoryInlineComponentStyled from ".././styles/CategoryInlineComponent.styled";
 import EditIcon from "@mui/icons-material/Edit";
 
-export type DesktopCategoryInlineComponentProps = {
+export interface DesktopCategoryInlineComponentProps {
   category: Category;
   onSelected: (cat: Category) => void;
-};
+}
 
 const DesktopCategoryInlineComponent: FunctionComponent<
   DesktopCategoryInlineComponentProps

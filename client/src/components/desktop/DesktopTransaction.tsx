@@ -50,11 +50,11 @@ import RepeatTransactionDialog, {
 import DeleteTransactionDialog from "../DeleteDialog";
 import LoadingCircleAnimation from "../LoadingCircleAnimation";
 
-export type DesktopTransactionProps = {
+export interface DesktopTransactionProps {
   open: boolean;
   onClose: () => void;
   transaction?: Transaction;
-};
+}
 
 export type ModalType =
   | "transaction"

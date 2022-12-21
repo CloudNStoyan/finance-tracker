@@ -3,11 +3,11 @@ import { Button, IconButton } from "@mui/material";
 import { FunctionComponent, useState } from "react";
 import DesktopDescriptionModalStyled from "../styles/desktop/DesktopDescriptionModal.styled";
 
-export type DesktopDescriptionModalProps = {
+export interface DesktopDescriptionModalProps {
   onClose: () => void;
   onDone: (descrp: string) => void;
   description: string;
-};
+}
 
 const DesktopDescriptionModal: FunctionComponent<
   DesktopDescriptionModalProps

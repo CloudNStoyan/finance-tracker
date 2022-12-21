@@ -2,11 +2,11 @@ import { FunctionComponent } from "react";
 import { Category, Transaction } from "../../server-api";
 import DesktopCalendarTransactionStyled from "../styles/desktop/DesktopCalendarTransaction.styled";
 
-export type DesktopCalendarTransactionProps = {
+export interface DesktopCalendarTransactionProps {
   transaction: Transaction;
   category: Category;
   onClick: () => void;
-};
+}
 
 const DesktopCalendarTransaction: FunctionComponent<
   DesktopCalendarTransactionProps

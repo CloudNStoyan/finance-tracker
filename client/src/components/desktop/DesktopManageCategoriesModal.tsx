@@ -6,11 +6,11 @@ import { useAppSelector } from "../../state/hooks";
 import DesktopManageCategoriesStlyed from "../styles/desktop/DesktopManageCategories.styled";
 import DesktopCategoryInlineComponent from "./DesktopCategoryInline";
 
-export type DesktopManageCategoriesModalProps = {
+export interface DesktopManageCategoriesModalProps {
   onClose: () => void;
   selectedCat: (cat: Category) => void;
   onAddCategory: () => void;
-};
+}
 
 const DesktopManageCategoriesModal: FunctionComponent<
   DesktopManageCategoriesModalProps

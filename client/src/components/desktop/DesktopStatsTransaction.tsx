@@ -7,11 +7,11 @@ import { Category, Transaction } from "../../server-api";
 import { useAppSelector } from "../../state/hooks";
 import DesktopStatsTransactionStyled from "../styles/desktop/DesktopStatsTransaction.styled";
 
-export type DesktopStatsTransactionProps = {
+export interface DesktopStatsTransactionProps {
   transaction: Transaction;
   category: Category;
   selectedCatId: (catId: number) => void;
-};
+}
 
 const CustomButton = styled(Button)<{ props: { hoverColor: string } }>(
   ({ props }) => ({

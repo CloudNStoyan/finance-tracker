@@ -12,7 +12,7 @@ import bgStepsSecondary from "../assets/bg-steps-secondary.svg";
 
 import { purple } from "@mui/material/colors";
 
-export type StyledTheme = {
+export interface StyledTheme {
   svgs: {
     bottomWaves: string;
     bottomWavesFlipped: string;
@@ -25,7 +25,7 @@ export type StyledTheme = {
     topbarBg: string;
     scrollBar: string;
   };
-};
+}
 
 export const styled = baseStyled as ThemedStyledInterface<StyledTheme>;
 

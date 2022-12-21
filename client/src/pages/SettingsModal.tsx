@@ -21,9 +21,9 @@ import { useNavigate } from "react-router-dom";
 import { setFirstDayOfTheMonth } from "../state/calendarSlice";
 import { setNotification } from "../state/notificationSlice";
 
-export type SettingsModalProps = {
+export interface SettingsModalProps {
   onClose: () => void;
-};
+}
 
 const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();

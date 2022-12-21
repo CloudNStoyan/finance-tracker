@@ -20,13 +20,13 @@ export const RepeatTransactionDialogOptions: OptionType[] = [
   },
 ];
 
-export type OptionType = {
+export interface OptionType {
   title: string;
   content: string;
-  value: "onlyThis" | "thisAndForward";
-};
+  value: OptionValue;
+}
 
-export type OptionValue = OptionType["value"];
+export type OptionValue = "onlyThis" | "thisAndForward";
 
 export interface RepeatTransactionDialogProps {
   open: boolean;

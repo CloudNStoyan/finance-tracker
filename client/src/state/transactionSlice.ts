@@ -11,13 +11,13 @@ import {
 } from "../server-api";
 import { logoutUser } from "./authSlice";
 
-export type TransactionState = {
+export interface TransactionState {
   transactions: Transaction[];
   completedTansactionQueries: string[];
   fetchingStatus: "idle" | "loading";
   addOrEditTransactionStatus: "idle" | "loading" | "failed" | "success";
   deleteTransactionStatus: "idle" | "loading" | "failed" | "success";
-};
+}
 
 const initialState: TransactionState = {
   transactions: [],

@@ -8,12 +8,12 @@ import DefaultCategory from "../../state/DefaultCategory";
 import Icons from "../../infrastructure/Icons";
 import { useAppSelector } from "../../state/hooks";
 
-export type DesktopPickCategoriesModalProps = {
+export interface DesktopPickCategoriesModalProps {
   onClose: () => void;
   setCategory: (cat: Category) => void;
   onSettings: () => void;
   onAddCategory: () => void;
-};
+}
 
 const DesktopPickCategoriesModal: FunctionComponent<
   DesktopPickCategoriesModalProps

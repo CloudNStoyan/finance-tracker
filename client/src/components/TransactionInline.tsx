@@ -10,10 +10,10 @@ import { Category, Transaction } from "../server-api";
 import { useAppSelector } from "../state/hooks";
 import TransactionInlineStyled from "./styles/TransactionInline.styled";
 
-export type TransactionInlineProps = {
+export interface TransactionInlineProps {
   transaction: Transaction;
   category: Category;
-};
+}
 
 const TransactionInline: FunctionComponent<TransactionInlineProps> = ({
   transaction,

@@ -1,14 +1,14 @@
 import { FunctionComponent } from "react";
 import ColorComponentStyled from "./styles/ColorComponent.styled";
 
-export type ColorProps = {
+export interface ColorProps {
   bgColor: string;
   textColor?: string;
   idx: number;
   onClick: (bgColor: string, idx: number) => void;
   selected: boolean;
   disabled?: boolean;
-};
+}
 
 const ColorComponent: FunctionComponent<ColorProps> = ({
   bgColor,

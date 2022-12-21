@@ -2,9 +2,9 @@ import { FunctionComponent, ReactNode } from "react";
 import { useAppSelector } from "../state/hooks";
 import LoadingStyled from "./styles/Loading.styled";
 
-export type LoadingProps = {
+export interface LoadingProps {
   children: ReactNode | ReactNode[];
-};
+}
 
 const Loading: FunctionComponent<LoadingProps> = ({ children }) => {
   const isLoading = useAppSelector((state) => state.mainReducer.isLoading);

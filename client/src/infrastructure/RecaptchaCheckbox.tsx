@@ -10,15 +10,15 @@ declare global {
   }
 }
 
-export type Grecaptcha = {
+export interface Grecaptcha {
   ready: (callback: () => void) => void;
   render: (container?: HTMLElement, config?: RecaptchaConfig) => number;
   reset: (id?: number) => void;
   execute: (id?: number) => void;
   getResponse: (id?: number) => string;
-};
+}
 
-type RecaptchaBaseConfig = {
+interface RecaptchaBaseConfig {
   sitekey: string;
   theme?: "light" | "dark";
   size?: "compact" | "normal" | "invisible";
@@ -26,7 +26,7 @@ type RecaptchaBaseConfig = {
   tabindex?: number;
   hl?: string;
   isolated?: boolean;
-};
+}
 
 type RecaptchaConfig = RecaptchaBaseConfig & {
   callback?: (response: string) => void;
@@ -34,12 +34,12 @@ type RecaptchaConfig = RecaptchaBaseConfig & {
   "error-callback"?: () => void;
 };
 
-type RecaptchaCheckboxProps = {
+interface RecaptchaCheckboxProps {
   onSolve: (token: string) => void;
   onExpired?: () => void;
   onError?: () => void;
   compact?: boolean;
-};
+}
 
 const DoesRecaptchaClientExists = () => {
   // recaptcha doesn't have a built-in way to check if the client is initialized so this exists.

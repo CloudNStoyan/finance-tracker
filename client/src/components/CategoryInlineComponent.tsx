@@ -6,9 +6,9 @@ import CategoryInlineComponentStyled from "./styles/CategoryInlineComponent.styl
 import EditIcon from "@mui/icons-material/Edit";
 import { useNavigate } from "react-router-dom";
 
-export type CategoryInlineComponentProps = {
+export interface CategoryInlineComponentProps {
   category: Category;
-};
+}
 
 const CategoryInlineComponent: FunctionComponent<
   CategoryInlineComponentProps

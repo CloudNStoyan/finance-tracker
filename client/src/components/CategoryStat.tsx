@@ -4,11 +4,11 @@ import CategoryStatStyled from "./styles/CategoryStat.styled";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import { useAppSelector } from "../state/hooks";
 
-export type CategoryStatProps = {
+export interface CategoryStatProps {
   percentage: string;
   total: number;
   category: Category;
-};
+}
 
 const CategoryStat: FunctionComponent<CategoryStatProps> = ({
   category,

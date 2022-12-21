@@ -9,13 +9,13 @@ import {
   User,
 } from "../server-api";
 
-export type AuthCredentials = {
+export interface AuthCredentials {
   email: string;
   password: string;
   recaptchaToken: string;
-};
+}
 
-export type AuthState = {
+export interface AuthState {
   isLoggedIn: boolean;
   user?: User;
   status: "loading" | "succeeded" | "failed" | "idle";
@@ -23,7 +23,7 @@ export type AuthState = {
   sessionKey: string;
   checkedSession: boolean;
   verificationToken: string;
-};
+}
 
 const initialState: AuthState = {
   isLoggedIn: false,

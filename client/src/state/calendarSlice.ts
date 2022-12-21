@@ -16,11 +16,11 @@ import {
 import { getStartBalanceByMonth, Balance } from "../server-api";
 import { logoutUser } from "./authSlice";
 
-export type StartBalanceCache = {
+export interface StartBalanceCache {
   [cacheKey: string]: number;
-};
+}
 
-export type CalendarState = {
+export interface CalendarState {
   days: number[];
   now: number;
   selected: number;
@@ -29,7 +29,7 @@ export type CalendarState = {
   searchValue: string;
   fetchingStatus: "idle" | "loading" | "succeeded";
   firstDayOfTheMonth: "monday" | "sunday";
-};
+}
 
 const getFirstDayOfTheMonthPreference = () => {
   const preference = localStorage.getItem("first_day_of_month_preference");

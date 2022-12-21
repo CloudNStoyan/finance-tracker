@@ -1,9 +1,9 @@
 import { styled } from "../../../infrastructure/ThemeManager";
 
-export type DesktopStatsTransactionStyledProps = {
+export interface DesktopStatsTransactionStyledProps {
   bgColor: string;
   isDarkMode: boolean;
-};
+}
 
 const DesktopStatsTransactionStyled = styled.div<DesktopStatsTransactionStyledProps>`
   animation: custom-scale-0-1 0.25s;

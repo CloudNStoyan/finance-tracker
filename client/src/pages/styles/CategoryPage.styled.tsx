@@ -1,8 +1,8 @@
 import { styled } from "../../infrastructure/ThemeManager";
 
-export type CategoryPageStyledProps = {
+export interface CategoryPageStyledProps {
   categoryColor: string;
-};
+}
 
 const CategoryPageStyled = styled.div<CategoryPageStyledProps>`
   .fields {
