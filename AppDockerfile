@@ -4,6 +4,10 @@ WORKDIR /app/client
 COPY ./client /app/client/
 RUN npm install
 
+ARG Recaptcha_Site_Key
+
+ENV Recaptcha_Site_Key=${Recaptcha_Site_Key}
+
 RUN ["npm", "run", "build"]
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS server-build

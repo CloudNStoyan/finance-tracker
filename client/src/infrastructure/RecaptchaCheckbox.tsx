@@ -2,7 +2,7 @@ import { Button } from "@mui/material";
 import { FunctionComponent, useCallback, useEffect, useRef } from "react";
 import { useAppSelector } from "../state/hooks";
 
-const RECAPTCHA_SITE_KEY = "6LdaF38jAAAAANwP7FO0MvHdTIGrKfXSjksWDM_z";
+const RECAPTCHA_SITE_KEY = process.env.Recaptcha_Site_Key;
 
 declare global {
   interface Window {

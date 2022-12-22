@@ -22,3 +22,9 @@ POSTGRES_DB=dbName
 # These here you don't change (they are configured in mind of docker-compose.yml volumes)
 PGDATA=/var/lib/postgresql/data/pgdata
 ```
+
+Template for .env
+```env
+Recaptcha_Site_Key=YourRecaptchaSiteKey
+App_Port=ThePortOfTheApp
+```

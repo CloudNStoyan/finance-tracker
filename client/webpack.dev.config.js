@@ -65,6 +65,9 @@ module.exports = {
     }),
     new DefinePlugin({
       "process.env.NODE_ENV": JSON.stringify("development"),
+      "process.env.Recaptcha_Site_Key": JSON.stringify(
+        "6LdaF38jAAAAANwP7FO0MvHdTIGrKfXSjksWDM_z"
+      ),
     }),
   ],
 };

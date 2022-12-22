@@ -65,6 +65,9 @@ module.exports = {
     }),
     new DefinePlugin({
       "process.env.NODE_ENV": JSON.stringify("production"),
+      "process.env.Recaptcha_Site_Key": JSON.stringify(
+        process.env.Recaptcha_Site_Key
+      ),
     }),
   ],
   target: "browserslist",
