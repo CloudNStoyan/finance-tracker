@@ -4,17 +4,26 @@
 public class CookieService
 {
     private IHttpContextAccessor ContextAccessor { get; }
-
+    private HttpResponse Response => this.ContextAccessor.HttpContext.Response;
     private HttpRequest Request => this.ContextAccessor.HttpContext.Request;
 
     public CookieService(IHttpContextAccessor contextAccessor)
     {
         this.ContextAccessor = contextAccessor;
     }
+    public void SetCookie(string key, string value)
+    {
+        this.Response.Cookies.Append(key, value, new CookieOptions{HttpOnly = true});
+    }
 
-    public string GetCookie(string key)
+    public string? GetCookie(string key)
     {
         return this.Request.Cookies[key];
+    }
+
+    public void RemoveCookie(string key)
+    {
+        this.Response.Cookies.Delete(key);
     }
 }
 
@@ -30,8 +39,18 @@ public class SessionCookieService
         this.CookieService = cookieService;
     }
 
-    public string GetSessionKey()
+    public void SetSessionKey(string sessionKey)
+    {
+        this.CookieService.SetCookie(CookieKey, sessionKey);
+    }
+
+    public string? GetSessionKey()
     {
         return this.CookieService.GetCookie(CookieKey);
+    }
+
+    public void RemoveSessionKey()
+    {
+        this.CookieService.RemoveCookie(CookieKey);
     }
 }

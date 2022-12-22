@@ -13,14 +13,16 @@ public class AuthController : ControllerBase
     private ReCaptchaService ReCaptchaService { get; }
     private SessionService SessionService { get; }
     private MailService MailService { get; }
+    private SessionCookieService SessionCookieService { get; }
 
     public AuthController(AuthenticationService authenticationService, ReCaptchaService reCaptchaService,
-        SessionService sessionService, MailService mailService)
+        SessionService sessionService, MailService mailService, SessionCookieService sessionCookieService)
     {
         this.AuthenticationService = authenticationService;
         this.ReCaptchaService = reCaptchaService;
         this.SessionService = sessionService;
         this.MailService = mailService;
+        this.SessionCookieService = sessionCookieService;
     }
 
     [HttpGet("/auth/me")]
@@ -178,13 +180,25 @@ public class AuthController : ControllerBase
             return this.Unauthorized(new { status = 400, error = loginAttempt.Error.ToString() });
         }
 
-        return this.Ok(new {user = new MeDTO { Activated = loginAttempt.User!.Activated, Email = loginAttempt.User.Email }, sessionKey = loginAttempt.SessionKey});
+        this.SessionCookieService.SetSessionKey(loginAttempt.SessionKey!);
+        return this.Ok(new MeDTO { Activated = loginAttempt.User!.Activated, Email = loginAttempt.User.Email });
     }
 
     [HttpPost("/auth/logout")]
     public async Task<ActionResult> Logout()
     {
-        await this.AuthenticationService.Logout(this.SessionService.Session.SessionId);
+        var session = this.SessionService.Session;
+
+        bool isValidSession = session.IsLoggedIn && session.UserId.HasValue;
+
+        if (!isValidSession)
+        {
+            return this.BadRequest();
+        }
+
+        await this.AuthenticationService.Logout(session.SessionId);
+
+        this.SessionCookieService.RemoveSessionKey();
 
         return this.Ok();
     }

@@ -16,7 +16,7 @@ public class AuthMiddleware
         //await Task.Delay(2000);
         context.SetSession(new RequestSession());
 
-        string sessionKey = sessionCookieService.GetSessionKey();
+        string? sessionKey = sessionCookieService.GetSessionKey();
 
         if (string.IsNullOrWhiteSpace(sessionKey))
         {

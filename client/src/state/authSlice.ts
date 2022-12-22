@@ -3,7 +3,6 @@ import {
   AuthError,
   getMe,
   login,
-  LoginResponse,
   register,
   ServerError,
   User,
@@ -20,7 +19,6 @@ export interface AuthState {
   user?: User;
   status: "loading" | "succeeded" | "failed" | "idle";
   error: AuthError;
-  sessionKey: string;
   checkedSession: boolean;
   verificationToken: string;
 }
@@ -30,7 +28,6 @@ const initialState: AuthState = {
   user: null,
   status: "idle",
   error: null,
-  sessionKey: null,
   checkedSession: false,
   verificationToken: null,
 };
@@ -44,7 +41,7 @@ export const sendLogin = createAsyncThunk(
   "auth/sendLogin",
   async (
     loginCredentials: AuthCredentials
-  ): Promise<LoginResponse | ServerError<AuthError>> => {
+  ): Promise<User | ServerError<AuthError>> => {
     const httpResponse = await login(
       loginCredentials.email,
       loginCredentials.password,
@@ -104,15 +101,11 @@ const authSlice = createSlice({
     builder
       .addCase(
         sendLogin.fulfilled,
-        (
-          state,
-          action: PayloadAction<LoginResponse | ServerError<AuthError>>
-        ) => {
+        (state, action: PayloadAction<User | ServerError<AuthError>>) => {
           const data = action.payload;
 
-          if ("sessionKey" in data) {
-            state.user = data.user;
-            state.sessionKey = data.sessionKey;
+          if ("email" in data) {
+            state.user = data;
             state.status = "succeeded";
             state.isLoggedIn = true;
             state.error = null;

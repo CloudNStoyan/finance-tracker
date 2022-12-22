@@ -45,11 +45,6 @@ export interface User {
   activated: boolean;
 }
 
-export interface LoginResponse {
-  user: User;
-  sessionKey: string;
-}
-
 export interface Balance {
   balance: number;
 }
@@ -86,9 +81,7 @@ export const login = async (
     credentials: "include",
   });
 
-  const data = (await response.json()) as
-    | LoginResponse
-    | ServerError<AuthError>;
+  const data = (await response.json()) as User | ServerError<AuthError>;
 
   return data;
 };

@@ -25,9 +25,7 @@ const App = () => {
   const autenticationStatus = useAppSelector(
     (state) => state.authReducer.status
   );
-  const { isLoggedIn, sessionKey, user } = useAppSelector(
-    (state) => state.authReducer
-  );
+  const { isLoggedIn, user } = useAppSelector((state) => state.authReducer);
 
   const query = useQuery();
 
@@ -52,14 +50,6 @@ const App = () => {
 
     navigate("/");
   }, [isLoggedIn, autenticationStatus, navigate]);
-
-  useEffect(() => {
-    if (!sessionKey) {
-      return;
-    }
-
-    document.cookie = `__session__=${sessionKey}`;
-  }, [sessionKey]);
 
   if (!isLoggedIn) {
     return isDesktop ? <DesktopAuthRoutes /> : <MobileAuthRoutes />;
