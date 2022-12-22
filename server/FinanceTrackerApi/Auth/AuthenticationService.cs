@@ -60,7 +60,7 @@ public class AuthenticationService
     {
         var now = DateTime.Now;
 
-        string verifyToken = GetRandomString(6);
+        string verifyToken = GenerateRandomUnsecureString(6);
 
         var verifyUserPoco = new VerifyUserPoco
         {
@@ -125,7 +125,7 @@ public class AuthenticationService
 
         var now = DateTime.UtcNow;
 
-        string sessionKey = GetRandomString();
+        string sessionKey = GenerateRandomSecureString();
 
         var sessionPoco = new SessionPoco
         {
@@ -180,8 +180,14 @@ public class AuthenticationService
 
         return userPoco == null;
     }
-    
-    private static string GetRandomString(int length = 40)
+
+    private static string GenerateRandomSecureString()
+    {
+        byte[] randomBytes = RandomNumberGenerator.GetBytes(64);
+        return Convert.ToBase64String(randomBytes);
+    }
+
+    private static string GenerateRandomUnsecureString(int length)
     {
         var builder = new StringBuilder();
 
