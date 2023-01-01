@@ -77,18 +77,11 @@ public class AuthenticationService
 
     public async Task<string> Register(UserCredentialsDTO dto)
     {
-        byte[] passwordBytes = Encoding.ASCII.GetBytes(dto.Password!);
-
-        byte[] result;
-
-        using (var shaM = SHA512.Create())
-        {
-            result = shaM.ComputeHash(passwordBytes);
-        }
-
+        string passwordHash = BC.HashPassword(dto.Password!);
+        
         var userPoco = new UserPoco
         {
-            Password = result,
+            PasswordHash = passwordHash,
             Email = dto.Email!.ToLower()
         };
 
@@ -101,18 +94,9 @@ public class AuthenticationService
 
     public async Task<LoginAttempt> Login(UserCredentialsDTO dto)
     {
-        byte[] passwordBytes = Encoding.ASCII.GetBytes(dto.Password!);
-
-        byte[] hashedPassword;
-
-        using (var shaM = SHA512.Create())
-        {
-            hashedPassword = shaM.ComputeHash(passwordBytes);
-        }
-
         var userPoco = await this.Database.QueryOne<UserPoco>(
-            "SELECT * FROM user_accounts u WHERE u.email=@email AND u.password=@password;",
-            new NpgsqlParameter("email", dto.Email!), new NpgsqlParameter("password", hashedPassword));
+            "SELECT * FROM user_accounts u WHERE u.email=@email",
+            new NpgsqlParameter("email", dto.Email!));
 
         if (userPoco == null)
         {
@@ -121,6 +105,17 @@ public class AuthenticationService
                 Success = false,
                 Error = LoginError.AccountNotFound
             };  
+        }
+
+        bool passwordIsValid = BC.Verify(dto.Password, userPoco.PasswordHash);
+
+        if (!passwordIsValid)
+        {
+            return new LoginAttempt
+            {
+                Success = false,
+                Error = LoginError.AccountNotFound
+            };
         }
 
         var now = DateTime.UtcNow;

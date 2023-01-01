@@ -68,8 +68,8 @@ public class UserPoco
     [Column(Name = "email")]
     public string Email { get; set; }
 
-    [Column(Name = "password")]
-    public byte[] Password { get; set; }
+    [Column(Name = "password_hash")]
+    public string PasswordHash { get; set; }
 
     [Column(Name = "activated")]
     public bool Activated { get; set; }
