@@ -13,8 +13,7 @@ services:
     ports:
       - "$App_Port:80"
   db:
-    build:
-      dockerfile: DbDockerfile
+    image: postgres
     env_file:
       - postgres.env
     volumes:
