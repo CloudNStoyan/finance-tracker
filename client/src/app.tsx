@@ -1,4 +1,4 @@
-import { lazy, useEffect } from "react";
+import { lazy, useEffect, useRef } from "react";
 import axios from "axios";
 import { useMediaQuery } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "./state/hooks";
@@ -22,14 +22,32 @@ const App = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isDesktop = useMediaQuery("(min-width:1024px)");
+  const themeMetaRef = useRef<HTMLMetaElement>();
   const autenticationStatus = useAppSelector(
     (state) => state.authReducer.status
   );
   const { isLoggedIn, user } = useAppSelector((state) => state.authReducer);
 
+  const { colors } = useAppSelector((state) => state.themeReducer.styledTheme);
+
   const query = useQuery();
 
   const token = query.get("verification_token");
+
+  useEffect(() => {
+    if (!themeMetaRef.current) {
+      themeMetaRef.current = document.createElement("meta");
+      themeMetaRef.current.setAttribute("name", "theme-color");
+      document.head.appendChild(themeMetaRef.current);
+    }
+
+    themeMetaRef.current.setAttribute("content", colors.topbarBg);
+
+    return () => {
+      themeMetaRef.current.remove();
+      themeMetaRef.current = null;
+    };
+  }, [colors]);
 
   if (token) {
     dispatch(setVerificationToken(token));
