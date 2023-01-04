@@ -19,6 +19,7 @@ import { setNotification } from "../state/notificationSlice";
 import useAuth from "../components/useAuth";
 import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
 import { clearError } from "../state/authSlice";
+import { ValidateEmail } from "../infrastructure/Utils";
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -32,7 +33,7 @@ const LoginPage = () => {
   const { login, authError, authStatus } = useAuth();
 
   const validateFields = () => {
-    const emailIsValid = email.trim().length > 0;
+    const emailIsValid = ValidateEmail(email);
     setEmailError(!emailIsValid);
 
     const passwordIsValid = password.trim().length > 0;
@@ -111,14 +112,14 @@ const LoginPage = () => {
               variant="standard"
               value={email}
               error={emailError}
-              helperText={emailError ? "Email is required." : ""}
+              helperText={emailError ? "Valid email is required." : ""}
               type="email"
               onChange={(e) => {
-                setEmailError(e.target.value.trim().length === 0);
+                setEmailError(!ValidateEmail(e.target.value));
                 setEmail(e.target.value);
               }}
               onBlur={(e) => {
-                setEmailError(e.target.value.trim().length === 0);
+                setEmailError(!ValidateEmail(e.target.value));
                 setEmail(e.target.value);
               }}
             />

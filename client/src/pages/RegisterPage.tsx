@@ -22,6 +22,7 @@ import { setNotification } from "../state/notificationSlice";
 import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
 import PasswordHints from "../components/PasswordHints";
 import { clearError } from "../state/authSlice";
+import { ValidateEmail } from "../infrastructure/Utils";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -38,9 +39,9 @@ const RegisterPage = () => {
   const dispatch = useAppDispatch();
 
   const validateFields = () => {
-    const emailIsValid = email.trim().length >= 6;
+    const emailIsValid = ValidateEmail(email);
     if (!emailIsValid) {
-      setEmailError("Too short");
+      setEmailError("Invalid Email");
     }
 
     const passwordIsValid = score >= 2;
@@ -126,8 +127,8 @@ const RegisterPage = () => {
               error={emailError.length > 0}
               helperText={emailError}
               onChange={(e) => {
-                if (e.target.value.trim().length < 6) {
-                  setEmailError("Too short");
+                if (!ValidateEmail(e.target.value)) {
+                  setEmailError("Invalid Email");
                 } else {
                   setEmailError("");
                 }
@@ -135,8 +136,8 @@ const RegisterPage = () => {
                 setEmail(e.target.value);
               }}
               onBlur={(e) => {
-                if (e.target.value.trim().length < 6) {
-                  setEmailError("Too short");
+                if (!ValidateEmail(e.target.value)) {
+                  setEmailError("Invalid Email");
                 } else {
                   setEmailError("");
                 }

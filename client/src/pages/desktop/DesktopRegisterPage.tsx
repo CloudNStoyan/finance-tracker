@@ -22,6 +22,7 @@ import { useAppDispatch } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
 import PasswordHints from "../../components/PasswordHints";
 import { clearError } from "../../state/authSlice";
+import { ValidateEmail } from "../../infrastructure/Utils";
 
 const DesktopRegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -38,9 +39,9 @@ const DesktopRegisterPage = () => {
   const navigate = useNavigate();
 
   const validateFields = () => {
-    const emailIsValid = email.trim().length >= 6;
+    const emailIsValid = true; // ValidateEmail(email);
     if (!emailIsValid) {
-      setEmailError("Too short");
+      setEmailError("Invalid Email");
     }
 
     const passwordIsValid = score >= 2;
@@ -120,8 +121,8 @@ const DesktopRegisterPage = () => {
               error={emailError.length > 0}
               helperText={emailError}
               onChange={(e) => {
-                if (e.target.value.trim().length < 6) {
-                  setEmailError("Too short");
+                if (!ValidateEmail(e.target.value)) {
+                  setEmailError("Invalid Email");
                 } else {
                   setEmailError("");
                 }
@@ -129,8 +130,8 @@ const DesktopRegisterPage = () => {
                 setEmail(e.target.value);
               }}
               onBlur={(e) => {
-                if (e.target.value.trim().length < 6) {
-                  setEmailError("Too short");
+                if (!ValidateEmail(e.target.value)) {
+                  setEmailError("Invalid Email");
                 } else {
                   setEmailError("");
                 }

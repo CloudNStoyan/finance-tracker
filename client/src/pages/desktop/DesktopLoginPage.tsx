@@ -19,6 +19,7 @@ import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
 import { useAppDispatch } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
 import { clearError } from "../../state/authSlice";
+import { ValidateEmail } from "../../infrastructure/Utils";
 
 const ConvertServerErrorToHuman = (error: string) => {
   switch (error) {
@@ -48,7 +49,7 @@ const DesktopLoginPage = () => {
   );
 
   const validateFields = () => {
-    const emailIsValid = email.trim().length > 0;
+    const emailIsValid = ValidateEmail(email);
     setEmailError(!emailIsValid);
 
     const passwordIsValid = password.trim().length > 0;
@@ -141,13 +142,13 @@ const DesktopLoginPage = () => {
               value={email}
               error={emailError}
               type="email"
-              helperText={emailError ? "email is required." : ""}
+              helperText={emailError ? "Valid email is required." : ""}
               onChange={(e) => {
-                setEmailError(e.target.value.trim().length === 0);
+                setEmailError(!ValidateEmail(e.target.value));
                 setEmail(e.target.value);
               }}
               onBlur={(e) => {
-                setEmailError(e.target.value.trim().length === 0);
+                setEmailError(!ValidateEmail(e.target.value));
                 setEmail(e.target.value);
               }}
             />

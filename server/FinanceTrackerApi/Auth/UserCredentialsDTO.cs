@@ -6,6 +6,7 @@ namespace FinanceTrackerApi.Auth;
 public class UserCredentialsDTO
 {
     [Required]
+    [EmailAddress]
     public string? Email { get; set; }
 
     [Required]
