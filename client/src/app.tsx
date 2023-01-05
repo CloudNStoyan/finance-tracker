@@ -3,7 +3,7 @@ import axios from "axios";
 import { useMediaQuery } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "./state/hooks";
 import { fetchMe, setVerificationToken } from "./state/authSlice";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import useQuery from "./infrastructure/useQuery";
 import DesktopVerifyEmail from "./pages/desktop/DesktopVerifyEmail";
 
@@ -21,9 +21,10 @@ axios.defaults.withCredentials = true;
 const App = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const isDesktop = useMediaQuery("(min-width:1024px)");
   const themeMetaRef = useRef<HTMLMetaElement>();
-  const autenticationStatus = useAppSelector(
+  const authenticationStatus = useAppSelector(
     (state) => state.authReducer.status
   );
   const { isLoggedIn, user } = useAppSelector((state) => state.authReducer);
@@ -54,20 +55,23 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (autenticationStatus != "idle") {
+    if (authenticationStatus !== "idle") {
       return;
     }
 
     void dispatch(fetchMe());
-  }, [dispatch, autenticationStatus]);
+  }, [dispatch, authenticationStatus]);
 
   useEffect(() => {
-    if (!isLoggedIn || autenticationStatus !== "succeeded") {
+    if (
+      authenticationStatus !== "succeeded" ||
+      location.pathname !== "/login"
+    ) {
       return;
     }
 
     navigate("/");
-  }, [isLoggedIn, autenticationStatus, navigate]);
+  }, [navigate, authenticationStatus, location]);
 
   if (!isLoggedIn) {
     return isDesktop ? <DesktopAuthRoutes /> : <MobileAuthRoutes />;
