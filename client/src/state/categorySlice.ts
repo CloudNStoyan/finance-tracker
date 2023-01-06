@@ -4,13 +4,14 @@ import {
   createOrEditCategory,
   getCategories,
   deleteCategory as deleteCategoryApi,
+  FetchStatus,
 } from "../server-api";
 import { logoutUser } from "./authSlice";
 
 export interface CategoriesState {
   categories: Category[];
-  status: "loading" | "succeeded" | "failed" | "idle";
-  addOrEditStatus: "loading" | "succeeded" | "failed" | "idle";
+  status: FetchStatus;
+  addOrEditStatus: FetchStatus;
   error: string;
 }
 

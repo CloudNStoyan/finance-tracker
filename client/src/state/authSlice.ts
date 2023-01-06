@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   AuthError,
+  FetchStatus,
   getMe,
   login,
   register,
@@ -17,7 +18,7 @@ export interface AuthCredentials {
 export interface AuthState {
   isLoggedIn: boolean;
   user?: User;
-  status: "loading" | "succeeded" | "failed" | "idle";
+  status: FetchStatus;
   error: AuthError;
   checkedSession: boolean;
   verificationToken: string;

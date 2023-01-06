@@ -8,15 +8,16 @@ import {
   Transaction,
   TransactionEvent,
   deleteTransaction as deleteTransactionApi,
+  FetchStatus,
 } from "../server-api";
 import { logoutUser } from "./authSlice";
 
 export interface TransactionState {
   transactions: Transaction[];
   completedTansactionQueries: string[];
-  fetchingStatus: "idle" | "loading";
-  addOrEditTransactionStatus: "idle" | "loading" | "failed" | "success";
-  deleteTransactionStatus: "idle" | "loading" | "failed" | "success";
+  fetchingStatus: FetchStatus;
+  addOrEditTransactionStatus: FetchStatus;
+  deleteTransactionStatus: FetchStatus;
 }
 
 const initialState: TransactionState = {
@@ -220,7 +221,7 @@ const transactionsSlice = createSlice({
       .addCase(
         addNewOrEditTransaction.fulfilled,
         (state, action: PayloadAction<TransactionEvent[]>) => {
-          state.addOrEditTransactionStatus = "success";
+          state.addOrEditTransactionStatus = "succeeded";
           const changes = action.payload;
 
           changes.forEach((change) => {
@@ -264,7 +265,7 @@ const transactionsSlice = createSlice({
       .addCase(
         deleteTransaction.fulfilled,
         (state, action: PayloadAction<TransactionEvent[]>) => {
-          state.deleteTransactionStatus = "success";
+          state.deleteTransactionStatus = "succeeded";
           const changes = action.payload;
 
           changes.forEach((change) => {

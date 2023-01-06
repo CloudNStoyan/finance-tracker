@@ -13,7 +13,7 @@ import {
   fromUnixTimeMs,
   isValidDate,
 } from "../infrastructure/CustomDateUtils";
-import { getStartBalanceByMonth, Balance } from "../server-api";
+import { getStartBalanceByMonth, Balance, FetchStatus } from "../server-api";
 import { logoutUser } from "./authSlice";
 
 export interface StartBalanceCache {
@@ -27,7 +27,7 @@ export interface CalendarState {
   startBalance: number;
   startBalanceCache: StartBalanceCache;
   searchValue: string;
-  fetchingStatus: "idle" | "loading" | "succeeded";
+  fetchingStatus: FetchStatus;
   firstDayOfTheMonth: "monday" | "sunday";
 }
 

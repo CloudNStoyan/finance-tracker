@@ -49,6 +49,8 @@ export interface Balance {
   balance: number;
 }
 
+export type FetchStatus = "loading" | "succeeded" | "failed" | "idle";
+
 export const register = async (
   email: string,
   password: string,

@@ -206,7 +206,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
   useEffect(() => {
     switch (addOrEditTransactionStatus) {
-      case "success":
+      case "succeeded":
         dispatch(
           setNotification({
             message: "Transaction created.",
@@ -235,7 +235,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
   useEffect(() => {
     switch (deleteTransactionStatus) {
-      case "success":
+      case "succeeded":
         dispatch(
           setNotification({
             message: "Transaction deleted.",
