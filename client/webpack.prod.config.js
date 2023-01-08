@@ -61,7 +61,6 @@ module.exports = {
       title: "Finance Tracker",
       inject: "body",
       template: "./src/template.html",
-      favicon: "./src/favicon.ico",
     }),
     new DefinePlugin({
       "process.env.NODE_ENV": JSON.stringify("production"),

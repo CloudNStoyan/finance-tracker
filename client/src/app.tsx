@@ -24,12 +24,14 @@ const App = () => {
   const location = useLocation();
   const isDesktop = useMediaQuery("(min-width:1024px)");
   const themeMetaRef = useRef<HTMLMetaElement>();
+  const faviconRef = useRef<HTMLLinkElement>();
   const authenticationStatus = useAppSelector(
     (state) => state.authReducer.status
   );
   const { isLoggedIn, user } = useAppSelector((state) => state.authReducer);
 
   const { colors } = useAppSelector((state) => state.themeReducer.styledTheme);
+  const { isDarkMode } = useAppSelector((state) => state.themeReducer);
 
   const query = useQuery();
 
@@ -49,6 +51,26 @@ const App = () => {
       themeMetaRef.current = null;
     };
   }, [colors]);
+
+  useEffect(() => {
+    if (!faviconRef.current) {
+      faviconRef.current = document.createElement("link");
+      faviconRef.current.setAttribute("rel", "icon");
+      faviconRef.current.setAttribute("type", "image/ico");
+      faviconRef.current.setAttribute("sizes", "32x32");
+      document.head.appendChild(faviconRef.current);
+    }
+
+    faviconRef.current.setAttribute(
+      "href",
+      isDarkMode ? "/dark_favicon.ico" : "/favicon.ico"
+    );
+
+    return () => {
+      faviconRef.current.remove();
+      faviconRef.current = null;
+    };
+  }, [isDarkMode]);
 
   if (token) {
     dispatch(setVerificationToken(token));
