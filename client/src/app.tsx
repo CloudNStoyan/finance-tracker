@@ -56,10 +56,15 @@ const App = () => {
     if (!faviconRef.current) {
       faviconRef.current = document.createElement("link");
       faviconRef.current.setAttribute("rel", "icon");
-      faviconRef.current.setAttribute("type", "image/ico");
-      faviconRef.current.setAttribute("sizes", "32x32");
+      faviconRef.current.setAttribute(
+        "href",
+        isDarkMode ? "/dark_favicon.ico" : "/favicon.ico"
+      );
       document.head.appendChild(faviconRef.current);
+      return;
     }
+
+    console.log(faviconRef.current.getAttribute("href"), isDarkMode);
 
     faviconRef.current.setAttribute(
       "href",

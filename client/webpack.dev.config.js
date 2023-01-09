@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { DefinePlugin } = require("webpack");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -61,6 +62,13 @@ module.exports = {
       title: "Finance Tracker",
       inject: "body",
       template: "./src/template.html",
+      favicon: "",
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: "./src/favicon.ico", to: "./favicon.ico" },
+        { from: "./src/dark_favicon.ico", to: "./dark_favicon.ico" },
+      ],
     }),
     new DefinePlugin({
       "process.env.NODE_ENV": JSON.stringify("development"),
