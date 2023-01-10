@@ -1,5 +1,6 @@
 import { Button, CircularProgress, TextField } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
 import { resendVerificationEmail, verifyEmail } from "../../server-api";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
@@ -20,6 +21,7 @@ const DesktopVerifyEmail = () => {
   const [recaptchaInstanceKey, setRecaptchaInstanceKey] = useState(
     new Date().getTime()
   );
+  const navigate = useNavigate();
 
   const onRecaptchaSolve = useCallback(
     (token: string) => {
@@ -58,6 +60,7 @@ const DesktopVerifyEmail = () => {
     setLoading(false);
 
     if (response === null) {
+      navigate("/");
       return;
     }
 
