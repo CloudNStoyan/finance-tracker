@@ -109,7 +109,7 @@ const DesktopVerifyEmail = () => {
       <form
         className={`rounded px-8 pt-6 pb-8 w-fit ${loading ? "loading" : ""}`}
       >
-        <h1>Account verification</h1>
+        <h1 className="dark:text-white">Account verification</h1>
         <p>An email with a verification code was just sent to</p>
         <p>{user.email}</p>
         <div className="w-full flex justify-center mt-2">

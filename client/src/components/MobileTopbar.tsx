@@ -19,7 +19,7 @@ const navigateBackMap: { [key: string]: string } = {
 const MobileTopbar: FunctionComponent = () => {
   const navigate = useNavigate();
 
-  const isLoggedIn = useAppSelector((state) => state.authReducer.isLoggedIn);
+  const { isLoggedIn, user } = useAppSelector((state) => state.authReducer);
 
   const [settingsIsOpen, setSettingsIsOpen] = useState(false);
 
@@ -36,7 +36,8 @@ const MobileTopbar: FunctionComponent = () => {
   };
 
   return (
-    isLoggedIn && (
+    isLoggedIn &&
+    user.activated && (
       <TopbarStyled
         className={`flex ${
           canGoBack ? "justify-between" : "justify-end"
