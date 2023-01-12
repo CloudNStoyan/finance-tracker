@@ -65,8 +65,6 @@ const App = () => {
       return;
     }
 
-    console.log(faviconRef.current.getAttribute("href"), isDarkMode);
-
     faviconRef.current.setAttribute(
       "href",
       isDarkMode ? "/dark_favicon.ico" : "/favicon.ico"

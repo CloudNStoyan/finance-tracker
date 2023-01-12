@@ -39,7 +39,7 @@ const DesktopRegisterPage = () => {
   const navigate = useNavigate();
 
   const validateFields = () => {
-    const emailIsValid = true; // ValidateEmail(email);
+    const emailIsValid = ValidateEmail(email);
     if (!emailIsValid) {
       setEmailError("Invalid Email");
     }
