@@ -1,13 +1,13 @@
 import { Button, CircularProgress, TextField } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
-import { resendVerificationEmail, verifyEmail } from "../../server-api";
-import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { setNotification } from "../../state/notificationSlice";
-import DesktopVerifyEmailStyled from "../styles/desktop/DesktopVerifyEmail.styled";
+import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
+import { resendVerificationEmail, verifyEmail } from "../server-api";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
+import { setNotification } from "../state/notificationSlice";
+import VerifyEmailPageStyled from "./styles/VerifyEmailPage.styled";
 
-const DesktopVerifyEmail = () => {
+const VerifyEmailPage = () => {
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
   const [verifyToken, setVerifyToken] = useState("");
   const [verifyError, setVerifyError] = useState("");
@@ -103,18 +103,19 @@ const DesktopVerifyEmail = () => {
   }, [verificationToken]);
 
   return (
-    <DesktopVerifyEmailStyled>
+    <VerifyEmailPageStyled>
       {loading && <CircularProgress className="loading-circle" />}
-      <div></div>
-      <form
-        className={`rounded px-8 pt-6 pb-8 w-fit ${loading ? "loading" : ""}`}
-      >
+      <form className={`px-2 pt-3 mb-8 pb-2 w-fit ${loading ? "loading" : ""}`}>
         <h1 className="dark:text-white">Account verification</h1>
-        <p>An email with a verification code was just sent to</p>
+        <p>
+          An email with a verification code
+          <br />
+          was just sent to
+        </p>
         <p>{user.email}</p>
         <div className="w-full flex justify-center mt-2">
           <TextField
-            className="text-white"
+            className="text-cyan-400 font-bold"
             variant="outlined"
             value={verifyToken}
             error={validationError}
@@ -131,6 +132,7 @@ const DesktopVerifyEmail = () => {
             }}
             inputProps={{
               maxLength: 6,
+              className: "dark:text-purple-400 text-blue-400 font-bold",
             }}
             disabled={loading}
             placeholder="......"
@@ -177,8 +179,8 @@ const DesktopVerifyEmail = () => {
           </div>
         )}
       </form>
-    </DesktopVerifyEmailStyled>
+    </VerifyEmailPageStyled>
   );
 };
 
-export default DesktopVerifyEmail;
+export default VerifyEmailPage;

@@ -5,7 +5,8 @@ import { useAppDispatch, useAppSelector } from "./state/hooks";
 import { fetchMe, setVerificationToken } from "./state/authSlice";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import useQuery from "./infrastructure/useQuery";
-import DesktopVerifyEmail from "./pages/desktop/DesktopVerifyEmail";
+import DesktopVerifyEmailPage from "./pages/desktop/DesktopVerifyEmailPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 const DesktopAuthRoutes = lazy(
   () => import("./infrastructure/DesktopAuthRoutes")
@@ -107,7 +108,10 @@ const App = () => {
   if (!user.activated) {
     return (
       <Routes>
-        <Route path="*" element={<DesktopVerifyEmail />} />
+        <Route
+          path="*"
+          element={isDesktop ? <DesktopVerifyEmailPage /> : <VerifyEmailPage />}
+        />
       </Routes>
     );
   }

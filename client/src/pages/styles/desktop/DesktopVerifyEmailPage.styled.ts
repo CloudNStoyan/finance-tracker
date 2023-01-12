@@ -1,6 +1,6 @@
 import { styled } from "../../../infrastructure/ThemeManager";
 
-const DesktopVerifyEmailStyled = styled.div`
+const DesktopVerifyEmailPageStyled = styled.div`
   height: 100%;
   display: flex;
   align-items: center;
@@ -64,4 +64,4 @@ const DesktopVerifyEmailStyled = styled.div`
   }
 `;
 
-export default DesktopVerifyEmailStyled;
+export default DesktopVerifyEmailPageStyled;
