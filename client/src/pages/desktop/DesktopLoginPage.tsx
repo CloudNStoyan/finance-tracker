@@ -47,6 +47,7 @@ const DesktopLoginPage = () => {
   const [recaptchaInstanceKey, setRecaptchaInstanceKey] = useState(
     new Date().getTime()
   );
+  const [capsLockActive, setCapsLockActive] = useState(false);
 
   const validateFields = () => {
     const emailIsValid = ValidateEmail(email);
@@ -155,7 +156,9 @@ const DesktopLoginPage = () => {
           </div>
           <div className="mb-6 flex flex-row items-end">
             <LockOutlined
-              className={`mr-1 icon ${passwordError ? "mb-6" : "mb-1"}`}
+              className={`mr-1 icon ${
+                passwordError || capsLockActive ? "mb-6" : "mb-1"
+              }`}
             />
             <TextField
               data-testid="password-mui"
@@ -165,7 +168,17 @@ const DesktopLoginPage = () => {
               variant="standard"
               value={password}
               error={passwordError}
-              helperText={passwordError ? "Password is required." : ""}
+              color={capsLockActive ? "warning" : "primary"}
+              helperText={
+                capsLockActive
+                  ? "Caps lock is active"
+                  : passwordError
+                  ? "Password is required."
+                  : ""
+              }
+              onKeyDown={(e) =>
+                setCapsLockActive(e.getModifierState("CapsLock"))
+              }
               onChange={(e) => {
                 setPasswordError(e.target.value.trim().length === 0);
                 setPassword(e.target.value);

@@ -34,6 +34,7 @@ const DesktopRegisterPage = () => {
   const [shakeErrors, setShakeErrors] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [capsLockActive, setCapsLockActive] = useState(false);
   const { register, authStatus, authError } = useAuth();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -146,7 +147,9 @@ const DesktopRegisterPage = () => {
             }`}
           >
             <LockOutlined
-              className={`mr-1 icon ${passwordError ? "mb-6" : "mb-1"}`}
+              className={`mr-1 icon ${
+                passwordError || capsLockActive ? "mb-6" : "mb-1"
+              }`}
             />
             <div className="w-full">
               <TextField
@@ -156,7 +159,17 @@ const DesktopRegisterPage = () => {
                 variant="standard"
                 value={password}
                 error={passwordError}
-                helperText={passwordError ? "Password is too weak." : ""}
+                color={capsLockActive ? "warning" : "primary"}
+                helperText={
+                  capsLockActive
+                    ? "Caps lock is active"
+                    : passwordError
+                    ? "Password is too weak."
+                    : ""
+                }
+                onKeyDown={(e) =>
+                  setCapsLockActive(e.getModifierState("CapsLock"))
+                }
                 onChange={(e) => {
                   setPasswordError(e.target.value.trim().length === 0);
                   setPassword(e.target.value);
