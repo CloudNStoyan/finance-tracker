@@ -229,6 +229,8 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             onBlur={(e) => setCategoryName(e.target.value)}
+            autoComplete="off"
+            id="CategoryName"
           />
         </div>
       </div>

@@ -109,6 +109,8 @@ const SearchPage = () => {
           label="Search"
           className="w-full"
           variant="standard"
+          autoComplete="off"
+          id="Search"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">

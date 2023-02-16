@@ -195,6 +195,8 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             onBlur={(e) => setCategoryName(e.target.value)}
+            autoComplete="off"
+            id="CategoryName"
           />
         </div>
         <IconButton

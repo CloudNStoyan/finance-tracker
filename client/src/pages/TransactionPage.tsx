@@ -402,6 +402,8 @@ const TransactionPage: FunctionComponent<{
             InputLabelProps={{ shrink: true }}
             label="Value"
             placeholder="0.00"
+            autoComplete="off"
+            id="TransactionValue"
           />
           <CustomTextField
             label="Label"
@@ -412,6 +414,8 @@ const TransactionPage: FunctionComponent<{
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onBlur={(e) => setLabel(e.target.value)}
+            autoComplete="off"
+            id="TransactionLabel"
           />
         </div>
       </div>

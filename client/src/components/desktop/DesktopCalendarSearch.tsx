@@ -64,6 +64,8 @@ const DesktopCalendarSearch = () => {
           value={searchValue}
           ref={searchInputRef}
           variant="standard"
+          autoComplete="off"
+          id="Search"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">

@@ -480,6 +480,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   {transactionType === "expense" ? <Remove /> : <Add />}
                 </IconButton>
                 <CustomTextField
+                  autoComplete="off"
+                  id="TransactionValue"
                   onChange={(e) => {
                     const inputValue = e.target.value;
 
@@ -516,6 +518,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   onChange={(e) => setLabel(e.target.value)}
                   onBlur={(e) => setLabel(e.target.value)}
                   disabled={loading}
+                  autoComplete="off"
+                  id="TransactionLabel"
                 />
               </div>
             </div>
@@ -561,6 +565,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                           variant="standard"
                           size="small"
                           className="date-picker-input"
+                          autoComplete="off"
+                          id="TransactionDate"
                           InputProps={{
                             startAdornment: (
                               <IconButton
@@ -628,6 +634,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                                   variant="standard"
                                   size="small"
                                   className="date-picker-input"
+                                  autoComplete="off"
+                                  id="TransactionRepeatEnd"
                                   InputProps={{
                                     startAdornment: (
                                       <IconButton
