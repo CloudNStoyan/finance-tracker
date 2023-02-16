@@ -14,10 +14,4 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Npgsql" Version="6.0.5" />
   </ItemGroup>
-
-	<ItemGroup>
-		<!-- emits global using BcryptNet = global::BCrypt.Net.BCrypt; -->
-		<Using Include="BCrypt.Net.BCrypt" Alias="BC"/>
-	</ItemGroup>
-
 </Project>

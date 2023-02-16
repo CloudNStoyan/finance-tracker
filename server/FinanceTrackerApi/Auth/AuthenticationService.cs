@@ -9,10 +9,12 @@ namespace FinanceTrackerApi.Auth;
 public class AuthenticationService
 {
     private Database Database { get; }
+    private PasswordService PasswordService { get; }
 
-    public AuthenticationService(Database database)
+    public AuthenticationService(Database database, PasswordService passwordService)
     {
         this.Database = database;
+        this.PasswordService = passwordService;
     }
 
     public async Task<UserPoco?> GetUserById(int userId)
@@ -77,7 +79,7 @@ public class AuthenticationService
 
     public async Task<string> Register(UserCredentialsDTO dto)
     {
-        string passwordHash = BC.HashPassword(dto.Password!);
+        string passwordHash = this.PasswordService.HashPassword(dto.Password!);
         
         var userPoco = new UserPoco
         {
@@ -107,7 +109,7 @@ public class AuthenticationService
             };  
         }
 
-        bool passwordIsValid = BC.Verify(dto.Password, userPoco.PasswordHash);
+        bool passwordIsValid = this.PasswordService.VerifyPassword(dto.Password!, userPoco.PasswordHash);
 
         if (!passwordIsValid)
         {
