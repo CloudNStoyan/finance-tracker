@@ -23,6 +23,13 @@ const DesktopLandingPageStyled = styled.div<DesktopLandingPageStyledProps>`
     }
   }
 
+  @media (prefers-reduced-motion) {
+    .mobile-device,
+    .desktop-device {
+      animation: none !important;
+    }
+  }
+
   .mobile-device {
     animation: mobile-device-animation 1s linear infinite alternate;
     height: 400px;

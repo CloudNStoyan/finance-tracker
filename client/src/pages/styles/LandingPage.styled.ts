@@ -32,6 +32,29 @@ const LandingPageStyled = styled.div<LandingPageStyledProps>`
     }
   }
 
+  @media (prefers-reduced-motion) {
+    .mobile-device,
+    .desktop-device {
+      animation: none !important;
+    }
+
+    @keyframes hamburger-menu-animation-reduced-motion {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .navbar-menu {
+      > * {
+        animation: hamburger-menu-animation-reduced-motion 0.5s
+          cubic-bezier(0.075, 0.82, 0.165, 1) 0s 1 !important;
+      }
+    }
+  }
+
   .mobile-device {
     animation: mobile-device-animation 1s linear infinite alternate;
     max-width: 300px;

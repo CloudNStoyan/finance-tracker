@@ -10,6 +10,10 @@ const TestimonialStyled = styled.div`
     }
   }
 
+  @media (prefers-reduced-motion) {
+    animation: none !important;
+  }
+
   animation: testimonial-animation 0.5s cubic-bezier(0.075, 0.82, 0.165, 1) 0s 1;
 `;
 
