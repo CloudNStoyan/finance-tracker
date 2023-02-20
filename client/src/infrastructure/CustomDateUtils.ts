@@ -20,6 +20,12 @@ export const DatesAreEqualWithoutTime = (a: Date, b: Date) => {
   return true;
 };
 
+export const StripTimeFromDate = (date: Date) => {
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+};
+
 export const FindDays = (date: Date, mondayIsFirstDay: boolean) => {
   const day = date.getDay();
 
