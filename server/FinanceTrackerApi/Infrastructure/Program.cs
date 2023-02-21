@@ -7,12 +7,16 @@ builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+
+if (builder.Environment.IsDevelopment())
 {
-    builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
-    builder.WithOrigins("http://localhost:8001").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
-    builder.WithOrigins("http://192.168.1.221:8001").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
-}));
+    builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+    {
+        builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+        builder.WithOrigins("http://localhost:8001").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        builder.WithOrigins("http://192.168.1.221:8001").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    }));
+}
 
 builder.Services.AddCustomServices();
 
