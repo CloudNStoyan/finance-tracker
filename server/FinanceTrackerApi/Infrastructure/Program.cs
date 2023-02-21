@@ -1,5 +1,3 @@
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using FinanceTrackerApi.Auth;
 using FinanceTrackerApi.Infrastructure;
 
@@ -16,9 +14,7 @@ builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
     builder.WithOrigins("http://192.168.1.221:8001").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
 }));
 
-builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-builder.Host.ConfigureContainer<ContainerBuilder>(autofacBuilder =>
-    autofacBuilder.RegisterModule(new MainModule(builder.Configuration)));
+builder.Services.AddCustomServices();
 
 var app = builder.Build();
 
