@@ -51,7 +51,7 @@ const LandingPage = () => {
         </div>
       )}
       <main>
-        <h2>Managing money, made simple</h2>
+        <h2 className="mb-2">Managing money, made simple</h2>
         <h3>
           Calendar based personal finance management designed for{" "}
           <span className="underline decoration-2 decoration-blue-500 dark:decoration-purple-500">
@@ -62,7 +62,7 @@ const LandingPage = () => {
           Add past, future or recurring transactions and categorize them. Track
           them on mobile and plan ahead on the web, or just mix things up.
         </p>
-        <div className="flex flex-col items-center gap-8 mt-4">
+        <div className="flex flex-col items-center gap-8 my-4">
           <img
             className="desktop-device"
             src={isDarkMode ? CalendarDesktopDark : CalendarDesktopLight}
@@ -90,7 +90,7 @@ const LandingPage = () => {
           each day, month or year, understanding your current and projected
           financial situation is so easy you might even call it fun.
         </p>
-        <div className="flex flex-col items-center gap-8 mt-4">
+        <div className="flex flex-col items-center gap-8 my-4">
           <img
             className="mobile-device"
             src={isDarkMode ? StatsPhoneDark : StatsPhoneLight}
@@ -106,13 +106,14 @@ const LandingPage = () => {
             } mode mockup`}
           />
         </div>
-        <section>
+        <section className="mt-14">
           <h2>What our users say about us</h2>
           <TestimonialCarousel className="flex gap-2 mt-10" />
         </section>
-        <section className="flex items-center justify-center flex-col gap-10 mt-10 mb-10">
+        <section className="flex items-center justify-center flex-col gap-10 mt-10 mb-10 px-5">
           <h1>Start your journey towards personal financial freedom.</h1>
           <Button
+            className="w-full"
             size="large"
             onClick={() => navigate("/register")}
             variant="contained"

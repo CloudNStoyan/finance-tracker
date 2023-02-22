@@ -108,7 +108,7 @@ const LandingPageStyled = styled.div<LandingPageStyledProps>`
   main {
     max-width: 1400px;
     margin: 0 auto;
-    margin-top: 50px;
+    margin-top: 25px;
     background-color: ${({ theme }) => theme.colors.background};
   }
 
