@@ -75,6 +75,8 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
     (state) => state.categoriesReducer.status
   );
 
+  const [categoryNameError, setCategoryNameError] = useState(false);
+
   useEffect(() => {
     if (categoriesStatus === "idle") {
       void dispatch(fetchCategories());
@@ -101,6 +103,14 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
     setIconIdx(categoryIcons.indexOf(category.icon));
   }, [hasCategoryId, categories, categoryId, categoriesStatus]);
 
+  useEffect(() => {
+    if (categoryName.length === 0) {
+      return;
+    }
+
+    setCategoryNameError(false);
+  }, [categoryName]);
+
   const onColorClick = (bgColor: string, idx: number) => {
     setColor(bgColor);
     setColorIdx(idx);
@@ -113,12 +123,7 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
 
   const onSubmit = async () => {
     if (categoryName.length === 0) {
-      dispatch(
-        setNotification({
-          message: "Category name can't be empty",
-          color: "error",
-        })
-      );
+      setCategoryNameError(true);
       return;
     }
 
@@ -191,12 +196,13 @@ const CategoryPage: FunctionComponent<{ hasCategoryId: boolean }> = ({
             label="Category name"
             variant="standard"
             color="primary"
-            className="flex-1 mr-10"
+            className="flex-1 mr-10 category-name"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             onBlur={(e) => setCategoryName(e.target.value)}
             autoComplete="off"
             id="CategoryName"
+            helperText={categoryNameError ? "Category name is required" : null}
           />
         </div>
         <IconButton

@@ -138,6 +138,21 @@ const DesktopTransactionStyled = styled.div<{
     width: 120px;
   }
 
+  .transaction-label,
+  .transaction-value {
+    .MuiFormHelperText-root {
+      animation: custom-shake 0.4s linear;
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      width: fit-content;
+      padding: 0 5px;
+      font-size: 10px;
+      color: orange;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+
   .fields {
     background-color: ${({ bgColor }) => bgColor};
     color: white;

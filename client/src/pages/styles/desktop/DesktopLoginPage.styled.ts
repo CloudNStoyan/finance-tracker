@@ -14,7 +14,7 @@ const DesktopLoginPageStyled = styled.div`
     &.shake-errors {
       .MuiFormHelperText-root.Mui-error {
         width: fit-content;
-        animation: custom-shake 0.25s linear;
+        animation: custom-shake 0.4s linear;
       }
     }
   }

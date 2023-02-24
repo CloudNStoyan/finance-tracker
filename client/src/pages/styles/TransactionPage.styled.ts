@@ -136,12 +136,29 @@ const TransactionPageStyled = styled.div<{
     padding-right: 50px;
   }
 
+  .transaction-label,
+  .transaction-value {
+    .MuiFormHelperText-root {
+      animation: custom-shake 0.4s linear;
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      width: fit-content;
+      padding: 0 5px;
+      font-size: 10px;
+      border-radius: 6px;
+      color: orange;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+
   .fields {
     background-color: ${({ bgColor }) => bgColor};
     color: white;
     padding: 10px 0;
     border-radius: 10px;
     transition: background-color 0.25s linear;
+    padding-bottom: 30px;
 
     .save-btn {
       position: absolute;

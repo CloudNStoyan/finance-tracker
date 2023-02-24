@@ -42,6 +42,20 @@ const DesktopCategoryModalStyled = styled.div<DesktopCategoryModalStyledProps>`
   .icon-color-container {
     height: 345px;
   }
+
+  .category-name {
+    .MuiFormHelperText-root {
+      animation: custom-shake 0.4s linear;
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      width: fit-content;
+      padding: 0 5px;
+      font-size: 10px;
+      color: orange;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
 `;
 
 export default DesktopCategoryModalStyled;

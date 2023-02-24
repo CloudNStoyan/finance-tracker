@@ -109,6 +109,8 @@ const TransactionPage: FunctionComponent<{
   const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
     useState<(option: boolean) => void>();
   const [itHasRepeat, setItHasRepeat] = useState(false);
+  const [valueError, setValueError] = useState(false);
+  const [labelError, setLabelError] = useState(false);
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -217,14 +219,35 @@ const TransactionPage: FunctionComponent<{
     setRepeat(newRepeat);
   };
 
+  useEffect(() => {
+    if (Number(value) === 0) {
+      return;
+    }
+
+    setValueError(false);
+  }, [value]);
+
+  useEffect(() => {
+    if (label.trim().length === 0) {
+      return;
+    }
+
+    setLabelError(false);
+  }, [label]);
+
   const onSubmit = () => {
-    if (!(Number(value) > 0 && label.trim().length > 0)) {
-      dispatch(
-        setNotification({
-          message: "Value and Label must not be empty!",
-          color: "error",
-        })
-      );
+    const valueIsInvalid = Number(value) === 0;
+    const labelIsInvalid = label.trim().length === 0;
+
+    if (valueIsInvalid) {
+      setValueError(true);
+    }
+
+    if (labelIsInvalid) {
+      setLabelError(true);
+    }
+
+    if (valueIsInvalid || labelIsInvalid) {
       return;
     }
 
@@ -404,6 +427,7 @@ const TransactionPage: FunctionComponent<{
             placeholder="0.00"
             autoComplete="off"
             id="TransactionValue"
+            helperText={valueError ? "Value is required" : null}
           />
           <CustomTextField
             label="Label"
@@ -416,6 +440,7 @@ const TransactionPage: FunctionComponent<{
             onBlur={(e) => setLabel(e.target.value)}
             autoComplete="off"
             id="TransactionLabel"
+            helperText={labelError ? "Label is required" : null}
           />
         </div>
       </div>

@@ -84,6 +84,9 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
   const { addOrEditStatus } = useAppSelector(
     (state) => state.categoriesReducer
   );
+
+  const [categoryNameError, setCategoryNameError] = useState(false);
+
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -136,6 +139,14 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
     }
   }, [addOrEditStatus, onClose, dispatch, category]);
 
+  useEffect(() => {
+    if (categoryName.length === 0) {
+      return;
+    }
+
+    setCategoryNameError(false);
+  }, [categoryName]);
+
   const onColorClick = (bgColor: string, idx: number) => {
     setColor(bgColor);
     setColorIdx(idx);
@@ -150,12 +161,7 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
     setError(null);
 
     if (categoryName.length === 0) {
-      dispatch(
-        setNotification({
-          message: "Category name can't be empty",
-          color: "error",
-        })
-      );
+      setCategoryNameError(true);
       return;
     }
 
@@ -225,12 +231,13 @@ const DesktopCategoryModal: FunctionComponent<DesktopCategoryModalProps> = ({
             label="Category name"
             variant="standard"
             color="primary"
-            className="flex-1 mr-10"
+            className="flex-1 mr-10 category-name"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             onBlur={(e) => setCategoryName(e.target.value)}
             autoComplete="off"
             id="CategoryName"
+            helperText={categoryNameError ? "Category name is required" : null}
           />
         </div>
       </div>

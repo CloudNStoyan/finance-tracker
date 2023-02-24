@@ -132,6 +132,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const { addOrEditTransactionStatus, deleteTransactionStatus } =
     useAppSelector((state) => state.transactionsReducer);
   const [error, setError] = useState<string>(null);
+  const [valueError, setValueError] = useState(false);
+  const [labelError, setLabelError] = useState(false);
 
   const dispatch = useAppDispatch();
 
@@ -262,14 +264,35 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     }
   }, [deleteTransactionStatus, onClose, dispatch]);
 
+  useEffect(() => {
+    if (Number(value) === 0) {
+      return;
+    }
+
+    setValueError(false);
+  }, [value]);
+
+  useEffect(() => {
+    if (label.trim().length === 0) {
+      return;
+    }
+
+    setLabelError(false);
+  }, [label]);
+
   const onSubmit = () => {
-    if (Number(value) === 0 || label.trim().length === 0) {
-      dispatch(
-        setNotification({
-          message: "Value and Label must not be empty!",
-          color: "error",
-        })
-      );
+    const valueIsInvalid = Number(value) === 0;
+    const labelIsInvalid = label.trim().length === 0;
+
+    if (valueIsInvalid) {
+      setValueError(true);
+    }
+
+    if (labelIsInvalid) {
+      setLabelError(true);
+    }
+
+    if (valueIsInvalid || labelIsInvalid) {
       return;
     }
 
@@ -507,19 +530,21 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   label="Value"
                   placeholder="0.00"
                   disabled={loading}
+                  helperText={valueError ? "Value is required" : null}
                 />
                 <CustomTextField
                   InputLabelProps={{ shrink: true }}
                   placeholder="e.g netflix"
                   label="Label"
                   variant="standard"
-                  className="ml-4"
+                  className="ml-4 transaction-label"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   onBlur={(e) => setLabel(e.target.value)}
                   disabled={loading}
                   autoComplete="off"
                   id="TransactionLabel"
+                  helperText={labelError ? "Label is required" : null}
                 />
               </div>
             </div>
