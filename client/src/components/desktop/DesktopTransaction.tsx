@@ -7,7 +7,6 @@ import {
   MenuItem,
   Select,
   styled,
-  Switch,
   TextField,
 } from "@mui/material";
 import {
@@ -27,7 +26,7 @@ import {
   DateOnlyToString,
   fromUnixTimeMs,
 } from "../../infrastructure/CustomDateUtils";
-import { Category, Transaction } from "../../server-api";
+import { Category, Transaction, TransactionRepeat } from "../../server-api";
 import { parseJSON } from "date-fns";
 import { setNotification } from "../../state/notificationSlice";
 import {
@@ -49,6 +48,8 @@ import RepeatTransactionDialog, {
 } from "../RepeatTransactionDialog";
 import DeleteTransactionDialog from "../DeleteDialog";
 import LoadingCircleAnimation from "../LoadingCircleAnimation";
+import HorizontalSelect from "../HorizontalSelect";
+import { ConvertRepeatLogicToHumanText } from "../../infrastructure/TransactionsBuisnessLogic";
 
 export interface DesktopTransactionProps {
   open: boolean;
@@ -117,7 +118,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [editCategory, setEditCategory] = useState<Category>(null);
   const [description, setDescription] = useState("");
   const [repeatEnd, setRepeatEnd] = useState(new Date());
-  const [showRepeatEnd, setShowRepeatEnd] = useState(false);
   const [repeatDateInputOpen, setRepeatDateInputOpen] = useState(false);
   const [repeatTransactionDialogOpen, setRepeatTransactionDialogOpen] =
     useState(false);
@@ -134,6 +134,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
   const [error, setError] = useState<string>(null);
   const [valueError, setValueError] = useState(false);
   const [labelError, setLabelError] = useState(false);
+  const [repeatEveryCount, setRepeatEveryCount] = useState(1);
+  const [repeatEndOccurrences, setRepeatEndOccurrences] = useState(1);
+  const [repeatType, setRepeatType] = useState<TransactionRepeat>();
+  const [repeatEndType, setRepeatEndType] = useState<"never" | "on" | "after">(
+    "never"
+  );
 
   const dispatch = useAppDispatch();
 
@@ -166,6 +172,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       return;
     }
 
+    console.log(transaction);
+
     setValue(transaction.value.toString());
     setLabel(transaction.label);
     setConfirmed(transaction.confirmed);
@@ -179,13 +187,13 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
     setDescription(transaction.details ?? "");
-    setRepeat(transaction.repeat ?? "none");
+    // how to handle this? we need to know if the repeat was a preset or a custom? maybe if it fits preset assume its a preset?
+    setRepeatType(transaction.repeat);
     setRepeatEnd(
-      transaction.repeatEnd === null
+      transaction.repeatEndDate === null
         ? new Date()
-        : parseJSON(transaction.repeatEnd)
+        : parseJSON(transaction.repeatEndDate)
     );
-    setShowRepeatEnd(transaction.repeatEnd !== null);
     setItHasRepeat(transaction.repeat !== null);
   }, [transaction, categories, open, calendarSelected]);
 
@@ -327,10 +335,11 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       transactionDate: DateOnlyToString(date),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
-      repeat:
-        repeat === "weekly" || repeat === "monthly" || repeat === "yearly"
-          ? repeat
-          : null,
+      repeat: repeatType,
+      repeatEndType: repeatEndType !== "never" ? repeatEndType : undefined,
+      repeatEndOccurrences:
+        repeatEndType === "after" ? repeatEndOccurrences : undefined,
+      repeatEvery: repeatEveryCount,
     };
 
     if (description.trim().length > 0) {
@@ -345,8 +354,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       newTransaction.categoryId = category.categoryId;
     }
 
-    if (showRepeatEnd && repeat !== "none") {
-      newTransaction.repeatEnd = DateOnlyToString(repeatEnd);
+    if (repeatEndType === "on" && repeat !== "none") {
+      newTransaction.repeatEndDate = DateOnlyToString(repeatEnd);
     }
 
     try {
@@ -413,14 +422,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (repeat !== "none") {
-      return;
-    }
-
-    setShowRepeatEnd(false);
-  }, [repeat]);
 
   return (
     <Dialog
@@ -626,66 +627,208 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   <MenuItem value={"weekly"}>Repeat every week</MenuItem>
                   <MenuItem value={"monthly"}>Repeat every month</MenuItem>
                   <MenuItem value={"yearly"}>Repeat every year</MenuItem>
+                  <MenuItem value={"custom"}>Custom</MenuItem>
                 </Select>
               </div>
-              {repeat !== "none" && (
-                <div className="repeat-end">
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={showRepeatEnd}
-                        onChange={(e) => setShowRepeatEnd(e.target.checked)}
-                      />
-                    }
-                    label="End"
-                    labelPlacement="start"
-                    disabled={loading}
-                  />
-                  {showRepeatEnd && (
-                    <div>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DesktopDatePicker
-                          inputFormat="dd MMM yyy"
-                          disableMaskedInput={true}
-                          value={repeatEnd}
-                          onChange={handleRepeatDateChange}
-                          open={repeatDateInputOpen}
-                          onClose={() => setRepeatDateInputOpen(false)}
-                          renderInput={(params) => (
-                            <div className="date-picker-render flex items-center">
-                              {repeatEnd && (
-                                <TextField
-                                  {...params}
-                                  variant="standard"
-                                  size="small"
-                                  className="date-picker-input"
-                                  autoComplete="off"
-                                  id="TransactionRepeatEnd"
-                                  InputProps={{
-                                    startAdornment: (
-                                      <IconButton
-                                        className="p-0"
-                                        onClick={() =>
-                                          setRepeatDateInputOpen(true)
-                                        }
-                                      >
-                                        <ScheduleOutlined className="date-picker-icon" />
-                                      </IconButton>
-                                    ),
-                                    disableUnderline: true,
-                                  }}
-                                />
-                              )}
-                            </div>
-                          )}
-                          disabled={loading}
-                        />
-                      </LocalizationProvider>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="repeat-options flex flex-col gap-2 mb-1">
+                {repeat === "custom" && (
+                  <div className="flex gap-3 items-center">
+                    <span className="uppercase text-xs w-11">Every</span>
+                    <TextField
+                      variant="standard"
+                      inputProps={{
+                        style: { width: 20, textAlign: "center" },
+                      }}
+                      value={repeatEveryCount}
+                      onChange={(e) => {
+                        const inputValue = e.target.value;
 
+                        if (
+                          isNaN(Number(inputValue)) &&
+                          inputValue.length > 0
+                        ) {
+                          return;
+                        }
+
+                        let newRepeatEveryCount = Number(inputValue.trim());
+
+                        if (newRepeatEveryCount < 1) {
+                          newRepeatEveryCount = 1;
+                        }
+
+                        if (newRepeatEveryCount > 99) {
+                          newRepeatEveryCount = 99;
+                        }
+
+                        setRepeatEveryCount(newRepeatEveryCount);
+                      }}
+                      onBlur={(e) => {
+                        const inputValue = e.target.value;
+
+                        if (
+                          isNaN(Number(inputValue)) &&
+                          inputValue.length > 0
+                        ) {
+                          return;
+                        }
+
+                        let newRepeatEveryCount = Number(inputValue.trim());
+
+                        if (newRepeatEveryCount < 1) {
+                          newRepeatEveryCount = 1;
+                        }
+
+                        if (newRepeatEveryCount > 99) {
+                          newRepeatEveryCount = 99;
+                        }
+
+                        setRepeatEveryCount(newRepeatEveryCount);
+                      }}
+                    />
+                    <HorizontalSelect
+                      className="horizontal-select"
+                      onSelect={(value) => {
+                        const valuesMap: TransactionRepeat[] = [
+                          "daily",
+                          "weekly",
+                          "monthly",
+                          "yearly",
+                        ];
+
+                        setRepeatType(
+                          valuesMap[
+                            ["Day", "Week", "Month", "Year"].indexOf(value)
+                          ]
+                        );
+                      }}
+                      values={["Day", "Week", "Month", "Year"]}
+                    />
+                  </div>
+                )}
+                {repeat !== "none" && (
+                  <div className="repeat-end">
+                    <div className="flex items-center">
+                      <span className="uppercase text-xs w-14">Ends</span>
+                      <HorizontalSelect
+                        className="horizontal-select capitalize"
+                        onSelect={(value: "never" | "on" | "after") => {
+                          setRepeatEndType(value);
+                        }}
+                        values={["never", "on", "after"]}
+                      />
+                    </div>
+                    {repeatEndType === "on" && (
+                      <div>
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                          <DesktopDatePicker
+                            inputFormat="dd MMM yyy"
+                            disableMaskedInput={true}
+                            value={repeatEnd}
+                            onChange={handleRepeatDateChange}
+                            open={repeatDateInputOpen}
+                            onClose={() => setRepeatDateInputOpen(false)}
+                            renderInput={(params) => (
+                              <div className="date-picker-render ml-14 flex items-center mt-2 mb-4">
+                                {repeatEnd && (
+                                  <TextField
+                                    {...params}
+                                    variant="standard"
+                                    size="small"
+                                    className="date-picker-input"
+                                    autoComplete="off"
+                                    id="TransactionRepeatEnd"
+                                    InputProps={{
+                                      startAdornment: (
+                                        <IconButton
+                                          className="p-0"
+                                          onClick={() =>
+                                            setRepeatDateInputOpen(true)
+                                          }
+                                        >
+                                          <ScheduleOutlined className="date-picker-icon" />
+                                        </IconButton>
+                                      ),
+                                      disableUnderline: true,
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            )}
+                            disabled={loading}
+                          />
+                        </LocalizationProvider>
+                      </div>
+                    )}
+                    {repeatEndType === "after" && (
+                      <div className="ml-14 mt-2 mb-4 flex items-center gap-2">
+                        <TextField
+                          variant="standard"
+                          inputProps={{
+                            style: { width: 20, textAlign: "center" },
+                          }}
+                          value={repeatEndOccurrences}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            if (
+                              isNaN(Number(inputValue)) &&
+                              inputValue.length > 0
+                            ) {
+                              return;
+                            }
+                            let newRepeatEndOccurrences = Number(
+                              inputValue.trim()
+                            );
+                            if (newRepeatEndOccurrences < 1) {
+                              newRepeatEndOccurrences = 1;
+                            }
+                            if (newRepeatEndOccurrences > 99) {
+                              newRepeatEndOccurrences = 99;
+                            }
+                            setRepeatEndOccurrences(newRepeatEndOccurrences);
+                          }}
+                          onBlur={(e) => {
+                            const inputValue = e.target.value;
+                            if (
+                              isNaN(Number(inputValue)) &&
+                              inputValue.length > 0
+                            ) {
+                              return;
+                            }
+                            let newRepeatEndOccurrences = Number(
+                              inputValue.trim()
+                            );
+                            if (newRepeatEndOccurrences < 1) {
+                              newRepeatEndOccurrences = 1;
+                            }
+                            if (newRepeatEndOccurrences > 99) {
+                              newRepeatEndOccurrences = 99;
+                            }
+                            setRepeatEndOccurrences(newRepeatEndOccurrences);
+                          }}
+                        />
+                        <span className="xs">occurrences</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {repeat === "custom" && (
+                  <div>
+                    <span className="uppercase text-xs mb-1">Summary</span>
+                    <p className="text-lg h-14 mr-7">
+                      {ConvertRepeatLogicToHumanText(
+                        date,
+                        repeatType,
+                        repeatEveryCount,
+                        repeatEndType,
+                        repeatEndType !== "never" ? repeatEnd : undefined,
+                        repeatEndType === "after"
+                          ? repeatEndOccurrences
+                          : undefined
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
               <Button
                 onClick={() => setCurrentModal("description")}
                 size="large"

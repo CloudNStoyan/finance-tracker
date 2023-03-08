@@ -22,6 +22,8 @@ export interface Category {
   icon: IconKey;
 }
 
+export type TransactionRepeat = "daily" | "weekly" | "monthly" | "yearly";
+
 export interface Transaction {
   transactionId?: number;
   categoryId?: number;
@@ -31,8 +33,12 @@ export interface Transaction {
   type: "expense" | "income";
   value: number;
   details?: string;
-  repeat?: "weekly" | "monthly" | "yearly";
-  repeatEnd?: string;
+  repeat?: TransactionRepeat;
+  // range is 1-99
+  repeatEvery?: number;
+  repeatEndType?: "on" | "after";
+  repeatEndDate?: string;
+  repeatEndOccurrences?: number;
 }
 
 export interface TransactionEvent {

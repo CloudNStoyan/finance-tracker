@@ -22,8 +22,10 @@ public class UserTransactionDTO
     [Required]
     public DateTime TransactionDate { get; set; }
 
-    public DateTime? RepeatEnd { get; set; }
-
+    public DateTime? RepeatEndDate { get; set; }
+    public int? RepeatEndOccurrences { get; set; }
+    public string? RepeatEndType { get; set; }
+    public int? RepeatEvery { get; set; }
     public int? UserId { get; set; }
 
     [Required]
@@ -44,6 +46,9 @@ public class UserTransactionDTO
         TransactionDate = poco.TransactionDate,
         UserId = poco.UserId,
         Repeat = poco.Repeat,
-        RepeatEnd = poco.RepeatEnd
+        RepeatEndDate = poco.RepeatEndDate,
+        RepeatEndOccurrences = poco.RepeatEndOccurrences,
+        RepeatEndType = poco.RepeatEndType,
+        RepeatEvery = poco.RepeatEvery
     };
 }

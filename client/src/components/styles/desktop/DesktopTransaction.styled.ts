@@ -21,9 +21,11 @@ const DesktopTransactionStyled = styled.div<{
       : null}
 
   .repeat-end {
-    display: flex;
+    height: 85px;
+  }
+
+  .repeat-options {
     margin-left: 42px;
-    height: 42px;
   }
 
   .description-btn-text {
@@ -78,7 +80,6 @@ const DesktopTransactionStyled = styled.div<{
 
         input {
           padding: 0;
-          font-weight: 500;
         }
       }
     }
@@ -151,6 +152,10 @@ const DesktopTransactionStyled = styled.div<{
       color: orange;
       background-color: rgba(0, 0, 0, 0.5);
     }
+  }
+
+  .horizontal-select .display {
+    width: 50px;
   }
 
   .fields {

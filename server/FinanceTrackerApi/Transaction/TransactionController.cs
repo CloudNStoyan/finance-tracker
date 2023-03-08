@@ -222,7 +222,7 @@ public class TransactionController : ControllerBase
         {
             int multiplier = 0;
 
-            var tillDate = (transaction.RepeatEnd != null && transaction.RepeatEnd < date) ? transaction.RepeatEnd.Value : date.Value;
+            var tillDate = (transaction.RepeatEndDate != null && transaction.RepeatEndDate < date) ? transaction.RepeatEndDate.Value : date.Value;
 
             if (transaction.Repeat == "weekly")
             {

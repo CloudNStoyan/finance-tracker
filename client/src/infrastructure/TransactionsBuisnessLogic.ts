@@ -1,5 +1,5 @@
-import { differenceInDays, isAfter, parseJSON } from "date-fns";
-import { Transaction } from "../server-api";
+import { differenceInDays, format, isAfter, parseJSON } from "date-fns";
+import { Transaction, TransactionRepeat } from "../server-api";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
@@ -31,8 +31,8 @@ export const GetBalanceFromTransactions = (
       }
 
       if (
-        transaction.repeatEnd !== null &&
-        new Date(transaction.repeatEnd) < startDay
+        transaction.repeatEndDate !== null &&
+        new Date(transaction.repeatEndDate) < startDay
       ) {
         return false;
       }
@@ -68,8 +68,8 @@ export const GetBalanceFromTransactions = (
       const transactionDate = parseJSON(transaction.transactionDate);
 
       const repeatEnd =
-        transaction.repeatEnd !== null
-          ? parseJSON(transaction.repeatEnd)
+        transaction.repeatEndDate !== null
+          ? parseJSON(transaction.repeatEndDate)
           : null;
 
       const tillDate =
@@ -122,7 +122,9 @@ export const FilterTransactions = (
     const dateWithoutTime = StripTimeFromDate(date);
 
     const repeatEnd =
-      transaction.repeatEnd !== null ? new Date(transaction.repeatEnd) : null;
+      transaction.repeatEndDate !== null
+        ? new Date(transaction.repeatEndDate)
+        : null;
 
     const tillDate =
       repeatEnd !== null && repeatEnd < dateWithoutTime
@@ -165,4 +167,66 @@ export const GetTotalFromTransactionsByDate = (
         : state + transaction.value,
     0
   );
+};
+
+const ConvertRepeatTypeToHuman = (repeatType: TransactionRepeat) => {
+  switch (repeatType) {
+    case "daily":
+      return "day";
+    case "weekly":
+      return "week";
+    case "monthly":
+      return "month";
+    case "yearly":
+      return "year";
+  }
+};
+
+export const ConvertRepeatLogicToHumanText = (
+  date: Date,
+  repeatType: TransactionRepeat,
+  occurrences: number,
+  repeatEndType?: "after" | "on" | "never",
+  repeatEndDate?: Date,
+  repeatEndOccurrences?: number
+) => {
+  let text = "Every ";
+
+  const repeatTypeText = ConvertRepeatTypeToHuman(repeatType);
+
+  if (occurrences > 1) {
+    text += `${occurrences} ${repeatTypeText}s`;
+  } else {
+    text += repeatTypeText;
+  }
+
+  let dateFormat: string = null;
+
+  if (repeatType === "weekly") {
+    dateFormat = "EEEE";
+  }
+
+  if (repeatType === "monthly") {
+    dateFormat = "'the' do";
+  }
+
+  if (repeatType === "yearly") {
+    dateFormat = "MMMM 'the' do";
+  }
+
+  if (repeatType && repeatType !== "daily") {
+    text += ` (on ${format(date, dateFormat)})`;
+  }
+
+  if (repeatEndType === "on" && repeatEndDate) {
+    text += `, until ${format(repeatEndDate, "MMMM dd yyyy")}`;
+  }
+
+  if (repeatEndType === "after" && repeatEndOccurrences) {
+    text += `, ${repeatEndOccurrences} time${
+      repeatEndOccurrences > 1 ? "s" : ""
+    }`;
+  }
+
+  return text;
 };

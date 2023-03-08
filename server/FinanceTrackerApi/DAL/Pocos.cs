@@ -27,8 +27,17 @@ public class UserTransactionPoco
     [Column(Name = "transaction_date")]
     public DateTime TransactionDate { get; set; }
 
-    [Column(Name = "repeat_end")]
-    public DateTime? RepeatEnd { get; set; }
+    [Column(Name = "repeat_end_date")]
+    public DateTime? RepeatEndDate { get; set; }
+
+    [Column(Name = "repeat_end_type")]
+    public string? RepeatEndType { get; set; }
+
+    [Column(Name = "repeat_end_occurrences")]
+    public int? RepeatEndOccurrences { get; set; }
+
+    [Column(Name = "repeat_every")]
+    public int? RepeatEvery { get; set; }
 
     [Column(Name = "details")]
     public string? Details { get; set; }
