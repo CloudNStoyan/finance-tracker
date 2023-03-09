@@ -48,7 +48,7 @@ import RepeatTransactionDialog, {
 } from "../RepeatTransactionDialog";
 import DeleteTransactionDialog from "../DeleteDialog";
 import LoadingCircleAnimation from "../LoadingCircleAnimation";
-import HorizontalSelect from "../HorizontalSelect";
+import HorizontalSelect, { HorizontalSelectValue } from "../HorizontalSelect";
 import { ConvertRepeatLogicToHumanText } from "../../infrastructure/TransactionsBuisnessLogic";
 
 export interface DesktopTransactionProps {
@@ -187,7 +187,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       categories.find((cat) => cat.categoryId === transaction.categoryId)
     );
     setDescription(transaction.details ?? "");
-    // how to handle this? we need to know if the repeat was a preset or a custom? maybe if it fits preset assume its a preset?
+
     setRepeatType(transaction.repeat);
     setRepeatEnd(
       transaction.repeatEndDate === null
@@ -195,6 +195,20 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
         : parseJSON(transaction.repeatEndDate)
     );
     setItHasRepeat(transaction.repeat !== null);
+    setRepeatEveryCount(transaction.repeatEvery ?? 1);
+    setRepeatEndType(transaction.repeatEndType);
+    setRepeatEndOccurrences(transaction.repeatEndOccurrences);
+
+    if (
+      transaction.repeat &&
+      transaction.repeat !== "daily" &&
+      transaction.repeatEvery === 1
+    ) {
+      setRepeat(transaction.repeat);
+    } else if (transaction.repeat) {
+      setRepeat("custom");
+      setRepeatType(transaction.repeat);
+    }
   }, [transaction, categories, open, calendarSelected]);
 
   useEffect(
@@ -686,22 +700,19 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                       }}
                     />
                     <HorizontalSelect
+                      defaultSelect={{ value: repeatType }}
                       className="horizontal-select"
-                      onSelect={(value) => {
-                        const valuesMap: TransactionRepeat[] = [
-                          "daily",
-                          "weekly",
-                          "monthly",
-                          "yearly",
-                        ];
-
-                        setRepeatType(
-                          valuesMap[
-                            ["Day", "Week", "Month", "Year"].indexOf(value)
-                          ]
-                        );
+                      onSelect={(
+                        selected: HorizontalSelectValue<TransactionRepeat>
+                      ) => {
+                        setRepeatType(selected.value);
                       }}
-                      values={["Day", "Week", "Month", "Year"]}
+                      values={[
+                        { value: "daily", text: "Day" },
+                        { value: "weekly", text: "Week" },
+                        { value: "monthly", text: "Month" },
+                        { value: "yearly", text: "Year" },
+                      ]}
                     />
                   </div>
                 )}
@@ -711,10 +722,19 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                       <span className="uppercase text-xs w-14">Ends</span>
                       <HorizontalSelect
                         className="horizontal-select capitalize"
-                        onSelect={(value: "never" | "on" | "after") => {
-                          setRepeatEndType(value);
+                        onSelect={(
+                          selected: HorizontalSelectValue<
+                            "never" | "on" | "after"
+                          >
+                        ) => {
+                          setRepeatEndType(selected.value);
                         }}
-                        values={["never", "on", "after"]}
+                        values={[
+                          { value: "never" },
+                          { value: "on" },
+                          { value: "after" },
+                        ]}
+                        defaultSelect={{ value: repeatEndType }}
                       />
                     </div>
                     {repeatEndType === "on" && (
