@@ -148,39 +148,29 @@ export const FilterTransactions = (
   date: Date
 ): Transaction[] => {
   return transactions.filter((transaction) => {
-    const transactionDate = new Date(transaction.transactionDate);
-
     const dateWithoutTime = StripTimeFromDate(date);
+    const transactionDate = new Date(transaction.transactionDate);
+    const repeatEnd = new Date(transaction.repeatEndDate);
 
-    const repeatEnd =
-      transaction.repeatEndDate !== null
-        ? new Date(transaction.repeatEndDate)
-        : null;
-
-    const tillDate =
-      repeatEnd !== null && repeatEnd < dateWithoutTime
-        ? repeatEnd
-        : dateWithoutTime;
-
-    if (isBefore(date, transactionDate)) {
+    if (isBefore(dateWithoutTime, transactionDate)) {
       return false;
     }
 
     if (transaction.repeat === "daily") {
-      const daysDiff = differenceInDays(date, transactionDate);
+      const daysDiff = differenceInDays(dateWithoutTime, transactionDate);
 
       if (daysDiff % transaction.repeatEvery !== 0) {
         return false;
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(tillDate, transactionDate);
+        return IsAfterOrNow(repeatEnd, transactionDate);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = daysDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(date, transactionDate) &&
+          IsAfterOrNow(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -191,24 +181,24 @@ export const FilterTransactions = (
 
     if (transaction.repeat === "weekly") {
       // if its not the same day we don't need to do any more checks
-      if (transactionDate.getDay() !== date.getDay()) {
+      if (transactionDate.getDay() !== dateWithoutTime.getDay()) {
         return false;
       }
 
-      const weeksDiff = differenceInWeeks(date, transactionDate);
+      const weeksDiff = differenceInWeeks(dateWithoutTime, transactionDate);
 
       if (weeksDiff % transaction.repeatEvery !== 0) {
         return false;
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(tillDate, transactionDate);
+        return IsAfterOrNow(repeatEnd, transactionDate);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = weeksDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(date, transactionDate) &&
+          IsAfterOrNow(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -218,24 +208,24 @@ export const FilterTransactions = (
     }
 
     if (transaction.repeat === "monthly") {
-      if (transactionDate.getDate() !== date.getDate()) {
+      if (transactionDate.getDate() !== dateWithoutTime.getDate()) {
         return false;
       }
 
-      const monthsDiff = differenceInMonths(date, transactionDate);
+      const monthsDiff = differenceInMonths(dateWithoutTime, transactionDate);
 
       if (monthsDiff % transaction.repeatEvery !== 0) {
         return false;
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(tillDate, transactionDate);
+        return IsAfterOrNow(repeatEnd, transactionDate);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = monthsDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(date, transactionDate) &&
+          IsAfterOrNow(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -246,26 +236,26 @@ export const FilterTransactions = (
 
     if (transaction.repeat === "yearly") {
       if (
-        transactionDate.getDate() !== date.getDate() ||
-        transactionDate.getMonth() !== date.getMonth()
+        transactionDate.getDate() !== dateWithoutTime.getDate() ||
+        transactionDate.getMonth() !== dateWithoutTime.getMonth()
       ) {
         return false;
       }
 
-      const yearsDiff = differenceInYears(date, transactionDate);
+      const yearsDiff = differenceInYears(dateWithoutTime, transactionDate);
 
       if (yearsDiff % transaction.repeatEvery !== 0) {
         return false;
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(tillDate, transactionDate);
+        return IsAfterOrNow(repeatEnd, transactionDate);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = yearsDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(date, transactionDate) &&
+          IsAfterOrNow(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -274,7 +264,7 @@ export const FilterTransactions = (
       return true;
     }
 
-    return DatesAreEqualWithoutTime(transactionDate, date);
+    return DatesAreEqualWithoutTime(transactionDate, dateWithoutTime);
   });
 };
 
