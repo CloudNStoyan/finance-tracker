@@ -1,4 +1,4 @@
-import { format, fromUnixTime, isAfter } from "date-fns";
+import { format, fromUnixTime, isAfter, isBefore } from "date-fns";
 
 export const DatesAreEqualWithoutTime = (a: Date, b: Date) => {
   if (a === null || b === null) {
@@ -20,8 +20,11 @@ export const DatesAreEqualWithoutTime = (a: Date, b: Date) => {
   return true;
 };
 
-export const IsAfterOrNow = (a: Date, b: Date) =>
+export const IsAfterOrEqual = (a: Date, b: Date) =>
   isAfter(a, b) || DatesAreEqualWithoutTime(a, b);
+
+export const IsBeforeOrEqual = (a: Date, b: Date) =>
+  isBefore(a, b) || DatesAreEqualWithoutTime(a, b);
 
 export const StripTimeFromDate = (date: Date) => {
   const newDate = new Date(date);

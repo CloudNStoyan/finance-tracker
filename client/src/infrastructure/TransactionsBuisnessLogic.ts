@@ -12,9 +12,46 @@ import { Transaction, TransactionRepeat } from "../server-api";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
-  IsAfterOrNow,
+  IsAfterOrEqual,
+  IsBeforeOrEqual,
   StripTimeFromDate,
 } from "./CustomDateUtils";
+
+const GetOccurrencessBetweenDates = (
+  a: Date,
+  b: Date,
+  repeatType: TransactionRepeat,
+  repeatEvery: number,
+  maxOccurrencess?: number
+) => {
+  if (repeatType === "yearly") {
+    // its impossible to see two instances of a transaction that is on a yearly
+    // basis so we don't calculate anything because it will be 1 every time.
+    return 1;
+  }
+
+  let diff;
+
+  if (repeatType === "daily") {
+    diff = differenceInDays(a, b);
+  }
+
+  if (repeatType === "weekly") {
+    diff = differenceInWeeks(a, b);
+  }
+
+  if (repeatType === "monthly") {
+    diff = differenceInMonths(a, b);
+  }
+
+  let occurrences = Math.floor(diff / repeatEvery + 1);
+
+  if (maxOccurrencess) {
+    occurrences = Math.min(maxOccurrencess, occurrences);
+  }
+
+  return occurrences;
+};
 
 export const GetBalanceFromTransactions = (
   transactions: Transaction[],
@@ -22,120 +59,69 @@ export const GetBalanceFromTransactions = (
   days: number[],
   date: Date
 ): number => {
-  const eligableTransactions = transactions
-    .filter((transaction) => {
-      const transactionDate = parseJSON(transaction.transactionDate);
-      const startDay = fromUnixTimeMs(days[0]);
+  const dateWithoutTime = StripTimeFromDate(date);
 
-      if (transaction.repeat === null) {
-        if (transactionDate > startDay && transactionDate <= date) {
-          return true;
-        }
-        return false;
-      }
+  const eligableTransactions = transactions.filter((transaction) => {
+    let transactionDate = StripTimeFromDate(
+      parseJSON(transaction.transactionDate)
+    );
+    const startDay = fromUnixTimeMs(days[0]);
 
-      // no more normal equations now its only the repeat ones
-
-      if (transactionDate > date) {
-        return false;
-      }
-
-      if (
-        transaction.repeatEndDate !== null &&
-        new Date(transaction.repeatEndDate) < startDay
-      ) {
-        return false;
-      }
-
-      if (transaction.repeat === "daily") {
-        return true;
-      }
-
-      if (transaction.repeat === "weekly") {
-        return true;
-      }
-
-      if (transaction.repeat === "monthly") {
-        return true;
-      }
-
-      if (transaction.repeat === "yearly") {
-        const nextDate = new Date(
-          transactionDate.setFullYear(date.getFullYear())
-        );
-
-        if (nextDate > startDay && nextDate <= date) {
-          return true;
-        }
-      }
+    if (isAfter(transactionDate, dateWithoutTime)) {
       return false;
-    })
-    .map((transaction) => {
-      let transactionValue = transaction.value;
+    }
 
-      if (transaction.repeat === null) {
-        return transaction.type === "expense"
-          ? transactionValue * -1
-          : transactionValue;
-      }
+    if (transaction.repeat === "yearly") {
+      transactionDate = new Date(
+        transactionDate.setFullYear(date.getFullYear())
+      );
+    }
 
-      const transactionDate = parseJSON(transaction.transactionDate);
+    if (transaction.repeat === null || transaction.repeat === "yearly") {
+      return (
+        IsAfterOrEqual(transactionDate, startDay) &&
+        IsBeforeOrEqual(transactionDate, dateWithoutTime)
+      );
+    }
 
-      const repeatEnd =
-        transaction.repeatEndDate !== null
-          ? parseJSON(transaction.repeatEndDate)
-          : null;
+    return true;
+  });
 
-      const tillDate =
-        repeatEnd !== null && repeatEnd < date ? repeatEnd : date;
+  const transactionValues = eligableTransactions.map((transaction) => {
+    let transactionValue = transaction.value;
 
-      if (transaction.repeat === "monthly") {
-        const occurrences = days
-          .slice(1)
-          .map((dN) => new Date(new Date(dN).setHours(0, 0, 0, 0)))
-          .filter((d) => d <= tillDate)
-          .filter((d) => d.getDate() === transactionDate.getDate()).length;
-
-        transactionValue = transactionValue * occurrences;
-      }
-
-      if (transaction.repeat === "weekly") {
-        const startDay = fromUnixTimeMs(days[transactionDate.getDay() - 1]);
-
-        let daysDiff = differenceInDays(tillDate, transactionDate);
-
-        if (isAfter(startDay, transactionDate)) {
-          daysDiff = differenceInDays(tillDate, startDay);
-        }
-
-        const multiplier = Math.floor(daysDiff / 7) + 1;
-
-        transactionValue = transactionValue * multiplier;
-      }
-
-      if (transaction.repeat === "daily") {
-        if (transaction.repeatEndType === "on") {
-          const daysDiff = differenceInDays(tillDate, transactionDate) + 1;
-
-          transactionValue *= daysDiff;
-        }
-
-        if (transaction.repeatEndType === "after") {
-          const daysDiff = differenceInDays(date, transactionDate) + 1;
-
-          transactionValue *=
-            daysDiff > transaction.repeatEndOccurrences
-              ? transaction.repeatEndOccurrences
-              : daysDiff;
-        }
-      }
-
+    if (transaction.repeat === null) {
       return transaction.type === "expense"
         ? transactionValue * -1
         : transactionValue;
-    });
+    }
 
-  const newBalance = eligableTransactions.reduce(
+    const transactionDate = StripTimeFromDate(
+      parseJSON(transaction.transactionDate)
+    );
+    const repeatEnd = parseJSON(transaction.repeatEndDate);
+
+    const untillDate =
+      transaction.repeatEndType === "on" && isBefore(repeatEnd, dateWithoutTime)
+        ? repeatEnd
+        : dateWithoutTime;
+
+    const occurrences = GetOccurrencessBetweenDates(
+      untillDate,
+      transactionDate,
+      transaction.repeat,
+      transaction.repeatEvery,
+      transaction.repeatEndOccurrences
+    );
+
+    transactionValue *= occurrences;
+
+    return transaction.type === "expense"
+      ? transactionValue * -1
+      : transactionValue;
+  });
+
+  const newBalance = transactionValues.reduce(
     (state, value) => state + value,
     0
   );
@@ -150,7 +136,7 @@ export const FilterTransactions = (
   return transactions.filter((transaction) => {
     const dateWithoutTime = StripTimeFromDate(date);
     const transactionDate = new Date(transaction.transactionDate);
-    const repeatEnd = new Date(transaction.repeatEndDate);
+    const repeatEnd = parseJSON(transaction.repeatEndDate);
 
     if (isBefore(dateWithoutTime, transactionDate)) {
       return false;
@@ -164,13 +150,13 @@ export const FilterTransactions = (
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(repeatEnd, transactionDate);
+        return IsAfterOrEqual(repeatEnd, dateWithoutTime);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = daysDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(dateWithoutTime, transactionDate) &&
+          IsAfterOrEqual(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -192,13 +178,13 @@ export const FilterTransactions = (
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(repeatEnd, transactionDate);
+        return IsAfterOrEqual(repeatEnd, dateWithoutTime);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = weeksDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(dateWithoutTime, transactionDate) &&
+          IsAfterOrEqual(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -219,13 +205,13 @@ export const FilterTransactions = (
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(repeatEnd, transactionDate);
+        return IsAfterOrEqual(repeatEnd, dateWithoutTime);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = monthsDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(dateWithoutTime, transactionDate) &&
+          IsAfterOrEqual(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
@@ -249,13 +235,13 @@ export const FilterTransactions = (
       }
 
       if (transaction.repeatEndType === "on") {
-        return IsAfterOrNow(repeatEnd, transactionDate);
+        return IsAfterOrEqual(repeatEnd, dateWithoutTime);
       }
 
       if (transaction.repeatEndType === "after") {
         const occurrences = yearsDiff / transaction.repeatEvery + 1;
         return (
-          IsAfterOrNow(dateWithoutTime, transactionDate) &&
+          IsAfterOrEqual(dateWithoutTime, transactionDate) &&
           occurrences <= transaction.repeatEndOccurrences
         );
       }
