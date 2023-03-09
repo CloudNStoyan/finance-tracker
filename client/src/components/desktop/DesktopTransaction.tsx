@@ -172,8 +172,6 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       return;
     }
 
-    console.log(transaction);
-
     setValue(transaction.value.toString());
     setLabel(transaction.label);
     setConfirmed(transaction.confirmed);
@@ -199,15 +197,12 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     setRepeatEndOccurrences(transaction.repeatEndOccurrences ?? 1);
     setRepeatEndType(transaction.repeatEndType);
 
-    if (
-      transaction.repeat &&
-      transaction.repeat !== "daily" &&
-      transaction.repeatEvery === 1
-    ) {
+    if (transaction.repeat && transaction.repeatEvery === 1) {
       setRepeat(transaction.repeat);
-    } else if (transaction.repeat) {
+    }
+
+    if (transaction.repeat && transaction.repeatEvery > 1) {
       setRepeat("custom");
-      setRepeatType(transaction.repeat);
     }
   }, [transaction, categories, open, calendarSelected]);
 
@@ -226,6 +221,16 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
 
   const handleRepeatChange = (newRepeat: string) => {
     setRepeat(newRepeat);
+
+    if (
+      newRepeat === "daily" ||
+      newRepeat === "weekly" ||
+      newRepeat === "monthly" ||
+      newRepeat === "yearly"
+    ) {
+      setRepeatType(newRepeat);
+      setRepeatEveryCount(1);
+    }
   };
 
   useEffect(() => {
@@ -638,6 +643,7 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                   disabled={loading}
                 >
                   <MenuItem value={"none"}>Does not repeat</MenuItem>
+                  <MenuItem value={"daily"}>Repeat every day</MenuItem>
                   <MenuItem value={"weekly"}>Repeat every week</MenuItem>
                   <MenuItem value={"monthly"}>Repeat every month</MenuItem>
                   <MenuItem value={"yearly"}>Repeat every year</MenuItem>
