@@ -1,8 +1,18 @@
-import { differenceInDays, format, isAfter, parseJSON } from "date-fns";
+import {
+  differenceInDays,
+  differenceInMonths,
+  differenceInWeeks,
+  differenceInYears,
+  format,
+  isAfter,
+  isBefore,
+  parseJSON,
+} from "date-fns";
 import { Transaction, TransactionRepeat } from "../server-api";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
+  IsAfterOrNow,
   StripTimeFromDate,
 } from "./CustomDateUtils";
 
@@ -35,6 +45,10 @@ export const GetBalanceFromTransactions = (
         new Date(transaction.repeatEndDate) < startDay
       ) {
         return false;
+      }
+
+      if (transaction.repeat === "daily") {
+        return true;
       }
 
       if (transaction.repeat === "weekly") {
@@ -99,6 +113,23 @@ export const GetBalanceFromTransactions = (
         transactionValue = transactionValue * multiplier;
       }
 
+      if (transaction.repeat === "daily") {
+        if (transaction.repeatEndType === "on") {
+          const daysDiff = differenceInDays(tillDate, transactionDate) + 1;
+
+          transactionValue *= daysDiff;
+        }
+
+        if (transaction.repeatEndType === "after") {
+          const daysDiff = differenceInDays(date, transactionDate) + 1;
+
+          transactionValue *=
+            daysDiff > transaction.repeatEndOccurrences
+              ? transaction.repeatEndOccurrences
+              : daysDiff;
+        }
+      }
+
       return transaction.type === "expense"
         ? transactionValue * -1
         : transactionValue;
@@ -131,22 +162,115 @@ export const FilterTransactions = (
         ? repeatEnd
         : dateWithoutTime;
 
-    if (repeatEnd !== null && repeatEnd < dateWithoutTime) {
+    if (isBefore(date, transactionDate)) {
       return false;
     }
 
-    if (
-      (isAfter(tillDate, transactionDate) &&
-        transaction.repeat === "weekly" &&
-        transactionDate.getDay() === tillDate.getDay()) ||
-      (transaction.repeat === "monthly" &&
-        transactionDate.getDate() === tillDate.getDate() &&
-        isAfter(tillDate, transactionDate)) ||
-      (transaction.repeat === "yearly" &&
-        transactionDate.getDate() === tillDate.getDate() &&
-        transactionDate.getMonth() === tillDate.getMonth() &&
-        transactionDate.getFullYear() <= tillDate.getFullYear())
-    ) {
+    if (transaction.repeat === "daily") {
+      const daysDiff = differenceInDays(date, transactionDate);
+
+      if (daysDiff % transaction.repeatEvery !== 0) {
+        return false;
+      }
+
+      if (transaction.repeatEndType === "on") {
+        return IsAfterOrNow(tillDate, transactionDate);
+      }
+
+      if (transaction.repeatEndType === "after") {
+        const occurrences = daysDiff / transaction.repeatEvery + 1;
+        return (
+          IsAfterOrNow(date, transactionDate) &&
+          occurrences <= transaction.repeatEndOccurrences
+        );
+      }
+
+      // repeat end is never
+      return true;
+    }
+
+    if (transaction.repeat === "weekly") {
+      // if its not the same day we don't need to do any more checks
+      if (transactionDate.getDay() !== date.getDay()) {
+        return false;
+      }
+
+      const weeksDiff = differenceInWeeks(date, transactionDate);
+
+      if (weeksDiff % transaction.repeatEvery !== 0) {
+        return false;
+      }
+
+      if (transaction.repeatEndType === "on") {
+        return IsAfterOrNow(tillDate, transactionDate);
+      }
+
+      if (transaction.repeatEndType === "after") {
+        const occurrences = weeksDiff / transaction.repeatEvery + 1;
+        return (
+          IsAfterOrNow(date, transactionDate) &&
+          occurrences <= transaction.repeatEndOccurrences
+        );
+      }
+
+      // repeat end is never
+      return true;
+    }
+
+    if (transaction.repeat === "monthly") {
+      if (transactionDate.getDate() !== date.getDate()) {
+        return false;
+      }
+
+      const monthsDiff = differenceInMonths(date, transactionDate);
+
+      if (monthsDiff % transaction.repeatEvery !== 0) {
+        return false;
+      }
+
+      if (transaction.repeatEndType === "on") {
+        return IsAfterOrNow(tillDate, transactionDate);
+      }
+
+      if (transaction.repeatEndType === "after") {
+        const occurrences = monthsDiff / transaction.repeatEvery + 1;
+        return (
+          IsAfterOrNow(date, transactionDate) &&
+          occurrences <= transaction.repeatEndOccurrences
+        );
+      }
+
+      // repeat end is never
+      return true;
+    }
+
+    if (transaction.repeat === "yearly") {
+      if (
+        transactionDate.getDate() !== date.getDate() ||
+        transactionDate.getMonth() !== date.getMonth()
+      ) {
+        return false;
+      }
+
+      const yearsDiff = differenceInYears(date, transactionDate);
+
+      if (yearsDiff % transaction.repeatEvery !== 0) {
+        return false;
+      }
+
+      if (transaction.repeatEndType === "on") {
+        return IsAfterOrNow(tillDate, transactionDate);
+      }
+
+      if (transaction.repeatEndType === "after") {
+        const occurrences = yearsDiff / transaction.repeatEvery + 1;
+        return (
+          IsAfterOrNow(date, transactionDate) &&
+          occurrences <= transaction.repeatEndOccurrences
+        );
+      }
+
+      // repeat end is never
       return true;
     }
 

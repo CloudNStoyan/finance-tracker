@@ -196,8 +196,8 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
     );
     setItHasRepeat(transaction.repeat !== null);
     setRepeatEveryCount(transaction.repeatEvery ?? 1);
+    setRepeatEndOccurrences(transaction.repeatEndOccurrences ?? 1);
     setRepeatEndType(transaction.repeatEndType);
-    setRepeatEndOccurrences(transaction.repeatEndOccurrences);
 
     if (
       transaction.repeat &&
