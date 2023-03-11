@@ -9,7 +9,6 @@ import { IconButton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import {
   addMonths,
-  addWeeks,
   format,
   getTime,
   parseJSON,
@@ -30,7 +29,7 @@ import {
   StripTimeFromDate,
 } from "../infrastructure/CustomDateUtils";
 import { fetchCategories } from "../state/categorySlice";
-import { differenceInWeeks, lastDayOfMonth } from "date-fns/esm";
+import { lastDayOfMonth } from "date-fns/esm";
 import { GetTransactionOccurrencessInDates } from "../infrastructure/TransactionsBuisnessLogic";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
