@@ -837,24 +837,24 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
                     )}
                   </div>
                 )}
-                {repeat === "custom" && (
-                  <div>
-                    <span className="uppercase text-xs mb-1">Summary</span>
-                    <p className="text-lg h-14 mr-7">
-                      {ConvertRepeatLogicToHumanText(
-                        date,
-                        repeatType,
-                        repeatEveryCount,
-                        repeatEndType,
-                        repeatEndType !== "never" ? repeatEnd : undefined,
-                        repeatEndType === "after"
-                          ? repeatEndOccurrences
-                          : undefined
-                      )}
-                    </p>
-                  </div>
-                )}
               </div>
+              {repeat === "custom" && (
+                <div className="ml-3">
+                  <span className="uppercase text-xs mb-1">Summary</span>
+                  <p className="h-14">
+                    {ConvertRepeatLogicToHumanText(
+                      date,
+                      repeatType,
+                      repeatEveryCount,
+                      repeatEndType,
+                      repeatEndType !== "never" ? repeatEnd : undefined,
+                      repeatEndType === "after"
+                        ? repeatEndOccurrences
+                        : undefined
+                    )}
+                  </p>
+                </div>
+              )}
               <Button
                 onClick={() => setCurrentModal("description")}
                 size="large"
