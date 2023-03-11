@@ -21,10 +21,8 @@ const TransactionPageStyled = styled.div<{
     z-index: 1;
   }
 
-  .repeat-end {
-    display: flex;
+  .repeat-options {
     margin-left: 42px;
-    height: 42px;
   }
 
   .type-selector {
@@ -80,7 +78,6 @@ const TransactionPageStyled = styled.div<{
 
         input {
           padding: 0;
-          font-weight: 500;
         }
       }
     }
