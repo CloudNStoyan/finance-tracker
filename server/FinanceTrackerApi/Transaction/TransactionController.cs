@@ -220,26 +220,17 @@ public class TransactionController : ControllerBase
 
         foreach (var transaction in transactions)
         {
-            int multiplier = 0;
+            decimal transactionValue = transaction.Value;
 
-            var tillDate = (transaction.RepeatEndDate != null && transaction.RepeatEndDate < date) ? transaction.RepeatEndDate.Value : date.Value;
-
-            if (transaction.Repeat == "weekly")
+            if (transaction.Repeat is not null)
             {
-                multiplier = DateUtils.WeeksDifference(tillDate, transaction.TransactionDate);
+                var untilDate = transaction.RepeatEndType == "on" && (transaction.RepeatEndDate!.Value < date.Value) ? transaction.RepeatEndDate.Value : date.Value;
+
+                decimal occurrences = TransactionBusinessLogic.GetOccurrencesBetweenDates(untilDate, transaction.TransactionDate, transaction.Repeat, transaction.RepeatEvery!.Value, transaction.RepeatEndOccurrences);
+
+                transactionValue *= occurrences;
             }
 
-            if (transaction.Repeat == "monthly")
-            {
-                multiplier = DateUtils.MonthsDifference(tillDate, transaction.TransactionDate);
-            }
-
-            if (transaction.Repeat == "yearly")
-            {
-                multiplier = DateUtils.YearsDifference(tillDate, transaction.TransactionDate);
-            }
-
-            decimal transactionValue = multiplier > 0 ? transaction.Value * (multiplier + 1) : transaction.Value;
 
             if (transaction.Type == "expense")
             {
