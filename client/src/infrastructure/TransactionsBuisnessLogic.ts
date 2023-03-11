@@ -17,12 +17,13 @@ import {
   StripTimeFromDate,
 } from "./CustomDateUtils";
 
-const GetOccurrencessBetweenDates = (
-  a: Date,
-  b: Date,
+const GetTransactionOccurrencess = (
+  date: Date,
+  transactionDate: Date,
   repeatType: TransactionRepeat,
   repeatEvery: number,
-  maxOccurrencess?: number
+  maxOccurrencess?: number,
+  startDay?: Date
 ) => {
   if (repeatType === "yearly") {
     // its impossible to see two instances of a transaction that is on a yearly
@@ -33,15 +34,15 @@ const GetOccurrencessBetweenDates = (
   let diff;
 
   if (repeatType === "daily") {
-    diff = differenceInDays(a, b);
+    diff = differenceInDays(date, transactionDate);
   }
 
   if (repeatType === "weekly") {
-    diff = differenceInWeeks(a, b);
+    diff = differenceInWeeks(date, transactionDate);
   }
 
   if (repeatType === "monthly") {
-    diff = differenceInMonths(a, b);
+    diff = differenceInMonths(date, transactionDate);
   }
 
   let occurrences = Math.floor(diff / repeatEvery + 1);
@@ -50,7 +51,19 @@ const GetOccurrencessBetweenDates = (
     occurrences = Math.min(maxOccurrencess, occurrences);
   }
 
-  return occurrences;
+  if (startDay && isAfter(startDay, transactionDate)) {
+    const offsetOccurrences = GetTransactionOccurrencess(
+      startDay,
+      transactionDate,
+      repeatType,
+      repeatEvery,
+      maxOccurrencess
+    );
+
+    occurrences -= offsetOccurrences;
+  }
+
+  return Math.max(occurrences, 0);
 };
 
 export const GetBalanceFromTransactions = (
@@ -60,12 +73,12 @@ export const GetBalanceFromTransactions = (
   date: Date
 ): number => {
   const dateWithoutTime = StripTimeFromDate(date);
+  const startDay = fromUnixTimeMs(days[0]);
 
   const eligableTransactions = transactions.filter((transaction) => {
     let transactionDate = StripTimeFromDate(
       parseJSON(transaction.transactionDate)
     );
-    const startDay = fromUnixTimeMs(days[0]);
 
     if (isAfter(transactionDate, dateWithoutTime)) {
       return false;
@@ -106,12 +119,13 @@ export const GetBalanceFromTransactions = (
         ? repeatEnd
         : dateWithoutTime;
 
-    const occurrences = GetOccurrencessBetweenDates(
+    const occurrences = GetTransactionOccurrencess(
       untillDate,
       transactionDate,
       transaction.repeat,
       transaction.repeatEvery,
-      transaction.repeatEndOccurrences
+      transaction.repeatEndOccurrences,
+      startDay
     );
 
     transactionValue *= occurrences;
