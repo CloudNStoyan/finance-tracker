@@ -25,9 +25,13 @@ import {
   setStartBalance,
 } from "../state/calendarSlice";
 import { fetchTransactionsByRange } from "../state/transactionSlice";
-import { fromUnixTimeMs } from "../infrastructure/CustomDateUtils";
+import {
+  fromUnixTimeMs,
+  StripTimeFromDate,
+} from "../infrastructure/CustomDateUtils";
 import { fetchCategories } from "../state/categorySlice";
 import { differenceInWeeks, lastDayOfMonth } from "date-fns/esm";
+import { GetTransactionOccurrencessInDates } from "../infrastructure/TransactionsBuisnessLogic";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -173,28 +177,26 @@ const StatisticsPage = () => {
       const transactionDate = parseJSON(t.transactionDate);
 
       const lastDay = lastDayOfMonth(now);
-      const firstDay = setDate(new Date(now).setHours(0, 0, 0, 0), 1);
+      const firstDay = setDate(StripTimeFromDate(now), 1);
 
-      if (t.repeat === "weekly") {
-        const transactions: Transaction[] = [];
+      const transactions: Transaction[] = [];
 
-        const tillDate =
-          t.repeatEnd !== null ? parseJSON(t.repeatEnd) : lastDay;
+      const dates = GetTransactionOccurrencessInDates(
+        firstDay,
+        lastDay,
+        transactionDate,
+        t.repeat,
+        t.repeatEvery,
+        t.repeatEndOccurrences
+      );
 
-        const occurences = differenceInWeeks(tillDate, transactionDate);
+      dates.forEach((date) => {
+        const newTransaction = Object.assign({}, t);
+        newTransaction.transactionDate = date.toJSON();
+        transactions.push(newTransaction);
+      });
 
-        for (let i = 0; i < occurences; i++) {
-          const newDate = addWeeks(transactionDate, i + 1);
-
-          if (newDate.getMonth() === firstDay.getMonth()) {
-            const newTransaction = Object.assign({}, t);
-            newTransaction.transactionDate = newDate.toJSON();
-            transactions.push(newTransaction);
-          }
-        }
-
-        transactionRepeats.push(transactions);
-      }
+      transactionRepeats.push(transactions);
     });
 
     const repeatedTransactions = transactionRepeats.reduce(

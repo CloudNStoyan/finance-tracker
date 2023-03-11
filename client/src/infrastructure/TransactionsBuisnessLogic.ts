@@ -1,4 +1,6 @@
 import {
+  addDays,
+  addWeeks,
   differenceInDays,
   differenceInMonths,
   differenceInWeeks,
@@ -64,6 +66,42 @@ const GetTransactionOccurrencess = (
   }
 
   return Math.max(occurrences, 0);
+};
+
+export const GetTransactionOccurrencessInDates = (
+  startDay: Date,
+  lastDay: Date,
+  transactionDate: Date,
+  repeatType: TransactionRepeat,
+  repeatEvery: number,
+  maxOccurrences?: number
+) => {
+  const occurrences = GetTransactionOccurrencess(
+    lastDay,
+    transactionDate,
+    repeatType,
+    repeatEvery,
+    maxOccurrences,
+    startDay
+  );
+
+  let addFn: (date: Date, amount: number) => Date = null;
+
+  if (repeatType === "daily") {
+    addFn = addDays;
+  }
+
+  if (repeatType === "weekly") {
+    addFn = addWeeks;
+  }
+
+  const dates: Date[] = [];
+
+  for (let i = 1; i < occurrences; i++) {
+    dates.push(addFn(transactionDate, i * repeatEvery));
+  }
+
+  return dates;
 };
 
 export const GetBalanceFromTransactions = (
