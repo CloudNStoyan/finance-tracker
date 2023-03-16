@@ -78,7 +78,9 @@ const calendarSlice = createSlice({
       const stateNow = fromUnixTimeMs(state.now);
 
       const newMonth =
-        state.now === null || now.getMonth() !== stateNow.getMonth();
+        state.now === null ||
+        now.getMonth() !== stateNow.getMonth() ||
+        now.getFullYear() !== stateNow.getFullYear();
 
       state.now = action.payload;
 
