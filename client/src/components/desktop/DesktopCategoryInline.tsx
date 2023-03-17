@@ -2,19 +2,24 @@ import { FunctionComponent } from "react";
 import { Category } from "../../server-api";
 import Icons from "../../infrastructure/Icons";
 import { IconButton } from "@mui/material";
-import CategoryInlineComponentStyled from "../CategoryInlineComponent.styled";
 import EditIcon from "@mui/icons-material/Edit";
+import { styled } from "../../infrastructure/ThemeManager";
 
 export interface DesktopCategoryInlineComponentProps {
   category: Category;
   onSelected: (cat: Category) => void;
 }
 
+const DesktopCategoryInlineComponentStyled = styled.div<{ bgColor: string }>`
+  background-color: ${({ bgColor }) => bgColor};
+  animation: custom-slide-bottom-up 0.25s;
+`;
+
 const DesktopCategoryInlineComponent: FunctionComponent<
   DesktopCategoryInlineComponentProps
 > = ({ category, onSelected }) => {
   return (
-    <CategoryInlineComponentStyled
+    <DesktopCategoryInlineComponentStyled
       bgColor={category.bgColor}
       className="
       flex flex-nowrap items-center wrapper p-3
@@ -31,7 +36,7 @@ const DesktopCategoryInlineComponent: FunctionComponent<
       >
         <EditIcon />
       </IconButton>
-    </CategoryInlineComponentStyled>
+    </DesktopCategoryInlineComponentStyled>
   );
 };
 

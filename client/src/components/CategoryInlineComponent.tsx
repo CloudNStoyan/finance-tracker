@@ -2,13 +2,18 @@ import { FunctionComponent } from "react";
 import { Category } from "../server-api";
 import Icons from "../infrastructure/Icons";
 import { IconButton } from "@mui/material";
-import CategoryInlineComponentStyled from "./CategoryInlineComponent.styled";
 import EditIcon from "@mui/icons-material/Edit";
 import { useNavigate } from "react-router-dom";
+import { styled } from "../infrastructure/ThemeManager";
 
 export interface CategoryInlineComponentProps {
   category: Category;
 }
+
+const CategoryInlineComponentStyled = styled.div<{ bgColor: string }>`
+  background-color: ${({ bgColor }) => bgColor};
+  animation: custom-slide-bottom-up 0.25s;
+`;
 
 const CategoryInlineComponent: FunctionComponent<
   CategoryInlineComponentProps

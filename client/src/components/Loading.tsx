@@ -1,6 +1,24 @@
 import { FunctionComponent, ReactNode } from "react";
+import { styled } from "../infrastructure/ThemeManager";
 import { useAppSelector } from "../state/hooks";
-import LoadingStyled from "./Loading.styled";
+
+const LoadingStyled = styled.div`
+  height: 100%;
+
+  .loading-container {
+    background-color: ${({ theme }) => theme.colors.background};
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation-name: custom-growing-40;
+    animation-duration: 1.1s;
+    animation-iteration-count: infinite;
+
+    border: 30px solid ${({ theme }) => theme.colors.background};
+    outline: 5px solid ${({ theme }) => theme.colors.topbarBg};
+  }
+`;
 
 export interface LoadingProps {
   children: ReactNode | ReactNode[];

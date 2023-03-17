@@ -1,8 +1,18 @@
 import { FunctionComponent, ReactNode } from "react";
-import { ThemeProvider as StyledThemeProvider } from "styled-components";
+import styled, {
+  ThemeProvider as StyledThemeProvider,
+} from "styled-components";
 import { createTheme, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { useAppSelector } from "../state/hooks";
-import ThemesComponentStyled from "./ThemesComponent.styled";
+
+const ThemesComponentStyled = styled.div`
+  padding-top: 50px;
+  height: 100%;
+
+  @media (min-width: 1024px) {
+    padding-top: 60px;
+  }
+`;
 
 export interface ThemesComponentProps {
   children: ReactNode[] | ReactNode;

@@ -6,9 +6,21 @@ import {
   DatesAreEqualWithoutTime,
 } from "../infrastructure/CustomDateUtils";
 import Icons from "../infrastructure/Icons";
+import { styled } from "../infrastructure/ThemeManager";
 import { Category, Transaction } from "../server-api";
 import { useAppSelector } from "../state/hooks";
-import TransactionInlineStyled from "./TransactionInline.styled";
+
+const TransactionInlineStyled = styled.button<{ bgColor: string }>`
+  background-color: ${({ bgColor }) => bgColor};
+  animation: custom-slide-bottom-up 0.25s;
+
+  .label {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
 
 export interface TransactionInlineProps {
   transaction: Transaction;

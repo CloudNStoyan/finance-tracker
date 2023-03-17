@@ -2,13 +2,25 @@ import { format } from "date-fns";
 import { FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
+import { styled } from "../infrastructure/ThemeManager";
 import { Category, Transaction } from "../server-api";
-import SearchTransactionStyled from "./SearchTransaction.styled";
 
 export interface SearchTransactionProps {
   transaction: Transaction;
   category: Category;
 }
+
+const SearchTransactionStyled = styled.button<{ bgColor: string }>`
+  background-color: ${({ bgColor }) => bgColor};
+  animation: custom-slide-bottom-up 0.25s;
+
+  .label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    white-space: nowrap;
+  }
+`;
 
 const SearchTransaction: FunctionComponent<SearchTransactionProps> = ({
   transaction,

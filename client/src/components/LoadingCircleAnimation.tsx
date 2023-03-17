@@ -1,6 +1,20 @@
 import { CircularProgress } from "@mui/material";
 import { FunctionComponent } from "react";
-import LoadingCircleAnimationStyled from "./LoadingCircleAnimationStyled";
+import { styled } from "../infrastructure/ThemeManager";
+
+const LoadingCircleAnimationStyled = styled.div`
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .loading-circle {
+    position: absolute;
+    z-index: 1;
+  }
+`;
 
 const LoadingCircleAnimation: FunctionComponent<{ className: string }> = ({
   className,

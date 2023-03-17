@@ -4,12 +4,12 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../infrastructure/CustomDateUtils";
+import { styled } from "../infrastructure/ThemeManager";
 import {
   GetBalanceFromTransactions,
   GetTotalFromTransactionsByDate,
 } from "../infrastructure/TransactionsBuisnessLogic";
 import { useAppSelector } from "../state/hooks";
-import CalendarDayStyled from "./CalendarDay.styled";
 
 export interface CalendarDayProps {
   date: Date;
@@ -17,6 +17,20 @@ export interface CalendarDayProps {
   isToday: boolean;
   onClick: (date: Date) => void;
 }
+
+const CalendarDayStyled = styled.button<{ isDarkMode: boolean }>`
+  -webkit-tap-highlight-color: transparent;
+  border-right: 2px solid transparent;
+  animation: custom-scale-0-1 0.25s;
+
+  &.selected {
+    border-color: ${({ theme }) => theme.colors.topbarBg};
+  }
+
+  &:not(.selected).today {
+    border-color: ${({ isDarkMode }) => (isDarkMode ? "gray" : "#222")};
+  }
+`;
 
 const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   date,

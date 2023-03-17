@@ -1,7 +1,6 @@
 import { Drawer, IconButton } from "@mui/material";
 import { FunctionComponent, useState } from "react";
 import { useAppSelector } from "../state/hooks";
-import TopbarStyled from "./Topbar.styled";
 import WestIcon from "@mui/icons-material/West";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
@@ -9,6 +8,20 @@ import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SettingsModal from "../pages/SettingsModal";
+import { styled } from "../infrastructure/ThemeManager";
+
+const TopbarStyled = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: ${({ theme }) => theme.colors.topbarBg};
+  height: 50px;
+
+  .MuiSwitch-root {
+    z-index: 100;
+  }
+`;
 
 const navigateBackMap: { [key: string]: string } = {
   "/transaction": "/",
