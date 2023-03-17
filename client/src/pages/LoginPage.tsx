@@ -12,7 +12,7 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 import { useCallback, useEffect, useState } from "react";
-import LoginPageStyled from "./styles/LoginPage.styled";
+import LoginPageStyled from "./LoginPage.styled";
 import { Link } from "react-router-dom";
 import { useAppDispatch } from "../state/hooks";
 import { setNotification } from "../state/notificationSlice";

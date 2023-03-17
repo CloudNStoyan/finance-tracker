@@ -5,7 +5,7 @@ import DefaultCategory from "../../state/DefaultCategory";
 import { format, lastDayOfMonth, parseJSON, setDate } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { fetchStartBalance, setStartBalance } from "../../state/calendarSlice";
-import DesktopStatisticsPageStyled from "../styles/desktop/DesktopStatisticsPage.styled";
+import DesktopStatisticsPageStyled from "./DesktopStatisticsPage.styled";
 import DesktopStatsPanel from "../../components/desktop/DesktopStatsPanel";
 import { fetchTransactionsByRange } from "../../state/transactionSlice";
 import {

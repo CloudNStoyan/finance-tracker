@@ -1,5 +1,13 @@
+import { styled } from "../../infrastructure/ThemeManager";
 import { useAppSelector } from "../../state/hooks";
-import DesktopDaysOfWeekStyled from "../styles/desktop/DesktopDaysOfWeek.styled";
+
+const DesktopDaysOfWeekStyled = styled.div`
+  display: flex;
+  > * {
+    flex: 14%;
+    font-size: 14px;
+  }
+`;
 
 const DesktopDaysOfWeek = () => {
   const firstDayOfTheMonth = useAppSelector(

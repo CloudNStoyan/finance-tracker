@@ -12,7 +12,7 @@ import {
 import DefaultCategory from "../../state/DefaultCategory";
 import { Transaction } from "../../server-api";
 import { useAppSelector } from "../../state/hooks";
-import DesktopCalendarDayStyled from "../styles/desktop/DesktopCalendarDay.styled";
+import DesktopCalendarDayStyled from "./DesktopCalendarDay.styled";
 import DesktopCalendarTransaction from "./DesktopCalendarTransaction";
 import { IconButton } from "@mui/material";
 import { Add } from "@mui/icons-material";

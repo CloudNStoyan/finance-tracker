@@ -9,7 +9,7 @@ import {
   GetTotalFromTransactionsByDate,
 } from "../infrastructure/TransactionsBuisnessLogic";
 import { useAppSelector } from "../state/hooks";
-import CalendarDayStyled from "./styles/CalendarDay.styled";
+import CalendarDayStyled from "./CalendarDay.styled";
 
 export interface CalendarDayProps {
   date: Date;

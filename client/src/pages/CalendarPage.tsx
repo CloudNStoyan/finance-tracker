@@ -16,13 +16,39 @@ import {
   setStartBalance,
 } from "../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
-import CalendarPageStyled from "./styles/CalendarPage.styled";
 import { useNavigate } from "react-router-dom";
 import CalendarNavigation from "../components/CalendarNavigation";
 import { fetchTransactionsByRange } from "../state/transactionSlice";
 import { fetchCategories } from "../state/categorySlice";
+import { styled } from "../infrastructure/ThemeManager";
 
 const initialNow = new Date();
+
+const CalendarPageStyled = styled.div<{ isDarkMode: boolean }>`
+  background-color: ${({ isDarkMode }) => (isDarkMode ? "#444" : "#f3f4f6")};
+  max-height: calc(100vh - 50px);
+
+  .calendar-nav {
+    .today-btn {
+      position: absolute;
+      right: 0;
+    }
+  }
+
+  .calendar-container {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+
+  .calendar-wrapper {
+    display: flex;
+    flex-flow: row wrap;
+    padding: 10px;
+
+    > * {
+      flex: 14%;
+    }
+  }
+`;
 
 const CalendarPage = () => {
   const dispatch = useAppDispatch();

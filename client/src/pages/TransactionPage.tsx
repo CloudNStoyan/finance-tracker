@@ -30,14 +30,14 @@ import {
 import CheckIcon from "@mui/icons-material/Check";
 import { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
-import TransactionPageStyled from "./styles/TransactionPage.styled";
+import TransactionPageStyled from "./TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { Category, Transaction, TransactionRepeat } from "../server-api";
 import { setNotification } from "../state/notificationSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
-import PickCategoryStyled from "../components/styles/PickCategory.styled";
-import PickCategoriesStyled from "../components/styles/PickCategories.styled";
+import PickCategoryStyled from "../components/PickCategory.styled";
+import PickCategoriesStyled from "../components/PickCategories.styled";
 import { parseISO, parseJSON } from "date-fns";
 import {
   DateOnlyToString,

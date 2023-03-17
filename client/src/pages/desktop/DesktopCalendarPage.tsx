@@ -14,7 +14,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 
 import DesktopTransaction from "../../components/desktop/DesktopTransaction";
-import DesktopCalendarPageStyled from "../styles/desktop/DesktopCalendarPage.styled";
+import DesktopCalendarPageStyled from "./DesktopCalendarPage.styled";
 import DesktopCalendarDay from "../../components/desktop/DesktopCalendarDay";
 import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
 

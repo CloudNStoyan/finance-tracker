@@ -7,7 +7,20 @@ import DefaultCategory from "../state/DefaultCategory";
 import SearchTransaction from "../components/SearchTransaction";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { fetchCategories } from "../state/categorySlice";
-import SearchPageStyled from "./styles/SearchPage.styled";
+import { styled } from "../infrastructure/ThemeManager";
+
+const SearchPageStyled = styled.div`
+  display: flex;
+  flex-flow: column;
+  max-height: calc(100vh - 50px);
+
+  .transactions-container {
+    overflow: hidden;
+    overflow-y: scroll;
+    padding-bottom: 10px;
+    max-width: 100vw;
+  }
+`;
 
 const SearchPage = () => {
   const [alreadySearched, setAlreadySearched] = useState<string[]>([]);

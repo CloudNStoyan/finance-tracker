@@ -12,7 +12,7 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 import { useCallback, useEffect, useState } from "react";
-import RegisterPageStyled from "./styles/RegisterPage.styled";
+import RegisterPageStyled from "./RegisterPage.styled";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordStrengthIndicator from "../components/PasswordStrengthIndicator";
 import usePasswordStrength from "../components/usePasswordStrength";

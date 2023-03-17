@@ -5,7 +5,7 @@ import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
 import { resendVerificationEmail, verifyEmail } from "../../server-api";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
-import DesktopVerifyEmailPageStyled from "../styles/desktop/DesktopVerifyEmailPage.styled";
+import DesktopVerifyEmailPageStyled from "./DesktopVerifyEmailPage.styled";
 
 const DesktopVerifyEmailPage = () => {
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);

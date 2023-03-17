@@ -3,9 +3,18 @@ import AddIcon from "@mui/icons-material/Add";
 import { useEffect } from "react";
 import CategoryInlineComponent from "../components/CategoryInlineComponent";
 import { useNavigate } from "react-router-dom";
-import ManageCategoriesPageStyled from "./styles/ManageCategoriesPage.styled";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { fetchCategories } from "../state/categorySlice";
+import { styled } from "../infrastructure/ThemeManager";
+
+const ManageCategoriesPageStyled = styled.div`
+  max-height: calc(100vh - 50px);
+  overflow: hidden;
+
+  .categories-container {
+    overflow-y: scroll;
+  }
+`;
 
 const ManageCategoriesPage = () => {
   const categories = useAppSelector(

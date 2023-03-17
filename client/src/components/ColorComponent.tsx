@@ -1,5 +1,5 @@
 import { FunctionComponent } from "react";
-import ColorComponentStyled from "./styles/ColorComponent.styled";
+import ColorComponentStyled from "./ColorComponent.styled";
 
 export interface ColorProps {
   bgColor: string;

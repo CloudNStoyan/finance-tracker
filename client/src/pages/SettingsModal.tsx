@@ -8,7 +8,6 @@ import {
 import { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { switchTheme } from "../state/themeSlice";
-import SettingsPageStyled from "./styles/SettingsPage.styled";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -20,10 +19,35 @@ import { logoutUser } from "../state/authSlice";
 import { useNavigate } from "react-router-dom";
 import { setFirstDayOfTheMonth } from "../state/calendarSlice";
 import { setNotification } from "../state/notificationSlice";
+import { styled } from "../infrastructure/ThemeManager";
 
 export interface SettingsModalProps {
   onClose: () => void;
 }
+
+const SettingsModalStyled = styled.div<{ isDarkMode: boolean }>`
+  width: 320px;
+
+  .heading {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid;
+    border-bottom-color: ${({ isDarkMode }) =>
+      isDarkMode ? "#444" : "#e9e9e9"};
+
+    h1 {
+      font-size: 20px;
+    }
+
+    margin-bottom: 20px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+`;
 
 const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   const dispatch = useAppDispatch();
@@ -85,7 +109,7 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   };
 
   return (
-    <SettingsPageStyled isDarkMode={isDarkMode}>
+    <SettingsModalStyled isDarkMode={isDarkMode}>
       <div className="heading">
         <h1>Settings</h1>
         <IconButton onClick={onClose}>
@@ -161,7 +185,7 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
           {isLoggingOut ? "Logging out" : "Log out"}
         </Button>
       </div>
-    </SettingsPageStyled>
+    </SettingsModalStyled>
   );
 };
 

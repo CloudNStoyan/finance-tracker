@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
 import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
-import TestimonialStyled from "./styles/Testimonial.styled";
+import TestimonialStyled from "./Testimonial.styled";
 import { TestimonialData } from "../state/static";
 
 interface TestimonialProps {

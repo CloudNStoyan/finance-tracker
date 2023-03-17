@@ -3,7 +3,7 @@ import { Button, IconButton } from "@mui/material";
 import { FunctionComponent } from "react";
 import { Category } from "../../server-api";
 import { useAppSelector } from "../../state/hooks";
-import DesktopManageCategoriesStlyed from "../styles/desktop/DesktopManageCategories.styled";
+import DesktopManageCategoriesStlyed from "./DesktopManageCategories.styled";
 import DesktopCategoryInlineComponent from "./DesktopCategoryInline";
 
 export interface DesktopManageCategoriesModalProps {

@@ -13,7 +13,7 @@ import {
 } from "@mui/icons-material";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import DesktopLoginPageStyled from "../styles/desktop/DesktopLoginPage.styled";
+import DesktopLoginPageStyled from "./DesktopLoginPage.styled";
 import useAuth from "../../components/useAuth";
 import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
 import { useAppDispatch } from "../../state/hooks";

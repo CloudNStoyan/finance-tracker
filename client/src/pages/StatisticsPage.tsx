@@ -4,7 +4,6 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
 import { Category, Transaction } from "../server-api";
 import DefaultCategory from "../state/DefaultCategory";
-import StatisticsPageStyled from "./styles/StatisticsPage.styled";
 import { IconButton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import {
@@ -31,12 +30,36 @@ import {
 import { fetchCategories } from "../state/categorySlice";
 import { lastDayOfMonth } from "date-fns/esm";
 import { GetTransactionOccurrencessInDates } from "../infrastructure/TransactionsBuisnessLogic";
+import { styled } from "../infrastructure/ThemeManager";
 
 Chart.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 export interface CategoryData {
   [name: string]: number;
 }
+
+const StatisticsPageStyled = styled.div`
+  display: flex;
+  max-height: calc(100vh - 50px);
+  flex-flow: column nowrap;
+
+  .transaction-list {
+    overflow: hidden;
+    overflow-y: scroll;
+    margin: 10px 0;
+    max-width: 100vw;
+  }
+
+  .categories-list {
+    max-width: 100vw;
+  }
+
+  .chart {
+    flex: 0 0 250px;
+    box-shadow: 0 6px 7px rgb(0 0 0 / 5%);
+    padding-bottom: 20px;
+  }
+`;
 
 const GenerateChartDataset = (data: CategoryData, categories: Category[]) => {
   if (!data || Object.keys(data).length === 0) {

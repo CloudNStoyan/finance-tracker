@@ -3,7 +3,7 @@ import { FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import { Category, Transaction } from "../server-api";
-import SearchTransactionStyled from "./styles/SearchTransaction.styled";
+import SearchTransactionStyled from "./SearchTransaction.styled";
 
 export interface SearchTransactionProps {
   transaction: Transaction;

@@ -2,7 +2,7 @@ import { FunctionComponent } from "react";
 import { Category } from "../../server-api";
 import Icons from "../../infrastructure/Icons";
 import { IconButton } from "@mui/material";
-import CategoryInlineComponentStyled from ".././styles/CategoryInlineComponent.styled";
+import CategoryInlineComponentStyled from "../CategoryInlineComponent.styled";
 import EditIcon from "@mui/icons-material/Edit";
 
 export interface DesktopCategoryInlineComponentProps {

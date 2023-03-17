@@ -1,5 +1,5 @@
 import { FunctionComponent } from "react";
-import PasswordHintsStyled from "./styles/PasswordHints.styled";
+import PasswordHintsStyled from "./PasswordHints.styled";
 import { useAppSelector } from "../state/hooks";
 
 type PasswordHintsProps = {

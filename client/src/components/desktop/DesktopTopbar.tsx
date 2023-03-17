@@ -3,7 +3,7 @@ import {
   BottomNavigationAction,
   Drawer,
   IconButton,
-  styled,
+  styled as muiStyled,
 } from "@mui/material";
 import { FunctionComponent, useState } from "react";
 import { useAppSelector } from "../../state/hooks";
@@ -12,10 +12,10 @@ import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SettingsModal from "../../pages/SettingsModal";
-import DesktopTopbarStyled from "../styles/desktop/DesktopTopbar.styled";
 import DesktopCalendarSearch from "./DesktopCalendarSearch";
+import { styled } from "../../infrastructure/ThemeManager";
 
-const CustomBottomNavigation = styled(BottomNavigation)({
+const CustomBottomNavigation = muiStyled(BottomNavigation)({
   backgroundColor: "transparent",
   "& .MuiBottomNavigationAction-root": {
     opacity: "0.7!important",
@@ -25,6 +25,19 @@ const CustomBottomNavigation = styled(BottomNavigation)({
     opacity: "1!important",
   },
 });
+
+const DesktopTopbarStyled = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: ${({ theme }) => theme.colors.topbarBg};
+  height: 60px;
+
+  .MuiSwitch-root {
+    z-index: 100;
+  }
+`;
 
 const DesktopTopbar: FunctionComponent = () => {
   const navigate = useNavigate();

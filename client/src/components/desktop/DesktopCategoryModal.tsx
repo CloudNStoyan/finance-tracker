@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";
 import ColorComponent from "../ColorComponent";
 import { Delete, West } from "@mui/icons-material";
-import DesktopCategoryModalStyled from "../styles/desktop/DesktopCategoryModal.styled";
+import DesktopCategoryModalStyled from "./DesktopCategoryModal.styled";
 import {
   addNewOrEditCategory,
   deleteCategory,

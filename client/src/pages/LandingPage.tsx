@@ -10,7 +10,7 @@ import StatsPhoneDark from "../assets/stats-phone-dark.png";
 import StatsDesktopLight from "../assets/stats-desktop-light.png";
 import StatsDesktopDark from "../assets/stats-desktop-dark.png";
 import TestimonialCarousel from "../components/TestimonialCarousel";
-import LandingPageStyled from "./styles/LandingPage.styled";
+import LandingPageStyled from "./LandingPage.styled";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";

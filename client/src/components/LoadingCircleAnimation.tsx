@@ -1,6 +1,6 @@
 import { CircularProgress } from "@mui/material";
 import { FunctionComponent } from "react";
-import LoadingCircleAnimationStyled from "./styles/LoadingCircleAnimationStyled";
+import LoadingCircleAnimationStyled from "./LoadingCircleAnimationStyled";
 
 const LoadingCircleAnimation: FunctionComponent<{ className: string }> = ({
   className,

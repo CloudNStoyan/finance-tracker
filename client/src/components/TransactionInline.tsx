@@ -8,7 +8,7 @@ import {
 import Icons from "../infrastructure/Icons";
 import { Category, Transaction } from "../server-api";
 import { useAppSelector } from "../state/hooks";
-import TransactionInlineStyled from "./styles/TransactionInline.styled";
+import TransactionInlineStyled from "./TransactionInline.styled";
 
 export interface TransactionInlineProps {
   transaction: Transaction;

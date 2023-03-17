@@ -1,7 +1,7 @@
 import { West } from "@mui/icons-material";
 import { Button, IconButton } from "@mui/material";
 import { FunctionComponent, useState } from "react";
-import DesktopDescriptionModalStyled from "../styles/desktop/DesktopDescriptionModal.styled";
+import DesktopDescriptionModalStyled from "./DesktopDescriptionModal.styled";
 
 export interface DesktopDescriptionModalProps {
   onClose: () => void;

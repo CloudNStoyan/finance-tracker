@@ -1,5 +1,5 @@
 import { FunctionComponent } from "react";
-import PasswordStrengthIndicatorStyled from "./styles/PasswordStrengthIndicator.styled";
+import PasswordStrengthIndicatorStyled from "./PasswordStrengthIndicator.styled";
 
 const PasswordStrengthIndicator: FunctionComponent<{
   score: number;

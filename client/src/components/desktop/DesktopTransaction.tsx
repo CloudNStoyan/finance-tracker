@@ -18,7 +18,7 @@ import {
   DescriptionOutlined,
 } from "@mui/icons-material";
 import { FunctionComponent, useEffect, useState } from "react";
-import DesktopTransactionStyled from "../styles/desktop/DesktopTransaction.styled";
+import DesktopTransactionStyled from "./DesktopTransaction.styled";
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import DefaultCategory from "../../state/DefaultCategory";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
@@ -37,7 +37,7 @@ import {
 } from "../../state/transactionSlice";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
-import DesktopModalContainerStyled from "../styles/desktop/DesktopModalContainer.styled";
+import DesktopModalContainerStyled from "./DesktopModalContainer.styled";
 import DesktopPickCategoriesModal from "./DesktopPickCategoriesModal";
 import DesktopManageCategoriesModal from "./DesktopManageCategoriesModal";
 import DesktopCategoryModal from "./DesktopCategoryModal";

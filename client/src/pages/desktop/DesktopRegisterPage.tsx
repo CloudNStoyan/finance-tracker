@@ -16,7 +16,7 @@ import RecaptchaCheckbox from "../../infrastructure/RecaptchaCheckbox";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 import usePasswordStrength from "../../components/usePasswordStrength";
-import DesktopRegisterPageStyled from "../styles/desktop/DesktopRegisterPage.styled";
+import DesktopRegisterPageStyled from "./DesktopRegisterPage.styled";
 import useAuth from "../../components/useAuth";
 import { useAppDispatch } from "../../state/hooks";
 import { setNotification } from "../../state/notificationSlice";

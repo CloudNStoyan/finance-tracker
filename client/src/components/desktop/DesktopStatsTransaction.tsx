@@ -1,11 +1,11 @@
 import { AttachMoney } from "@mui/icons-material";
-import { Button, styled } from "@mui/material";
+import { Button, styled as muiStyled } from "@mui/material";
 import { format } from "date-fns";
 import { FunctionComponent } from "react";
 import Icons from "../../infrastructure/Icons";
+import { styled } from "../../infrastructure/ThemeManager";
 import { Category, Transaction } from "../../server-api";
 import { useAppSelector } from "../../state/hooks";
-import DesktopStatsTransactionStyled from "../styles/desktop/DesktopStatsTransaction.styled";
 
 export interface DesktopStatsTransactionProps {
   transaction: Transaction;
@@ -13,13 +13,33 @@ export interface DesktopStatsTransactionProps {
   selectedCatId: (catId: number) => void;
 }
 
-const CustomButton = styled(Button)<{ props: { hoverColor: string } }>(
+const CustomButton = muiStyled(Button)<{ props: { hoverColor: string } }>(
   ({ props }) => ({
     "&:hover": {
       backgroundColor: props.hoverColor,
     },
   })
 );
+
+interface DesktopStatsTransactionStyledProps {
+  bgColor: string;
+  isDarkMode: boolean;
+}
+
+const DesktopStatsTransactionStyled = styled.div<DesktopStatsTransactionStyledProps>`
+  animation: custom-scale-0-1 0.25s;
+
+  border-bottom: 1px solid
+    ${({ isDarkMode }) => (isDarkMode ? "#444" : "#f0f0f0")};
+
+  .cats {
+    background-color: ${({ bgColor }) => bgColor};
+    display: flex;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+`;
 
 const DesktopStatsTransaction: FunctionComponent<
   DesktopStatsTransactionProps

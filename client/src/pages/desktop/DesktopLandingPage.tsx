@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../state/hooks";
-import DesktopLandingPageStyled from "../styles/desktop/DesktopLandingPage.styled";
+import DesktopLandingPageStyled from "./DesktopLandingPage.styled";
 import CalendarPhoneLight from "../../assets/calendar-phone-light.png";
 import CalendarPhoneDark from "../../assets/calendar-phone-dark.png";
 import CalendarDesktopLight from "../../assets/calendar-desktop-light.png";

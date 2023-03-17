@@ -1,7 +1,7 @@
 import { Drawer, IconButton } from "@mui/material";
 import { FunctionComponent, useState } from "react";
 import { useAppSelector } from "../state/hooks";
-import TopbarStyled from "./styles/Topbar.styled";
+import TopbarStyled from "./Topbar.styled";
 import WestIcon from "@mui/icons-material/West";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";

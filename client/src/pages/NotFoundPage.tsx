@@ -1,7 +1,13 @@
 import NotListedLocationIcon from "@mui/icons-material/NotListedLocation";
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import NotFoundPageStyled from "./styles/NotFoundPage.styled";
+import { styled } from "../infrastructure/ThemeManager";
+
+const NotFoundPageStyled = styled.div`
+  .icon {
+    font-size: 100px;
+  }
+`;
 
 const NotFoundPage = () => {
   const navigate = useNavigate();

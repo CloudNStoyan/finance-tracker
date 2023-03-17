@@ -1,6 +1,6 @@
 import { FunctionComponent, ReactNode } from "react";
 import { useAppSelector } from "../state/hooks";
-import LoadingStyled from "./styles/Loading.styled";
+import LoadingStyled from "./Loading.styled";
 
 export interface LoadingProps {
   children: ReactNode | ReactNode[];

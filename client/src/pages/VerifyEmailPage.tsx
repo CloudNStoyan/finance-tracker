@@ -5,7 +5,7 @@ import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
 import { resendVerificationEmail, verifyEmail } from "../server-api";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setNotification } from "../state/notificationSlice";
-import VerifyEmailPageStyled from "./styles/VerifyEmailPage.styled";
+import VerifyEmailPageStyled from "./VerifyEmailPage.styled";
 
 const VerifyEmailPage = () => {
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);

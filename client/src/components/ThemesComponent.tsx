@@ -2,7 +2,7 @@ import { FunctionComponent, ReactNode } from "react";
 import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import { createTheme, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { useAppSelector } from "../state/hooks";
-import ThemesComponentStyled from "./styles/ThemesComponent.styled";
+import ThemesComponentStyled from "./ThemesComponent.styled";
 
 export interface ThemesComponentProps {
   children: ReactNode[] | ReactNode;

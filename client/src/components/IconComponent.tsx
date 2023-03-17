@@ -1,7 +1,7 @@
 import { IconButton } from "@mui/material";
 import { FunctionComponent } from "react";
 import Icons, { IconKey } from "../infrastructure/Icons";
-import IconComponentStyled from "./styles/IconComponent.styled";
+import IconComponentStyled from "./IconComponent.styled";
 
 export interface IconComponentProps {
   iconKey: IconKey;

@@ -1,12 +1,27 @@
 import { FunctionComponent } from "react";
+import { styled } from "../../infrastructure/ThemeManager";
 import { Category, Transaction } from "../../server-api";
-import DesktopCalendarTransactionStyled from "../styles/desktop/DesktopCalendarTransaction.styled";
 
 export interface DesktopCalendarTransactionProps {
   transaction: Transaction;
   category: Category;
   onClick: () => void;
 }
+
+const DesktopCalendarTransactionStyled = styled.button<{ bgColor: string }>`
+  font-size: 12px;
+  background-color: ${({ bgColor }) => bgColor};
+  color: white;
+  width: 100%;
+  margin-bottom: 2px;
+  margin-top: 2px;
+
+  .label {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+`;
 
 const DesktopCalendarTransaction: FunctionComponent<
   DesktopCalendarTransactionProps
