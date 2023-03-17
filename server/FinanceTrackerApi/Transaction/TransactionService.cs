@@ -1,4 +1,5 @@
 ﻿using FinanceTrackerApi.DAL;
+using FinanceTrackerApi.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 
@@ -144,81 +145,148 @@ public class TransactionService
 
         if (originalTransaction!.TransactionDate == transaction.TransactionDate)
         {
-            var originalRepeatEnd = originalTransaction!.RepeatEndDate;
-            string? originalRepeat = originalTransaction.Repeat!;
-
             transaction.RepeatEndDate = null;
             transaction.Repeat = null;
+            transaction.RepeatEndType = null;
+            transaction.RepeatEndOccurrences = null;
+            transaction.RepeatEvery = null;
 
             await this.Update(PocoFromDto(transaction));
 
             returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = transaction });
             // updating the transaction original repeat end to null
 
-            var newStartingDate = CalculateNextOccurrence(originalRepeat, transaction.TransactionDate);
-
-            if (newStartingDate > originalRepeatEnd)
+            if (originalTransaction.RepeatEndType == "on")
             {
-                // we only want to create the new series of transactions only if there are occurrences left
-                return returnTransactionsList.ToArray();
+                var newStartingDate = TransactionBusinessLogic.GetNextOccurrenceDate(originalTransaction.Repeat!, transaction.TransactionDate, originalTransaction.RepeatEvery!.Value);
+
+                if (newStartingDate > originalTransaction.RepeatEndDate)
+                {
+                    // we only want to create the new series of transactions only if there are occurrences left
+                    return returnTransactionsList.ToArray();
+                }
+
+                var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
+                newRepeatedTransaction.TransactionDate = newStartingDate;
+
+                if (newStartingDate == originalTransaction.RepeatEndDate)
+                {
+                    newRepeatedTransaction.Repeat = null;
+                    newRepeatedTransaction.RepeatEndDate = null;
+                }
+
+                int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
+                newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
+                returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
+                // creating the rest of the series
             }
 
-            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
-            newRepeatedTransaction.TransactionDate = newStartingDate;
-
-            if (newStartingDate == originalRepeatEnd)
+            if (originalTransaction.RepeatEndType == "after")
             {
-                newRepeatedTransaction.Repeat = null;
-                newRepeatedTransaction.RepeatEndDate = null;
-            }
+                var newStartingDate = TransactionBusinessLogic.GetNextOccurrenceDate(originalTransaction.Repeat!,
+                    originalTransaction.TransactionDate, originalTransaction.RepeatEvery!.Value);
 
-            int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
-            newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
-            returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
-            // creating the rest of the series
+                decimal occurrences = TransactionBusinessLogic.GetOccurrencesBetweenDates(newStartingDate, originalTransaction.TransactionDate, originalTransaction.Repeat!, originalTransaction.RepeatEvery!.Value, null);
+
+                if (originalTransaction.RepeatEndOccurrences is not null && occurrences > originalTransaction.RepeatEndOccurrences.Value)
+                {
+                    return returnTransactionsList.ToArray();
+                }
+
+                var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
+                newRepeatedTransaction.TransactionDate = newStartingDate;
+                newRepeatedTransaction.RepeatEndOccurrences = originalTransaction.RepeatEndOccurrences!.Value - (int)occurrences;
+
+                if (occurrences == originalTransaction.RepeatEndOccurrences)
+                {
+                    newRepeatedTransaction.Repeat = null;
+                    newRepeatedTransaction.RepeatEndType = null;
+                    newRepeatedTransaction.RepeatEndOccurrences = null;
+                }
+
+                int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
+                newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
+                returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
+                // creating the rest of the series
+            }
         }
         else
         {
-            var originalRepeatEnd = originalTransaction!.RepeatEndDate;
-            string? originalRepeat = originalTransaction.Repeat!;
+            var originalRepeatEndDate = originalTransaction.RepeatEndDate;
+            string? originalRepeat = originalTransaction.Repeat;
+            int? originalRepeatEvery = originalTransaction.RepeatEvery;
+            int? originalRepeatEndOccurrences = originalTransaction.RepeatEndOccurrences;
+            string? originalRepeatEndType = originalTransaction.RepeatEndType;
 
-            originalTransaction.RepeatEndDate = CalculatePreviousOccurrence(originalRepeat, transaction.TransactionDate);
-
-            if (originalTransaction.RepeatEndDate <= originalTransaction.TransactionDate)
+            if (originalRepeatEndType == "on")
             {
-                originalTransaction.Repeat = null;
-                originalTransaction.RepeatEndDate = null;
+                originalTransaction.RepeatEndDate = TransactionBusinessLogic.GetPreviousOccurrenceDate(originalRepeat!, transaction.TransactionDate, originalRepeatEvery!.Value);
+
+                if (originalTransaction.RepeatEndDate <= originalTransaction.TransactionDate)
+                {
+                    originalTransaction.Repeat = null;
+                    originalTransaction.RepeatEndDate = null;
+                    originalTransaction.RepeatEndType = null;
+                    originalTransaction.RepeatEvery = null;
+                }
             }
+
+            if (originalRepeatEndType == "after")
+            {
+                var previousOccurrence = TransactionBusinessLogic.GetPreviousOccurrenceDate(originalRepeat!, transaction.TransactionDate, originalRepeatEvery!.Value);
+
+                decimal occurrencesBetweenDates = TransactionBusinessLogic.GetOccurrencesBetweenDates(previousOccurrence,
+                    originalTransaction.TransactionDate, originalRepeat!, originalRepeatEvery!.Value,
+                    originalRepeatEndOccurrences);
+
+                originalTransaction.RepeatEndOccurrences = (int)occurrencesBetweenDates;
+
+                if (previousOccurrence <= originalTransaction.TransactionDate)
+                {
+                    originalTransaction.Repeat = null;
+                    originalTransaction.RepeatEndOccurrences = null;
+                    originalTransaction.RepeatEndType = null;
+                    originalTransaction.RepeatEvery = null;
+                }
+            }
+            
 
             await this.Update(originalTransaction);
             returnTransactionsList.Add(new TransactionEventDTO { Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) });
             // updating the transaction original repeat end to before this day
-
-            transaction.Repeat = null;
-            transaction.RepeatEndDate = null;
 
             int? transactionId = await this.Database.Insert(PocoFromDto(transaction));
             transaction.TransactionId = transactionId;
             returnTransactionsList.Add(new TransactionEventDTO { Event = "create", Transaction = transaction });
             // creating the new transaction for this day only
 
-            var newStartingDate = CalculateNextOccurrence(originalRepeat, transaction.TransactionDate);
+            var newStartingDate = TransactionBusinessLogic.GetNextOccurrenceDate(originalRepeat!, transaction.TransactionDate, originalRepeatEvery!.Value);
+            decimal occurrences = TransactionBusinessLogic.GetOccurrencesBetweenDates(
+                newStartingDate, transaction.TransactionDate, originalRepeat!, originalRepeatEvery!.Value, null);
+            
+            bool noOccurrencesLeft = originalRepeatEndOccurrences - (int)occurrences < 1 || occurrences > originalRepeatEndOccurrences;
 
-            if (newStartingDate > originalRepeatEnd)
+            if ((originalRepeatEndType == "on" && newStartingDate > originalRepeatEndDate) || (originalRepeatEndType == "after" && noOccurrencesLeft))
             {
                 // we only want to create the new series of transactions only if there are occurrences left
                 return returnTransactionsList.ToArray();
             }
 
             var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(originalTransaction));
-            newRepeatedTransaction.RepeatEndDate = originalRepeatEnd;
+            newRepeatedTransaction.RepeatEndDate = originalRepeatEndDate;
             newRepeatedTransaction.Repeat = originalRepeat;
+            newRepeatedTransaction.RepeatEvery = originalRepeatEvery;
+            newRepeatedTransaction.RepeatEndOccurrences = originalRepeatEndOccurrences - (int)occurrences;
+            newRepeatedTransaction.RepeatEndType = originalRepeatEndType;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
-            if (newStartingDate == originalRepeatEnd)
+            if ((originalRepeatEndType == "on" && newStartingDate == originalRepeatEndDate) || (originalRepeatEndType == "after" && newRepeatedTransaction.RepeatEndOccurrences < 2))
             {
                 newRepeatedTransaction.Repeat = null;
                 newRepeatedTransaction.RepeatEndDate = null;
+                newRepeatedTransaction.RepeatEndOccurrences = null;
+                newRepeatedTransaction.RepeatEndType = null;
+                newRepeatedTransaction.RepeatEvery = null;
             }
 
             int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
@@ -250,60 +318,92 @@ public class TransactionService
             };
         }
 
-        originalTransaction.RepeatEndDate = CalculatePreviousOccurrence(originalTransaction.Repeat!, transaction.TransactionDate);
+        string? originalRepeat = originalTransaction.Repeat;
+        int? originalRepeatEvery = originalTransaction.RepeatEvery;
+        string? originalRepeatEndType = originalTransaction.RepeatEndType;
 
-        if (originalTransaction.RepeatEndDate <= originalTransaction.TransactionDate)
+
+        var previousOccurrenceDate = TransactionBusinessLogic.GetPreviousOccurrenceDate(originalRepeat!,
+            transaction.TransactionDate, transaction.RepeatEvery!.Value);
+
+        if (originalRepeatEndType == "on")
         {
-            originalTransaction.Repeat = null;
-            originalTransaction.RepeatEndDate = null;
+            originalTransaction.RepeatEndDate = previousOccurrenceDate;
+
+            if (originalTransaction.RepeatEndDate <= originalTransaction.TransactionDate)
+            {
+                originalTransaction.Repeat = null;
+                originalTransaction.RepeatEndDate = null;
+                originalTransaction.RepeatEndType = null;
+                originalTransaction.RepeatEvery = null;
+            }
+        }
+
+        decimal occurrences = TransactionBusinessLogic.GetOccurrencesBetweenDates(previousOccurrenceDate, originalTransaction.TransactionDate, originalRepeat!, originalRepeatEvery!.Value, null);
+
+        if (originalRepeatEndType == "after")
+        {
+            originalTransaction.RepeatEndOccurrences = (int)occurrences;
+
+            if (originalTransaction.RepeatEndOccurrences < 2)
+            {
+                originalTransaction.Repeat = null;
+                originalTransaction.RepeatEndOccurrences = null;
+                originalTransaction.RepeatEndType = null;
+                originalTransaction.RepeatEvery = null;
+            }
         }
 
         await this.Update(originalTransaction);
 
-        int? transactionId = await this.Database.Insert(PocoFromDto(transaction));
+        var newTransaction = PocoFromDto(transaction);
 
-        transaction.TransactionId = transactionId;
+        if (originalRepeatEndType == "after")
+        {
+            newTransaction.RepeatEndOccurrences -= (int)occurrences;
+        }
 
+        int? transactionId = await this.Database.Insert(newTransaction);
+
+        newTransaction.UserTransactionId = transactionId!.Value;
 
         return new[]
         {
             new TransactionEventDTO { Event = "update", Transaction = UserTransactionDTO.FromPoco(originalTransaction) },
-            new TransactionEventDTO { Event = "create", Transaction = transaction }
-        };
-    }
-
-    private static DateTime CalculatePreviousOccurrence(string repeatMode, DateTime date)
-    {
-        return repeatMode switch
-        {
-            "weekly" => date.AddDays(-7),
-            "monthly" => date.AddMonths(-1),
-            "yearly" => date.AddYears(-1),
-            _ => throw new Exception("Repeat was not a valid value")
-        };
-    }
-
-    private static DateTime CalculateNextOccurrence(string repeatMode, DateTime date)
-    {
-        return repeatMode switch
-        {
-            "weekly" => date.AddDays(7),
-            "monthly" => date.AddMonths(1),
-            "yearly" => date.AddYears(1),
-            _ => throw new Exception("Repeat was not a valid value")
+            new TransactionEventDTO { Event = "create", Transaction = UserTransactionDTO.FromPoco(newTransaction) }
         };
     }
 
     public async Task<TransactionEventDTO[]> DeleteRepeatInstanceAndForward(UserTransactionPoco transactionPoco, DateTime instanceDate)
     {
-        var previousOccurrence = CalculatePreviousOccurrence(transactionPoco.Repeat!, instanceDate);
+        var previousOccurrence = TransactionBusinessLogic.GetPreviousOccurrenceDate(transactionPoco.Repeat!, instanceDate, transactionPoco.RepeatEvery!.Value);
 
-        transactionPoco.RepeatEndDate = previousOccurrence;
-
-        if (transactionPoco.TransactionDate >= previousOccurrence)
+        if (transactionPoco.RepeatEndType == "on")
         {
-            transactionPoco.Repeat = null;
-            transactionPoco.RepeatEndDate = null;
+            transactionPoco.RepeatEndDate = previousOccurrence;
+
+            if (transactionPoco.TransactionDate >= previousOccurrence)
+            {
+                transactionPoco.Repeat = null;
+                transactionPoco.RepeatEndDate = null;
+                transactionPoco.RepeatEndType = null;
+                transactionPoco.RepeatEvery = null;
+            }
+        }
+
+        if (transactionPoco.RepeatEndType == "after")
+        {
+            decimal occurrences = TransactionBusinessLogic.GetOccurrencesBetweenDates(instanceDate, transactionPoco.TransactionDate, transactionPoco.Repeat!, transactionPoco.RepeatEvery!.Value, null);
+
+            transactionPoco.RepeatEndOccurrences -= ((int)occurrences - 1);
+
+            if (transactionPoco.RepeatEndOccurrences < 2)
+            {
+                transactionPoco.Repeat = null;
+                transactionPoco.RepeatEndOccurrences = null;
+                transactionPoco.RepeatEndType = null;
+                transactionPoco.RepeatEvery = null;
+            }
         }
 
         await this.Update(transactionPoco);
@@ -313,35 +413,62 @@ public class TransactionService
 
     public async Task<TransactionEventDTO[]> DeleteRepeatInstance(UserTransactionPoco transactionPoco, DateTime instanceDate)
     {
+        var originalRepeatEnd = transactionPoco!.RepeatEndDate;
+        string originalRepeat = transactionPoco.Repeat!;
+        string? originalRepeatEndType = transactionPoco.RepeatEndType;
+        int? originalRepeatEndOccurrences = transactionPoco.RepeatEndOccurrences;
+        int originalRepeatEvery = transactionPoco.RepeatEvery!.Value;
+
         if (transactionPoco!.TransactionDate == instanceDate)
         {
             var returnTransactionsList = new List<TransactionEventDTO>();
 
-            var originalRepeatEnd = transactionPoco!.RepeatEndDate;
-            string originalRepeat = transactionPoco.Repeat!;
-
             await this.Delete(transactionPoco);
+
             returnTransactionsList.Add(new TransactionEventDTO
                 { Event = "delete", Transaction = UserTransactionDTO.FromPoco(transactionPoco) });
             // deleting the original transaction
 
-            var newStartingDate = CalculateNextOccurrence(originalRepeat, instanceDate);
+            var newStartingDate = TransactionBusinessLogic.GetNextOccurrenceDate(originalRepeat, instanceDate, originalRepeatEvery);
 
-            if (newStartingDate > originalRepeatEnd)
+            if (originalRepeatEndType == "on")
             {
-                // we only want to create the new series of transactions only if there are occurrences left
-                return returnTransactionsList.ToArray();
+                if (newStartingDate > originalRepeatEnd)
+                {
+                    // we only want to create the new series of transactions only if there are occurrences left
+                    return returnTransactionsList.ToArray();
+                }
+
+                var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(transactionPoco));
+                newRepeatedTransaction.Repeat = originalRepeat;
+                newRepeatedTransaction.RepeatEndDate = originalRepeatEnd;
+                newRepeatedTransaction.TransactionDate = newStartingDate;
+                newRepeatedTransaction.RepeatEndType = originalRepeatEndType;
+
+                int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
+                newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
+                returnTransactionsList.Add(new TransactionEventDTO
+                    { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
             }
 
-            var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(transactionPoco));
-            newRepeatedTransaction.Repeat = originalRepeat;
-            newRepeatedTransaction.RepeatEndDate = originalRepeatEnd;
-            newRepeatedTransaction.TransactionDate = newStartingDate;
+            if (originalRepeatEndType == "after")
+            {
+                if (transactionPoco.RepeatEndOccurrences < 2)
+                {
+                    return returnTransactionsList.ToArray();
+                }
 
-            int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
-            newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
-            returnTransactionsList.Add(new TransactionEventDTO
-                { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
+                var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(transactionPoco));
+                newRepeatedTransaction.Repeat = originalRepeat;
+                newRepeatedTransaction.TransactionDate = newStartingDate;
+                newRepeatedTransaction.RepeatEndOccurrences = originalRepeatEndOccurrences - 1;
+                newRepeatedTransaction.RepeatEndType = originalRepeatEndType;
+
+                int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);
+                newRepeatedTransaction.UserTransactionId = newRepeatedTransactionId!.Value;
+                returnTransactionsList.Add(new TransactionEventDTO
+                    { Event = "create", Transaction = UserTransactionDTO.FromPoco(newRepeatedTransaction) });
+            }
 
             return returnTransactionsList.ToArray();
             // creating the rest of the series
@@ -350,26 +477,41 @@ public class TransactionService
         {
             var returnTransactionsList = new List<TransactionEventDTO>();
 
-            var originalRepeatEnd = transactionPoco!.RepeatEndDate;
-            string originalRepeat = transactionPoco.Repeat!;
-
-            var newRepeatEnd = CalculatePreviousOccurrence(originalRepeat, instanceDate);
-
-            if (newRepeatEnd > transactionPoco.TransactionDate)
+            if (originalRepeatEndType == "on")
             {
-                transactionPoco.RepeatEndDate = newRepeatEnd;
+                var newRepeatEnd = TransactionBusinessLogic.GetPreviousOccurrenceDate(originalRepeat, instanceDate, transactionPoco.RepeatEvery!.Value);
+
+                if (newRepeatEnd > transactionPoco.TransactionDate)
+                {
+                    transactionPoco.RepeatEndDate = newRepeatEnd;
+                }
+                else
+                {
+                    transactionPoco.Repeat = null;
+                    transactionPoco.RepeatEndDate = null;
+                }
             }
-            else
+
+            decimal occurrences = TransactionBusinessLogic.GetOccurrencesBetweenDates(instanceDate, transactionPoco.TransactionDate, originalRepeat!, originalRepeatEvery, null);
+
+            if (originalRepeatEndType == "after")
             {
-                transactionPoco.Repeat = null;
-                transactionPoco.RepeatEndDate = null;
+                transactionPoco.RepeatEndOccurrences -= (int)occurrences;
+
+                if (transactionPoco.RepeatEndOccurrences < 2)
+                {
+                    transactionPoco.Repeat = null;
+                    transactionPoco.RepeatEndOccurrences = null;
+                    transactionPoco.RepeatEndType = null;
+                    transactionPoco.RepeatEvery = null;
+                }
             }
             
             await this.Update(transactionPoco);
             returnTransactionsList.Add(new TransactionEventDTO {Event = "update", Transaction = UserTransactionDTO.FromPoco(transactionPoco) });
             // updating the transaction original repeat end to previous occurrence
 
-            var newStartingDate = CalculateNextOccurrence(originalRepeat, instanceDate);
+            var newStartingDate = TransactionBusinessLogic.GetNextOccurrenceDate(originalRepeat, instanceDate, originalRepeatEvery);
 
             if (newStartingDate > originalRepeatEnd)
             {
@@ -380,12 +522,29 @@ public class TransactionService
             var newRepeatedTransaction = PocoFromDto(UserTransactionDTO.FromPoco(transactionPoco));
             newRepeatedTransaction.RepeatEndDate = originalRepeatEnd;
             newRepeatedTransaction.Repeat = originalRepeat;
+            newRepeatedTransaction.RepeatEndType = originalRepeatEndType;
+            newRepeatedTransaction.RepeatEndOccurrences = originalRepeatEndOccurrences;
             newRepeatedTransaction.TransactionDate = newStartingDate;
 
-            if (newStartingDate >= originalRepeatEnd)
+            if (newRepeatedTransaction.RepeatEndType == "on" && newStartingDate >= originalRepeatEnd)
             {
                 newRepeatedTransaction.Repeat = null;
                 newRepeatedTransaction.RepeatEndDate = null;
+                newRepeatedTransaction.RepeatEndType = null;
+                newRepeatedTransaction.RepeatEvery = null;
+            }
+
+            if (newRepeatedTransaction.RepeatEndType == "after")
+            {
+                newRepeatedTransaction.RepeatEndOccurrences -= ((int)occurrences + 1);
+
+                if (newRepeatedTransaction.RepeatEndOccurrences < 2)
+                {
+                    newRepeatedTransaction.Repeat = null;
+                    newRepeatedTransaction.RepeatEndOccurrences = null;
+                    newRepeatedTransaction.RepeatEndType = null;
+                    newRepeatedTransaction.RepeatEvery = null;
+                }
             }
 
             int? newRepeatedTransactionId = await this.Database.Insert(newRepeatedTransaction);

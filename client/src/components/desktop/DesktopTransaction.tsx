@@ -354,12 +354,16 @@ const DesktopTransaction: FunctionComponent<DesktopTransactionProps> = ({
       transactionDate: DateOnlyToString(date),
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
-      repeat: repeatType,
-      repeatEndType: repeatEndType !== "never" ? repeatEndType : undefined,
-      repeatEndOccurrences:
-        repeatEndType === "after" ? repeatEndOccurrences : undefined,
-      repeatEvery: repeatEveryCount,
     };
+
+    if (repeat !== "none") {
+      newTransaction.repeat = repeatType;
+      newTransaction.repeatEndType =
+        repeatEndType !== "never" ? repeatEndType : undefined;
+      newTransaction.repeatEndOccurrences =
+        repeatEndType === "after" ? repeatEndOccurrences : undefined;
+      newTransaction.repeatEvery = repeatEveryCount;
+    }
 
     if (description.trim().length > 0) {
       newTransaction.details = description.trim();

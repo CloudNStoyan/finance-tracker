@@ -93,7 +93,7 @@ public class TransactionController : ControllerBase
 
         inputDto.UserId = session.UserId;
 
-        if (inputDto.Repeat != null)
+        if (transaction.Repeat != null)
         {
             if (onlyThis.HasValue && onlyThis.Value)
             {

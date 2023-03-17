@@ -295,12 +295,16 @@ const TransactionPage: FunctionComponent<{
       type: transactionType === "income" ? "income" : "expense",
       confirmed,
       details: description,
-      repeat: repeatType,
-      repeatEndType: repeatEndType !== "never" ? repeatEndType : undefined,
-      repeatEndOccurrences:
-        repeatEndType === "after" ? repeatEndOccurrences : undefined,
-      repeatEvery: repeatEveryCount,
     };
+
+    if (repeat !== "none") {
+      transaction.repeat = repeatType;
+      transaction.repeatEndType =
+        repeatEndType !== "never" ? repeatEndType : undefined;
+      transaction.repeatEndOccurrences =
+        repeatEndType === "after" ? repeatEndOccurrences : undefined;
+      transaction.repeatEvery = repeatEveryCount;
+    }
 
     if (hasTransactionId) {
       transaction.transactionId = Number(transactionId);

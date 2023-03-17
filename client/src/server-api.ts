@@ -35,7 +35,7 @@ export interface Transaction {
   details?: string;
   repeat?: TransactionRepeat;
   // range is 1-99
-  repeatEvery: number;
+  repeatEvery?: number;
   repeatEndType?: "on" | "after";
   repeatEndDate?: string;
   repeatEndOccurrences?: number;
