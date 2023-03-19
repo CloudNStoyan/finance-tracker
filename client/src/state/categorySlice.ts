@@ -89,39 +89,30 @@ const categoriesSlice = createSlice({
       .addCase(fetchCategories.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(
-        fetchCategories.fulfilled,
-        (state, action: PayloadAction<Category[]>) => {
-          state.status = "succeeded";
-          state.error = null;
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.error = null;
 
-          state.categories = action.payload;
-          state.categories.sort(sortComparison);
-        }
-      )
+        state.categories = action.payload;
+        state.categories.sort(sortComparison);
+      })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
-      .addCase(
-        addNewOrEditCategory.fulfilled,
-        (
-          state,
-          action: PayloadAction<{ category: Category; status: number }>
-        ) => {
-          state.addOrEditStatus = "succeeded";
-          const { category, status } = action.payload;
+      .addCase(addNewOrEditCategory.fulfilled, (state, action) => {
+        state.addOrEditStatus = "succeeded";
+        const { category, status } = action.payload;
 
-          if (status === 200) {
-            state.categories = state.categories.filter(
-              (cat) => cat.categoryId !== category.categoryId
-            );
-          }
-
-          state.categories.push(category);
-          state.categories.sort(sortComparison);
+        if (status === 200) {
+          state.categories = state.categories.filter(
+            (cat) => cat.categoryId !== category.categoryId
+          );
         }
-      )
+
+        state.categories.push(category);
+        state.categories.sort(sortComparison);
+      })
       .addCase(addNewOrEditCategory.pending, (state) => {
         state.addOrEditStatus = "loading";
       })
@@ -129,16 +120,13 @@ const categoriesSlice = createSlice({
         state.addOrEditStatus = "failed";
         state.error = action.error.message;
       })
-      .addCase(
-        deleteCategory.fulfilled,
-        (state, action: PayloadAction<number>) => {
-          state.status = "succeeded";
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.status = "succeeded";
 
-          state.categories = state.categories.filter(
-            (cat) => cat.categoryId !== action.payload
-          );
-        }
-      )
+        state.categories = state.categories.filter(
+          (cat) => cat.categoryId !== action.payload
+        );
+      })
       .addCase(deleteCategory.pending, (state) => {
         state.status = "loading";
       })

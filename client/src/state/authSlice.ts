@@ -86,7 +86,7 @@ const authSlice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(fetchMe.fulfilled, (state, action: PayloadAction<User>) => {
+      .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isLoggedIn = true;
         state.status = "succeeded";
@@ -100,23 +100,20 @@ const authSlice = createSlice({
         state.status = "loading";
       });
     builder
-      .addCase(
-        sendLogin.fulfilled,
-        (state, action: PayloadAction<User | ServerError<AuthError>>) => {
-          const data = action.payload;
+      .addCase(sendLogin.fulfilled, (state, action) => {
+        const data = action.payload;
 
-          if ("email" in data) {
-            state.user = data;
-            state.status = "succeeded";
-            state.isLoggedIn = true;
-            state.error = null;
-            return;
-          }
-
-          state.status = "failed";
-          state.error = data.error;
+        if ("email" in data) {
+          state.user = data;
+          state.status = "succeeded";
+          state.isLoggedIn = true;
+          state.error = null;
+          return;
         }
-      )
+
+        state.status = "failed";
+        state.error = data.error;
+      })
       .addCase(sendLogin.rejected, (state) => {
         state.error = "GeneralError";
         state.status = "failed";
@@ -126,20 +123,17 @@ const authSlice = createSlice({
         state.error = null;
       });
     builder
-      .addCase(
-        sendRegister.fulfilled,
-        (state, action: PayloadAction<number>) => {
-          const statusCode = action.payload;
+      .addCase(sendRegister.fulfilled, (state, action) => {
+        const statusCode = action.payload;
 
-          if (statusCode !== 200) {
-            state.error = "GeneralError";
-            state.status = "failed";
-            return;
-          }
-
-          state.status = "succeeded";
+        if (statusCode !== 200) {
+          state.error = "GeneralError";
+          state.status = "failed";
+          return;
         }
-      )
+
+        state.status = "succeeded";
+      })
       .addCase(sendRegister.rejected, (state) => {
         state.error = "GeneralError";
         state.status = "failed";
