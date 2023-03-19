@@ -4,7 +4,6 @@ import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
 } from "../../infrastructure/CustomDateUtils";
-import { Transaction } from "../../server-api";
 import {
   fetchStartBalance,
   setNow,
@@ -13,20 +12,19 @@ import {
 } from "../../state/calendarSlice";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 
-import DesktopTransaction from "../../components/desktop/DesktopTransaction";
 import DesktopCalendarPageStyled from "./DesktopCalendarPage.styled";
 import DesktopCalendarDay from "../../components/desktop/DesktopCalendarDay";
 import DesktopDaysOfWeek from "../../components/desktop/DesktopDaysOfWeek";
 
 import { fetchTransactionsByRange } from "../../state/transactionSlice";
 import { fetchCategories } from "../../state/categorySlice";
+import { clearTransactionState } from "../../state/addOrEditTransactionSlice";
+import DesktopTransaction from "../../components/desktop/DesktopTransaction";
 
 const initialNow = new Date();
 
 const DesktopCalendarPage = () => {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [currentTransaction, setCurrentTransaction] =
-    useState<Transaction>(null);
   const dispatch = useAppDispatch();
 
   const selected = useAppSelector((state) => state.calendarReducer.selected);
@@ -137,14 +135,12 @@ const DesktopCalendarPage = () => {
           {parsedNow &&
             days.map((day) => (
               <DesktopCalendarDay
-                onTransactionClick={(transaction) => {
-                  setCurrentTransaction(transaction);
-                  dispatch(setSelected(getTime(day)));
+                onTransactionClick={() => {
                   setShowTransactionModal(true);
                 }}
-                onClick={(newSelected) => {
-                  dispatch(setSelected(getTime(newSelected)));
-                  setCurrentTransaction(null);
+                onCreateTransaction={(date) => {
+                  dispatch(setSelected(getTime(date)));
+                  dispatch(clearTransactionState());
                   setShowTransactionModal(true);
                 }}
                 month={parsedNow.getMonth()}
@@ -161,8 +157,8 @@ const DesktopCalendarPage = () => {
         onClose={() => {
           setShowTransactionModal(false);
           dispatch(setSelected(null));
+          dispatch(clearTransactionState());
         }}
-        transaction={currentTransaction}
         key={selected}
       />
     </DesktopCalendarPageStyled>

@@ -19,12 +19,6 @@ const DesktopCalendarPageStyled = styled.div<{
     align-content: flex-start;
     justify-content: center;
 
-    .today {
-      .action-bar {
-        background-color: ${({ theme }) => theme.colors.accentText};
-      }
-    }
-
     .days-of-week {
       flex: 100%;
       height: fit-content;

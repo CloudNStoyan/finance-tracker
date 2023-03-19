@@ -5,13 +5,9 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  DatesAreEqualWithoutTime,
-  fromUnixTimeMs,
-} from "../../infrastructure/CustomDateUtils";
 import DefaultCategory from "../../state/DefaultCategory";
 import { Transaction } from "../../server-api";
-import { useAppSelector } from "../../state/hooks";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import DesktopCalendarDayStyled from "./DesktopCalendarDay.styled";
 import DesktopCalendarTransaction from "./DesktopCalendarTransaction";
 import { IconButton } from "@mui/material";
@@ -20,13 +16,14 @@ import {
   FilterTransactions,
   GetBalanceFromTransactions,
 } from "../../infrastructure/TransactionsBuisnessLogic";
+import { loadTransaction } from "../../state/addOrEditTransactionSlice";
 
 export interface DesktopCalendarDayProps {
   date: Date;
   month: number;
   isToday: boolean;
-  onClick: (date: Date) => void;
-  onTransactionClick: (transaction: Transaction) => void;
+  onCreateTransaction: (date: Date) => void;
+  onTransactionClick: () => void;
   searchInputValue?: string;
 }
 
@@ -34,7 +31,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   date,
   month,
   isToday,
-  onClick,
+  onCreateTransaction,
   onTransactionClick,
   searchInputValue,
 }) => {
@@ -138,18 +135,12 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
     );
   }, [allTransactions, date, month, days, startBalance]);
 
-  const [isSelected, setIsSelected] = useState(false);
-  const selected = fromUnixTimeMs(
-    useAppSelector((state) => state.calendarReducer.selected)
-  );
-
-  useEffect(() => {
-    setIsSelected(DatesAreEqualWithoutTime(date, selected));
-  }, [selected, date]);
+  const { selected } = useAppSelector((state) => state.calendarReducer);
 
   const notFromSameMonth = date.getMonth() !== month;
 
   const nodeRef = useRef(null);
+  const dispatch = useAppDispatch();
 
   return (
     <DesktopCalendarDayStyled
@@ -157,9 +148,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       className={`flex flex-col text-center ${
         notFromSameMonth ? "opacity-50" : ""
-      } ${notSearchRelevant ? "fade-off" : ""} ${
-        isSelected ? "selected" : ""
-      } ${isToday ? "today" : ""} `}
+      } ${notSearchRelevant ? "fade-off" : ""} ${isToday ? "today" : ""} `}
     >
       <div
         className={`text-md w-full action-bar text-left ${
@@ -170,7 +159,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         <div className="stats flex mr-1 relative items-center" ref={nodeRef}>
           {isHovered ? (
             <IconButton
-              onClick={() => onClick(date)}
+              onClick={() => onCreateTransaction(date)}
               size="large"
               className="open-modal-btn absolute right-0 bg-blue-500 dark:bg-purple-500 dark:text-gray-200 text-white"
             >
@@ -194,18 +183,26 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         {(searchInputValue?.trim().length > 0
           ? transactions.filter(compareTransactionToSearchValue)
           : transactions
-        ).map((transaction, idx) => (
-          <DesktopCalendarTransaction
-            onClick={() => onTransactionClick(transaction)}
-            category={
-              categories.find(
-                (cat) => cat.categoryId === transaction.categoryId
-              ) ?? DefaultCategory
-            }
-            transaction={transaction}
-            key={idx}
-          />
-        ))}
+        ).map((transaction, idx) => {
+          const transactionCat =
+            categories.find(
+              (cat) => cat.categoryId === transaction.categoryId
+            ) ?? DefaultCategory;
+
+          return (
+            <DesktopCalendarTransaction
+              onClick={() => {
+                onTransactionClick();
+                dispatch(
+                  loadTransaction([transaction, transactionCat, selected])
+                );
+              }}
+              category={transactionCat}
+              transaction={transaction}
+              key={idx}
+            />
+          );
+        })}
       </div>
     </DesktopCalendarDayStyled>
   );

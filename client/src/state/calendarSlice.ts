@@ -13,7 +13,7 @@ import {
   fromUnixTimeMs,
   isValidDate,
 } from "../infrastructure/CustomDateUtils";
-import { getStartBalanceByMonth, Balance, FetchStatus } from "../server-api";
+import { getStartBalanceByMonth, FetchStatus } from "../server-api";
 import { logoutUser } from "./authSlice";
 
 export interface StartBalanceCache {
@@ -155,26 +155,23 @@ const calendarSlice = createSlice({
       .addCase(fetchStartBalance.rejected, (state) => {
         state.fetchingStatus = "idle";
       })
-      .addCase(
-        fetchStartBalance.fulfilled,
-        (state, action: PayloadAction<Balance>) => {
-          state.fetchingStatus = "succeeded";
+      .addCase(fetchStartBalance.fulfilled, (state, action) => {
+        state.fetchingStatus = "succeeded";
 
-          const afterDate = fromUnixTimeMs(state.days[0]);
-          const beforeDate = fromUnixTimeMs(state.days[state.days.length - 1]);
-          if (!isValidDate(afterDate) || !isValidDate(beforeDate)) {
-            return;
-          }
-
-          const key = `${format(afterDate, "dd/MM/yy")}-${format(
-            beforeDate,
-            "dd/MM/yy"
-          )}`;
-
-          state.startBalanceCache[key] = action.payload.balance;
-          state.startBalance = action.payload.balance;
+        const afterDate = fromUnixTimeMs(state.days[0]);
+        const beforeDate = fromUnixTimeMs(state.days[state.days.length - 1]);
+        if (!isValidDate(afterDate) || !isValidDate(beforeDate)) {
+          return;
         }
-      );
+
+        const key = `${format(afterDate, "dd/MM/yy")}-${format(
+          beforeDate,
+          "dd/MM/yy"
+        )}`;
+
+        state.startBalanceCache[key] = action.payload.balance;
+        state.startBalance = action.payload.balance;
+      });
   },
 });
 

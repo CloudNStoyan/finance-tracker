@@ -6,6 +6,7 @@ import notificationReducer from "./notificationSlice";
 import calendarReducer from "./calendarSlice";
 import categoriesReducer from "./categorySlice";
 import transactionsReducer from "./transactionSlice";
+import addOrEditTransactionReducer from "./addOrEditTransactionSlice";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     calendarReducer,
     categoriesReducer,
     transactionsReducer,
+    addOrEditTransactionReducer,
   },
 });
 

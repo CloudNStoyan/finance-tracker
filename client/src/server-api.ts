@@ -22,7 +22,8 @@ export interface Category {
   icon: IconKey;
 }
 
-export type TransactionRepeat = "daily" | "weekly" | "monthly" | "yearly";
+export type TransactionRepeatType = "daily" | "weekly" | "monthly" | "yearly";
+export type TransactionType = "expense" | "income";
 
 export interface Transaction {
   transactionId?: number;
@@ -30,10 +31,10 @@ export interface Transaction {
   label: string;
   confirmed: boolean;
   transactionDate: string;
-  type: "expense" | "income";
+  type: TransactionType;
   value: number;
   details?: string;
-  repeat?: TransactionRepeat;
+  repeat?: TransactionRepeatType;
   // range is 1-99
   repeatEvery?: number;
   repeatEndType?: "on" | "after";

@@ -5,12 +5,11 @@ import {
   differenceInMonths,
   differenceInWeeks,
   differenceInYears,
-  format,
   isAfter,
   isBefore,
   parseJSON,
 } from "date-fns";
-import { Transaction, TransactionRepeat } from "../server-api";
+import { Transaction, TransactionRepeatType } from "../server-api";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
@@ -22,7 +21,7 @@ import {
 const GetTransactionOccurrencess = (
   date: Date,
   transactionDate: Date,
-  repeatType: TransactionRepeat,
+  repeatType: TransactionRepeatType,
   repeatEvery: number,
   maxOccurrencess?: number,
   startDay?: Date
@@ -72,7 +71,7 @@ export const GetTransactionOccurrencessInDates = (
   startDay: Date,
   lastDay: Date,
   transactionDate: Date,
-  repeatType: TransactionRepeat,
+  repeatType: TransactionRepeatType,
   repeatEvery: number,
   maxOccurrences?: number
 ) => {
@@ -319,66 +318,4 @@ export const GetTotalFromTransactionsByDate = (
         : state + transaction.value,
     0
   );
-};
-
-const ConvertRepeatTypeToHuman = (repeatType: TransactionRepeat) => {
-  switch (repeatType) {
-    case "daily":
-      return "day";
-    case "weekly":
-      return "week";
-    case "monthly":
-      return "month";
-    case "yearly":
-      return "year";
-  }
-};
-
-export const ConvertRepeatLogicToHumanText = (
-  date: Date,
-  repeatType: TransactionRepeat,
-  occurrences: number,
-  repeatEndType?: "after" | "on" | "never",
-  repeatEndDate?: Date,
-  repeatEndOccurrences?: number
-) => {
-  let text = "Every ";
-
-  const repeatTypeText = ConvertRepeatTypeToHuman(repeatType);
-
-  if (occurrences > 1) {
-    text += `${occurrences} ${repeatTypeText}s`;
-  } else {
-    text += repeatTypeText;
-  }
-
-  let dateFormat: string = null;
-
-  if (repeatType === "weekly") {
-    dateFormat = "EEEE";
-  }
-
-  if (repeatType === "monthly") {
-    dateFormat = "'the' do";
-  }
-
-  if (repeatType === "yearly") {
-    dateFormat = "MMMM 'the' do";
-  }
-
-  if (repeatType && repeatType !== "daily") {
-    text += ` (on ${format(date, dateFormat)})`;
-  }
-
-  if (repeatEndType === "on" && repeatEndDate) {
-    text += `, until ${format(repeatEndDate, "MMMM dd yyyy")}`;
-  }
-
-  if (repeatEndType === "after" && repeatEndOccurrences) {
-    text += `, ${repeatEndOccurrences} time${
-      repeatEndOccurrences > 1 ? "s" : ""
-    }`;
-  }
-
-  return text;
 };

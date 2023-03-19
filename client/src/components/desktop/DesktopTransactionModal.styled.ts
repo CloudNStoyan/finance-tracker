@@ -1,6 +1,6 @@
 import { styled } from "../../infrastructure/ThemeManager";
 
-const DesktopTransactionStyled = styled.div<{
+const DesktopTransactionModalStyled = styled.div<{
   bgColor: string;
   isDarkMode: boolean;
   isLoading: boolean;
@@ -194,4 +194,4 @@ const DesktopTransactionStyled = styled.div<{
     }
   }
 `;
-export default DesktopTransactionStyled;
+export default DesktopTransactionModalStyled;

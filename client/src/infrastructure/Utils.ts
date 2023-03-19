@@ -1,3 +1,10 @@
+export interface CustomChangeEvent {
+  target: {
+    value?: string;
+    checked?: boolean;
+  };
+}
+
 export const RemoveDuplicates = (arr: string[]) => {
   const uniqueArr: string[] = [];
 

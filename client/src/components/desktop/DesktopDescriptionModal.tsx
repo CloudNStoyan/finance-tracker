@@ -21,7 +21,7 @@ const DesktopDescriptionModal: FunctionComponent<
           <West />
         </IconButton>
         <h2 className="grow text-center font-medium">
-          {description.trim().length === 0
+          {description?.trim().length === 0
             ? "Add description"
             : "Edit description"}
         </h2>
@@ -29,7 +29,7 @@ const DesktopDescriptionModal: FunctionComponent<
       <textarea
         onChange={(e) => setDescrp(e.target.value)}
         onBlur={(e) => setDescrp(e.target.value)}
-        value={descrp}
+        value={descrp ?? ""}
       ></textarea>
       <div className="m-3">
         <Button

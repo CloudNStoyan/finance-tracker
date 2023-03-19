@@ -4,6 +4,12 @@ const DesktopCalendarDayStyled = styled.div`
   transition: opacity 0.25s linear;
   animation: custom-scale-0-1 0.25s;
 
+  &.today {
+    .action-bar {
+      background-color: ${({ theme }) => theme.colors.accentText};
+    }
+  }
+
   .date-number {
     font-size: 18px;
     font-weight: 500;

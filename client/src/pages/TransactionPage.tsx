@@ -32,7 +32,7 @@ import { FunctionComponent, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { Category, Transaction, TransactionRepeat } from "../server-api";
+import { Category, Transaction, TransactionRepeatType } from "../server-api";
 import { setNotification } from "../state/notificationSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
@@ -51,7 +51,7 @@ import {
 } from "../state/transactionSlice";
 import RepeatTransactionDialog, {
   OptionType,
-  OptionValue,
+  RepeatModeOptionValue,
 } from "../components/RepeatTransactionDialog";
 import useQuery from "../infrastructure/useQuery";
 import { fetchCategories } from "../state/categorySlice";
@@ -59,7 +59,7 @@ import DeleteTransactionDialog from "../components/DeleteDialog";
 import HorizontalSelect, {
   HorizontalSelectValue,
 } from "../components/HorizontalSelect";
-import { ConvertRepeatLogicToHumanText } from "../infrastructure/TransactionsBuisnessLogic";
+import RepeatSummary from "../components/RepeatSummary";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -115,7 +115,7 @@ const TransactionPage: FunctionComponent<{
   const [labelError, setLabelError] = useState(false);
   const [repeatEveryCount, setRepeatEveryCount] = useState(1);
   const [repeatEndOccurrences, setRepeatEndOccurrences] = useState(1);
-  const [repeatType, setRepeatType] = useState<TransactionRepeat>();
+  const [repeatType, setRepeatType] = useState<TransactionRepeatType>();
   const [repeatEndType, setRepeatEndType] = useState<"never" | "on" | "after">(
     "never"
   );
@@ -287,7 +287,7 @@ const TransactionPage: FunctionComponent<{
     }
   };
 
-  const createOrEdit = async (repeatMode?: OptionValue) => {
+  const createOrEdit = async (repeatMode?: RepeatModeOptionValue) => {
     const transaction: Transaction = {
       label: label.trim(),
       value: Number(value),
@@ -364,7 +364,9 @@ const TransactionPage: FunctionComponent<{
     }
   };
 
-  const deleteTransactionCallback = async (repeatMode?: OptionValue) => {
+  const deleteTransactionCallback = async (
+    repeatMode?: RepeatModeOptionValue
+  ) => {
     try {
       await dispatch(
         deleteTransaction({
@@ -587,7 +589,7 @@ const TransactionPage: FunctionComponent<{
                 defaultSelect={{ value: repeatType }}
                 className="horizontal-select"
                 onSelect={(
-                  selected: HorizontalSelectValue<TransactionRepeat>
+                  selected: HorizontalSelectValue<TransactionRepeatType>
                 ) => {
                   setRepeatType(selected.value);
                 }}
@@ -692,21 +694,7 @@ const TransactionPage: FunctionComponent<{
             </div>
           )}
         </div>
-        {repeat === "custom" && (
-          <div className="ml-3">
-            <span className="uppercase text-xs mb-1">Summary</span>
-            <p className="h-14">
-              {ConvertRepeatLogicToHumanText(
-                date,
-                repeatType,
-                repeatEveryCount,
-                repeatEndType,
-                repeatEndType !== "never" ? repeatEnd : undefined,
-                repeatEndType === "after" ? repeatEndOccurrences : undefined
-              )}
-            </p>
-          </div>
-        )}
+        {repeat === "custom" && <RepeatSummary />}
         {!openDescription && (
           <Button
             onClick={() => setOpenDescription(true)}

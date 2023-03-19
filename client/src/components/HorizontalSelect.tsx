@@ -11,18 +11,21 @@ export interface HorizontalSelectProps {
   className?: string;
   values: HorizontalSelectValue[];
   onSelect?: (selected: HorizontalSelectValue) => void;
-  defaultSelect?: HorizontalSelectValue;
+  defaultSelect?: HorizontalSelectValue | string;
 }
 
 const GetDefaultIndex = (
   values: HorizontalSelectValue[],
-  defaultValue?: HorizontalSelectValue
+  defaultValue?: HorizontalSelectValue | string
 ) => {
   if (!defaultValue) {
     return 0;
   }
 
-  const selectIndex = values.findIndex((x) => x.value === defaultValue.value);
+  const searchValue =
+    typeof defaultValue === "string" ? defaultValue : defaultValue.value;
+
+  const selectIndex = values.findIndex((x) => x.value === searchValue);
 
   return selectIndex !== -1 ? selectIndex : 0;
 };
