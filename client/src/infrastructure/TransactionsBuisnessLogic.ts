@@ -1,12 +1,16 @@
 import {
   addDays,
+  addMonths,
   addWeeks,
+  addYears,
   differenceInDays,
   differenceInMonths,
   differenceInWeeks,
   differenceInYears,
   isAfter,
   isBefore,
+  isLastDayOfMonth,
+  lastDayOfMonth,
   parseJSON,
 } from "date-fns";
 import { Transaction, TransactionRepeatType } from "../server-api";
@@ -27,8 +31,8 @@ const GetTransactionOccurrencess = (
   startDay?: Date
 ) => {
   if (repeatType === "yearly") {
-    // its impossible to see two instances of a transaction that is on a yearly
-    // basis so we don't calculate anything because it will be 1 every time.
+    // its impossible to see two instances of a transaction that is on a yearly basis
+    // so we don't calculate anything because it will only be a single occurrence each time.
     return 1;
   }
 
@@ -101,6 +105,32 @@ export const GetTransactionOccurrencessInDates = (
   }
 
   return dates;
+};
+
+export const GetNextTransactionOccurrenceDate = (
+  transactionDate: number,
+  repeatType: TransactionRepeatType,
+  repeatEvery: number
+) => {
+  let addFn: (date: Date, amount: number) => Date = null;
+
+  if (repeatType === "daily") {
+    addFn = addDays;
+  }
+
+  if (repeatType === "weekly") {
+    addFn = addWeeks;
+  }
+
+  if (repeatType === "monthly") {
+    addFn = addMonths;
+  }
+
+  if (repeatType === "yearly") {
+    addFn = addYears;
+  }
+
+  return addFn(new Date(transactionDate), repeatEvery).getTime();
 };
 
 export const GetBalanceFromTransactions = (
@@ -245,7 +275,14 @@ export const FilterTransactions = (
     }
 
     if (transaction.repeat === "monthly") {
-      if (transactionDate.getDate() !== dateWithoutTime.getDate()) {
+      const transactionDateDoesntOccurreInThisMonth =
+        isLastDayOfMonth(dateWithoutTime) &&
+        lastDayOfMonth(transactionDate).getDate() > dateWithoutTime.getDate();
+
+      if (
+        transactionDate.getDate() !== dateWithoutTime.getDate() &&
+        !transactionDateDoesntOccurreInThisMonth
+      ) {
         return false;
       }
 

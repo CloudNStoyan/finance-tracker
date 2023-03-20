@@ -23,7 +23,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Icons from "../../infrastructure/Icons";
 import HorizontalSelect, { HorizontalSelectValue } from "../HorizontalSelect";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Transaction, TransactionRepeatType } from "../../server-api";
 import DefaultCategory from "../../state/DefaultCategory";
 import {
@@ -54,6 +54,7 @@ import { TransactionDialogModalType } from "./DesktopTransaction";
 import DeleteDialog from "../DeleteDialog";
 import { CustomChangeEvent } from "../../infrastructure/Utils";
 import RepeatSummary from "../RepeatSummary";
+import WarningDialog, { GetMonthlyDateWarning } from "../WarningDialog";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -145,13 +146,16 @@ const DesktopTransactionModal: FunctionComponent<
     (state) => state.addOrEditTransactionReducer.type
   );
 
+  const { selected } = useAppSelector((state) => state.calendarReducer);
+
   const transactionDateInNumber = useAppSelector(
     (state) => state.addOrEditTransactionReducer.transactionDate
   );
 
-  const transactionDate = transactionDateInNumber
-    ? new Date(transactionDateInNumber)
-    : new Date();
+  const transactionDate = useMemo(
+    () => new Date(transactionDateInNumber),
+    [transactionDateInNumber]
+  );
 
   const [dateInputOpen, setDateInputOpen] = useState(false);
   const [repeatDateInputOpen, setRepeatDateInputOpen] = useState(false);
@@ -167,6 +171,9 @@ const DesktopTransactionModal: FunctionComponent<
     useState(false);
   const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
     useState<(option: boolean) => void>();
+  const [warningDialogOpen, setWarningDialogOpen] = useState(false);
+  const [warningDialogTitle, setWarningDialogTitle] = useState("");
+  const [warningDialogMessage, setWarningDialogMessage] = useState("");
 
   const { addOrEditTransactionStatus, deleteTransactionStatus } =
     useAppSelector((state) => state.transactionsReducer);
@@ -185,8 +192,8 @@ const DesktopTransactionModal: FunctionComponent<
 
   const handleRepeatMenuChange = (e: CustomChangeEvent) => {
     const repeatMenuOption = e.target.value;
+
     setRepeatMenu(repeatMenuOption);
-    console.log(repeatMenuOption);
 
     if (
       repeatMenuOption === "daily" ||
@@ -308,6 +315,12 @@ const DesktopTransactionModal: FunctionComponent<
     }
   };
 
+  const handleWarningDialogClose = () => {
+    setWarningDialogOpen(false);
+    setWarningDialogTitle("");
+    setWarningDialogMessage("");
+  };
+
   useEffect(() => {
     switch (addOrEditTransactionStatus) {
       case "succeeded":
@@ -382,6 +395,27 @@ const DesktopTransactionModal: FunctionComponent<
     setLabelError(false);
   }, [label]);
 
+  useEffect(() => {
+    if (repeat !== "monthly" || transactionDate.getDate() <= 28) {
+      return;
+    }
+
+    if (GetMonthlyDateWarning() === false) {
+      return;
+    }
+
+    setWarningDialogOpen(true);
+  }, [transactionDate, repeat]);
+
+  useEffect(() => {
+    if (transactionId || transactionDateInNumber) {
+      return;
+    }
+
+    dispatch(setTransactionDate(selected));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onSubmit = () => {
     const valueIsInvalid = value < 1;
     const labelIsInvalid = label.trim().length === 0;
@@ -406,7 +440,7 @@ const DesktopTransactionModal: FunctionComponent<
 
     setLoading(true);
 
-    if (repeatMenu !== "none") {
+    if (repeatMenu !== "none" && transactionId) {
       setRepeatTransactionDialogOpen(true);
       const callback = (option: OptionType) => {
         if (!option) {
@@ -748,7 +782,7 @@ const DesktopTransactionModal: FunctionComponent<
           <Button
             onClick={navigateToDescriptionModal}
             size="large"
-            className="label-button justify-start normal-case"
+            className="label-button justify-start"
             startIcon={<DescriptionOutlined />}
             disabled={loading}
           >
@@ -790,6 +824,12 @@ const DesktopTransactionModal: FunctionComponent<
           type="transaction"
           open={deleteTransactionDialogOpen}
           onClose={handleDeleteTransactionDialogClose}
+        />
+        <WarningDialog
+          open={warningDialogOpen}
+          onClose={handleWarningDialogClose}
+          message={warningDialogMessage}
+          title={warningDialogTitle}
         />
       </DesktopTransactionModalStyled>
     </>

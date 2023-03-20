@@ -59,7 +59,13 @@ export const styledDarkTheme: StyledTheme = {
   },
 };
 
-export const muiLightTheme = {};
+export const muiLightTheme = {
+  typography: {
+    button: {
+      textTransform: "capitalize",
+    },
+  },
+};
 
 export const muiDarkTheme = {
   palette: {
@@ -68,4 +74,9 @@ export const muiDarkTheme = {
       main: purple[500],
     },
   } as Palette,
+  typography: {
+    button: {
+      textTransform: "capitalize",
+    },
+  },
 };

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { parseJSON } from "date-fns";
+import { GetNextTransactionOccurrenceDate } from "../infrastructure/TransactionsBuisnessLogic";
 import {
   Category,
   Transaction,
@@ -61,13 +62,25 @@ const addOrEditTransactionSlice = createSlice({
     },
     setTransactionRepeat(state, action: PayloadAction<TransactionRepeatType>) {
       state.repeat = action.payload;
+
+      if (state.repeatEvery === null) {
+        state.repeatEvery = 1;
+      }
     },
     setTransactionRepeatEvery(state, action: PayloadAction<number>) {
       state.repeatEvery = action.payload;
     },
     setTransactionRepeatEndType(state, action: PayloadAction<"on" | "after">) {
       if (action.payload === "on" && state.repeatEndDate === null) {
-        state.repeatEndDate = state.transactionDate;
+        state.repeatEndDate = GetNextTransactionOccurrenceDate(
+          state.transactionDate,
+          state.repeat,
+          state.repeatEvery
+        );
+      }
+
+      if (action.payload === "after" && state.repeatEndOccurrences === null) {
+        state.repeatEndOccurrences = 1;
       }
 
       state.repeatEndType = action.payload;
