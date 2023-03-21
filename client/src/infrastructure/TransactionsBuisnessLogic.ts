@@ -3,6 +3,7 @@ import {
   addMonths,
   addWeeks,
   addYears,
+  differenceInCalendarMonths,
   differenceInDays,
   differenceInMonths,
   differenceInWeeks,
@@ -47,7 +48,11 @@ const GetTransactionOccurrencess = (
   }
 
   if (repeatType === "monthly") {
-    diff = differenceInMonths(date, transactionDate);
+    diff = differenceInCalendarMonths(date, transactionDate);
+
+    if (date.getDate() < transactionDate.getDate() && !isLastDayOfMonth(date)) {
+      diff -= 1;
+    }
   }
 
   let occurrences = Math.floor(diff / repeatEvery + 1);
