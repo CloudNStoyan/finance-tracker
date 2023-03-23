@@ -11,6 +11,7 @@ import bgSteps from "../assets/bg-steps.svg";
 import bgStepsSecondary from "../assets/bg-steps-secondary.svg";
 
 import { purple } from "@mui/material/colors";
+import { Typography } from "@mui/material/styles/createTypography";
 
 export interface StyledTheme {
   svgs: {
@@ -64,7 +65,7 @@ export const muiLightTheme = {
     button: {
       textTransform: "capitalize",
     },
-  },
+  } as Typography,
 };
 
 export const muiDarkTheme = {
@@ -78,5 +79,5 @@ export const muiDarkTheme = {
     button: {
       textTransform: "capitalize",
     },
-  },
+  } as Typography,
 };
