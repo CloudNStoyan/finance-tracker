@@ -28,26 +28,25 @@ import {
   Typography,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import TransactionPageStyled from "./TransactionPage.styled";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { Category, Transaction, TransactionRepeatType } from "../server-api";
+import { Transaction, TransactionRepeatType } from "../server-api";
 import { setNotification } from "../state/notificationSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import PickCategoryStyled from "../components/PickCategory.styled";
 import PickCategoriesStyled from "../components/PickCategories.styled";
-import { parseISO, parseJSON } from "date-fns";
-import {
-  DateOnlyToString,
-  fromUnixTimeMs,
-} from "../infrastructure/CustomDateUtils";
+import { parseISO } from "date-fns";
+import { DateOnlyToString } from "../infrastructure/CustomDateUtils";
 import DefaultCategory from "../state/DefaultCategory";
 import {
   addNewOrEditTransaction,
   fetchTransactionById,
   deleteTransaction,
+  resetAddOrEditTransactionStatus,
+  resetDeleteTransactionStatus,
 } from "../state/transactionSlice";
 import RepeatTransactionDialog, {
   OptionType,
@@ -60,6 +59,24 @@ import HorizontalSelect, {
   HorizontalSelectValue,
 } from "../components/HorizontalSelect";
 import RepeatSummary from "../components/RepeatSummary";
+import {
+  loadTransaction,
+  setTransactionCategory,
+  setTransactionDate,
+  setTransactionDescription,
+  setTransactionRepeat,
+  setTransactionRepeatEndDate,
+  setTransactionRepeatEndOccurrencess,
+  setTransactionRepeatEndType,
+  setTransactionRepeatEvery,
+  setTransactionValue,
+  setTransactionType,
+  setTransactionLabel,
+  setTransactionConfirmed,
+} from "../state/addOrEditTransactionSlice";
+import { CustomChangeEvent } from "../infrastructure/Utils";
+import WarningDialog from "../components/WarningDialog";
+import LoadingCircleAnimation from "../components/LoadingCircleAnimation";
 
 const CustomTextField = styled(TextField)({
   "& .MuiInputBase-input": {
@@ -79,30 +96,75 @@ const CustomTextField = styled(TextField)({
   },
 });
 
+const DefaultRepeatMenuState = (
+  repeat?: TransactionRepeatType,
+  repeatEvery?: number
+) => {
+  if (!repeat) {
+    return "none";
+  }
+
+  if (repeatEvery === 1) {
+    return repeat;
+  }
+
+  return "custom";
+};
+
+const RepeatTypeSelectValues = [
+  { value: "daily", text: "Day" },
+  { value: "weekly", text: "Week" },
+  { value: "monthly", text: "Month" },
+  { value: "yearly", text: "Year" },
+];
+
+const RepeatEndTypeSelectValues = [
+  { value: "never", text: "Never" },
+  { value: "on", text: "On" },
+  { value: "after", text: "After" },
+];
+
 const TransactionPage: FunctionComponent<{
   hasTransactionId: boolean;
 }> = ({ hasTransactionId }) => {
   const calendarSelected = useAppSelector(
     (state) => state.calendarReducer.selected
   );
+  const {
+    category,
+    description,
+    repeatEvery,
+    repeatEndOccurrences,
+    repeat,
+    repeatEndType,
+    repeatEndDate,
+    value,
+    label,
+    confirmed,
+    transactionId,
+  } = useAppSelector((state) => state.addOrEditTransactionReducer);
 
-  const [transactionIsLoaded, setTransactionIsLoaded] = useState(false);
-  const [transactionType, setTransactionType] = useState("expense");
-  const [value, setValue] = useState("");
-  const [label, setLabel] = useState("");
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [confirmed, setConfirmed] = useState(true);
-  const [drawerIsOpen, setDrawerIsOpen] = useState(false);
-  const [date, setDate] = useState<Date | null>(
-    fromUnixTimeMs(calendarSelected) ?? new Date()
+  const transactionDateInNumber = useAppSelector(
+    (state) => state.addOrEditTransactionReducer.transactionDate
   );
-  const [description, setDescription] = useState("");
+
+  const transactionDate = useMemo(
+    () => new Date(transactionDateInNumber),
+    [transactionDateInNumber]
+  );
+
+  const transactionType = useAppSelector(
+    (state) => state.addOrEditTransactionReducer.type
+  );
+
   const [editableDescription, setEditableDescription] = useState("");
   const [openDescription, setOpenDescription] = useState(false);
-  const [repeat, setRepeat] = useState("none");
-  const [category, setCategory] = useState<Category | undefined>();
-  const [repeatEnd, setRepeatEnd] = useState(new Date());
-  const [showRepeatTransactionDialog, setShowRepeatTransactionDialog] =
+  const [repeatMenu, setRepeatMenu] = useState(
+    DefaultRepeatMenuState(repeat, repeatEvery)
+  );
+  const [selectCategoryDialogOpen, setSelectCategoryDialogOpen] =
+    useState(false);
+  const [repeatTransactionDialogOpen, setRepeatTransactionDialogOpen] =
     useState(false);
   const [repeatTransactionDialogCallback, setRepeatTransactionDialogCallback] =
     useState<(option: OptionType) => void>();
@@ -110,15 +172,11 @@ const TransactionPage: FunctionComponent<{
     useState(false);
   const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
     useState<(option: boolean) => void>();
-  const [itHasRepeat, setItHasRepeat] = useState(false);
+  const [error, setError] = useState<string>(null);
   const [valueError, setValueError] = useState(false);
   const [labelError, setLabelError] = useState(false);
-  const [repeatEveryCount, setRepeatEveryCount] = useState(1);
-  const [repeatEndOccurrences, setRepeatEndOccurrences] = useState(1);
-  const [repeatType, setRepeatType] = useState<TransactionRepeatType>();
-  const [repeatEndType, setRepeatEndType] = useState<"never" | "on" | "after">(
-    "never"
-  );
+  const [loading, setLoading] = useState(false);
+  const [warningDialogOpen, setWarningDialogOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const { isDarkMode } = useAppSelector((state) => state.themeReducer);
@@ -134,13 +192,74 @@ const TransactionPage: FunctionComponent<{
     (state) => state.transactionsReducer.transactions
   );
 
+  const { addOrEditTransactionStatus, deleteTransactionStatus } =
+    useAppSelector((state) => state.transactionsReducer);
+
   const transactionsStatus = useAppSelector(
     (state) => state.transactionsReducer.fetchingStatus
   );
 
-  const { transactionId } = useParams();
+  const loadTransactionStatus = useRef("idle");
+
+  const params = useParams();
   const navigate = useNavigate();
   const query = useQuery();
+
+  useEffect(() => {
+    if (
+      !params.transactionId ||
+      loadTransactionStatus.current !== "idle" ||
+      categoriesStatus !== "succeeded"
+    ) {
+      return;
+    }
+
+    if (transactionsStatus === "idle") {
+      void dispatch(fetchTransactionById(Number(params.transactionId)));
+      return;
+    }
+
+    const transaction = transactions.find(
+      (t) => t.transactionId === Number(params.transactionId)
+    );
+
+    const cat =
+      categories.find((c) => c.categoryId === transaction.categoryId) ??
+      DefaultCategory;
+
+    const initialDateRaw = query.get("initialDate");
+    let initialDate;
+    if (initialDateRaw) {
+      try {
+        initialDate = parseISO(initialDateRaw).getTime();
+      } catch (error) {
+        // we want to surpress this error because its
+        // very easy to trigger and it doesnt give any value
+      }
+    }
+
+    dispatch(
+      loadTransaction([transaction, cat, initialDate ?? calendarSelected])
+    );
+  }, [
+    params,
+    category,
+    categoriesStatus,
+    calendarSelected,
+    categories,
+    dispatch,
+    transactions,
+    transactionsStatus,
+    query,
+  ]);
+
+  useEffect(() => {
+    if (transactionId) {
+      return;
+    }
+
+    dispatch(setTransactionDate(calendarSelected));
+  }, [calendarSelected, transactionId, dispatch]);
 
   useEffect(() => {
     if (categoriesStatus === "idle") {
@@ -148,98 +267,143 @@ const TransactionPage: FunctionComponent<{
     }
   }, [categoriesStatus, dispatch]);
 
-  useEffect(() => {
-    if (categoriesStatus !== "succeeded") {
-      return;
-    }
-
-    setCategory(
-      categories.find((c) => c.categoryId === categoryId) ?? DefaultCategory
-    );
-  }, [categories, categoryId, categoriesStatus]);
-
-  useEffect(() => {
-    if (!hasTransactionId || transactionIsLoaded) {
-      return;
-    }
-
-    const transaction = transactions.find(
-      (t) => t.transactionId === Number(transactionId)
-    );
-
-    if (!transaction && transactionsStatus === "idle") {
-      void dispatch(fetchTransactionById(Number(transactionId)));
-      return;
-    }
-
-    const handleTransaction = (transaction: Transaction) => {
-      setValue(transaction.value.toString());
-      setLabel(transaction.label);
-      setConfirmed(transaction.confirmed);
-      setTransactionType(transaction.type);
-      setDate(parseJSON(transaction.transactionDate));
-      setCategoryId(transaction.categoryId);
-      setRepeat(transaction.repeat ?? "none");
-      setTransactionIsLoaded(true);
-      setDescription(transaction.details ?? "");
-      setEditableDescription(transaction.details ?? "");
-      setItHasRepeat(transaction.repeat !== null);
-      setRepeatEnd(
-        transaction.repeatEndDate === null
-          ? new Date()
-          : parseJSON(transaction.repeatEndDate)
-      );
-      setRepeatEveryCount(transaction.repeatEvery ?? 1);
-      setRepeatEndOccurrences(transaction.repeatEndOccurrences ?? 1);
-      setRepeatEndType(transaction.repeatEndType);
-      setRepeatType(transaction.repeat);
-
-      if (transaction.repeat && transaction.repeatEvery === 1) {
-        setRepeat(transaction.repeat);
-      }
-
-      if (transaction.repeat && transaction.repeatEvery > 1) {
-        setRepeat("custom");
-      }
-
-      const initialDateRaw = query.get("initialDate");
-      if (initialDateRaw) {
-        try {
-          const initialDate = parseISO(initialDateRaw);
-          setDate(initialDate);
-        } catch (error) {
-          return;
-        }
-      }
-    };
-
-    if (transaction) {
-      handleTransaction(transaction);
-    }
-  }, [
-    dispatch,
-    hasTransactionId,
-    transactionId,
-    transactionIsLoaded,
-    transactions,
-    transactionsStatus,
-    query,
-  ]);
-
   const handleDateChange = (newDate: Date | null) => {
-    setDate(newDate);
+    dispatch(setTransactionDate(newDate.getTime()));
   };
 
   const handleRepeatDateChange = (newDate: Date | null) => {
-    setRepeatEnd(newDate);
+    if (repeatEndType !== "on") {
+      return;
+    }
+
+    setTransactionRepeatEndDate(newDate.getTime());
   };
 
-  const handleRepeatChange = (newRepeat: string) => {
-    setRepeat(newRepeat);
+  const handleRepeatMenuChange = (e: CustomChangeEvent) => {
+    const repeatMenuOption = e.target.value;
+
+    setRepeatMenu(repeatMenuOption);
+
+    if (
+      repeatMenuOption === "daily" ||
+      repeatMenuOption === "weekly" ||
+      repeatMenuOption === "monthly" ||
+      repeatMenuOption === "yearly"
+    ) {
+      dispatch(setTransactionRepeat(repeatMenuOption));
+      dispatch(setTransactionRepeatEvery(1));
+    }
+  };
+
+  const handleRepeatEveryChange = (e: CustomChangeEvent) => {
+    const inputValue = e.target.value;
+
+    if (isNaN(Number(inputValue)) && inputValue.length > 0) {
+      return;
+    }
+
+    let newRepeatEveryCount = Number(inputValue.trim());
+
+    if (newRepeatEveryCount < 1) {
+      newRepeatEveryCount = 1;
+    }
+
+    if (newRepeatEveryCount > 99) {
+      newRepeatEveryCount = 99;
+    }
+
+    dispatch(setTransactionRepeatEvery(newRepeatEveryCount));
+  };
+
+  const handleRepeatEndOccurrencesChange = (e: CustomChangeEvent) => {
+    const inputValue = e.target.value;
+    if (isNaN(Number(inputValue)) && inputValue.length > 0) {
+      return;
+    }
+    let newRepeatEndOccurrences = Number(inputValue.trim());
+    if (newRepeatEndOccurrences < 1) {
+      newRepeatEndOccurrences = 1;
+    }
+    if (newRepeatEndOccurrences > 99) {
+      newRepeatEndOccurrences = 99;
+    }
+
+    dispatch(setTransactionRepeatEndOccurrencess(newRepeatEndOccurrences));
+  };
+
+  const handleRepeatEndTypeChange = (
+    selected: HorizontalSelectValue<"never" | "on" | "after">
+  ) => {
+    if (selected.value === "never") {
+      dispatch(setTransactionRepeatEndType(null));
+      return;
+    }
+
+    dispatch(setTransactionRepeatEndType(selected.value));
+  };
+
+  const handleRepeatChange = (
+    selected: HorizontalSelectValue<TransactionRepeatType>
+  ) => dispatch(setTransactionRepeat(selected.value));
+
+  const handleTransactionValueChange = (e: CustomChangeEvent) => {
+    const inputValue = e.target.value;
+
+    if (isNaN(Number(inputValue)) && inputValue.length > 0) {
+      return;
+    }
+
+    let newValue = Number(inputValue?.trim());
+
+    if (newValue === 0) {
+      newValue = null;
+    }
+
+    dispatch(setTransactionValue(newValue));
+  };
+
+  const handleEditableDescriptionChange = (e: CustomChangeEvent) =>
+    setEditableDescription(e.target.value);
+
+  const handleSelectCategoryClicked = () => {
+    setSelectCategoryDialogOpen(true);
+  };
+
+  const handleTransactionTypeChange = () =>
+    dispatch(
+      setTransactionType(transactionType === "expense" ? "income" : "expense")
+    );
+
+  const handleTransactionLabelChange = (e: CustomChangeEvent) =>
+    dispatch(setTransactionLabel(e.target.value));
+
+  const handleTransactionConfirmedChange = (e: CustomChangeEvent) =>
+    dispatch(setTransactionConfirmed(e.target.checked));
+
+  const handleRepeatTransactionDialogClose = (option: OptionType) => {
+    setRepeatTransactionDialogOpen(false);
+
+    if (repeatTransactionDialogCallback) {
+      repeatTransactionDialogCallback(option);
+      setRepeatTransactionDialogCallback(null);
+    }
+  };
+
+  const handleDeleteTransactionDialogClose = (option: boolean) => {
+    setDeleteTransactionDialogOpen(false);
+
+    if (deleteTransactionDialogCallback) {
+      deleteTransactionDialogCallback(option);
+      setDeleteTransactionDialogCallback(null);
+    }
+  };
+
+  const handleWarningDialogClose = () => {
+    setWarningDialogOpen(false);
   };
 
   useEffect(() => {
-    if (Number(value) === 0) {
+    if (value === 0) {
       return;
     }
 
@@ -247,16 +411,74 @@ const TransactionPage: FunctionComponent<{
   }, [value]);
 
   useEffect(() => {
-    if (label.trim().length === 0) {
+    if (!label || label.length === 0) {
       return;
     }
 
     setLabelError(false);
   }, [label]);
 
+  useEffect(() => {
+    switch (addOrEditTransactionStatus) {
+      case "succeeded":
+        dispatch(
+          setNotification({
+            message: "Transaction created.",
+            color: "success",
+          })
+        );
+        console.log("closing?");
+        dispatch(resetAddOrEditTransactionStatus());
+        return;
+      case "failed":
+        dispatch(
+          setNotification({
+            message: "General error!",
+            color: "error",
+          })
+        );
+        setError("General error! Please try again later.");
+        dispatch(resetAddOrEditTransactionStatus());
+        return;
+      case "idle":
+        return;
+      case "loading":
+        return;
+    }
+  }, [addOrEditTransactionStatus, dispatch]);
+
+  useEffect(() => {
+    switch (deleteTransactionStatus) {
+      case "succeeded":
+        dispatch(
+          setNotification({
+            message: "Transaction deleted.",
+            color: "success",
+          })
+        );
+        navigate("/");
+        dispatch(resetDeleteTransactionStatus());
+        return;
+      case "failed":
+        dispatch(
+          setNotification({
+            message: "General error!",
+            color: "error",
+          })
+        );
+        setError("General error! Please try again later.");
+        dispatch(resetDeleteTransactionStatus());
+        return;
+      case "idle":
+        return;
+      case "loading":
+        return;
+    }
+  }, [deleteTransactionStatus, dispatch, navigate]);
+
   const onSubmit = () => {
-    const valueIsInvalid = Number(value) === 0;
-    const labelIsInvalid = label.trim().length === 0;
+    const valueIsInvalid = value < 1;
+    const labelIsInvalid = !label || label.trim().length === 0;
 
     if (valueIsInvalid) {
       setValueError(true);
@@ -270,9 +492,16 @@ const TransactionPage: FunctionComponent<{
       return;
     }
 
-    if (itHasRepeat) {
-      setShowRepeatTransactionDialog(true);
+    if (addOrEditTransactionStatus === "loading") {
+      return;
+    }
 
+    setError(null);
+
+    setLoading(true);
+
+    if (repeatMenu !== "none" && transactionId) {
+      setRepeatTransactionDialogOpen(true);
       const callback = (option: OptionType) => {
         if (!option) {
           return;
@@ -288,60 +517,69 @@ const TransactionPage: FunctionComponent<{
   };
 
   const createOrEdit = async (repeatMode?: RepeatModeOptionValue) => {
-    const transaction: Transaction = {
-      label: label.trim(),
-      value: Number(value),
-      transactionDate: DateOnlyToString(date),
-      type: transactionType === "income" ? "income" : "expense",
+    const newTransaction: Transaction = {
+      label: label,
+      value: value,
+      transactionDate: DateOnlyToString(transactionDate),
+      type: transactionType,
       confirmed,
-      details: description,
     };
 
-    if (repeat !== "none") {
-      transaction.repeat = repeatType;
-      transaction.repeatEndType =
-        repeatEndType !== "never" ? repeatEndType : undefined;
-      transaction.repeatEndOccurrences =
-        repeatEndType === "after" ? repeatEndOccurrences : undefined;
-      transaction.repeatEvery = repeatEveryCount;
+    if (repeat) {
+      newTransaction.repeat = repeat;
+      newTransaction.repeatEndType = repeatEndType;
+      newTransaction.repeatEvery = repeatEvery;
+
+      if (repeatEndType === "after") {
+        newTransaction.repeatEndOccurrences = repeatEndOccurrences;
+      }
+
+      if (repeatEndType === "on") {
+        newTransaction.repeatEndDate = DateOnlyToString(
+          new Date(repeatEndDate)
+        );
+      }
     }
 
-    if (hasTransactionId) {
-      transaction.transactionId = Number(transactionId);
+    if (description && description.length > 0) {
+      newTransaction.details = description;
     }
 
-    if (category !== undefined) {
-      transaction.categoryId = category.categoryId;
+    if (transactionId) {
+      newTransaction.transactionId = transactionId;
     }
 
-    if (repeatEndType === "on" && repeat !== "none") {
-      transaction.repeatEndDate = DateOnlyToString(repeatEnd);
+    if (category) {
+      newTransaction.categoryId = category.categoryId;
     }
 
     try {
       await dispatch(
         addNewOrEditTransaction({
-          transaction,
+          transaction: newTransaction,
           repeatMode,
         })
       );
-
-      navigate("/");
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const onDelete = () => {
-    if (!hasTransactionId) {
+    if (!transactionId || deleteTransactionStatus !== "idle") {
       return;
     }
 
-    if (itHasRepeat) {
-      setShowRepeatTransactionDialog(true);
+    setLoading(true);
+
+    if (repeatMenu !== "none") {
+      setRepeatTransactionDialogOpen(true);
 
       const callback = (option: OptionType) => {
         if (!option) {
+          setLoading(false);
           return;
         }
 
@@ -354,6 +592,7 @@ const TransactionPage: FunctionComponent<{
 
       const callback = (option: boolean) => {
         if (!option) {
+          setLoading(false);
           return;
         }
 
@@ -372,19 +611,13 @@ const TransactionPage: FunctionComponent<{
         deleteTransaction({
           transactionId: Number(transactionId),
           repeatMode,
-          date,
-        })
-      );
-
-      navigate("/");
-      dispatch(
-        setNotification({
-          message: "Transaction deleted.",
-          color: "success",
+          date: new Date(transactionDate),
         })
       );
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -394,8 +627,10 @@ const TransactionPage: FunctionComponent<{
         category != undefined ? category.bgColor : DefaultCategory.bgColor
       }
       isDarkMode={isDarkMode}
+      isLoading={loading}
     >
       <div className="relative fields">
+        {loading && <LoadingCircleAnimation className="loading-wrapper" />}
         <FormControl className="w-full justify-center items-end mt-2 pr-10">
           <ToggleButtonGroup
             className="type-selector"
@@ -403,13 +638,7 @@ const TransactionPage: FunctionComponent<{
             size="small"
             value={transactionType}
             exclusive
-            onChange={(e, v: "expense" | "income") => {
-              if (v === null) {
-                return;
-              }
-
-              setTransactionType(v);
-            }}
+            onChange={handleTransactionTypeChange}
           >
             <ToggleButton value="expense">Expense</ToggleButton>
             <ToggleButton value="income">Income</ToggleButton>
@@ -433,9 +662,9 @@ const TransactionPage: FunctionComponent<{
         )}
         <div className="m-2 flex items-end">
           <CustomTextField
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={(e) => setValue(e.target.value)}
-            value={value}
+            onChange={handleTransactionValueChange}
+            onBlur={handleTransactionValueChange}
+            value={value ?? ""}
             type="number"
             variant="standard"
             className="transaction-value"
@@ -459,9 +688,9 @@ const TransactionPage: FunctionComponent<{
             placeholder="e.g netflix"
             variant="standard"
             className="ml-4 transaction-label grow"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            onBlur={(e) => setLabel(e.target.value)}
+            value={label ?? ""}
+            onChange={handleTransactionLabelChange}
+            onBlur={handleTransactionLabelChange}
             autoComplete="off"
             id="TransactionLabel"
             helperText={labelError ? "Label is required" : null}
@@ -473,14 +702,14 @@ const TransactionPage: FunctionComponent<{
           control={
             <Checkbox
               checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
+              onChange={handleTransactionConfirmedChange}
             />
           }
           label="Confirmed"
           className="confirmed-label"
         />
         <Button
-          onClick={() => setDrawerIsOpen(true)}
+          onClick={handleSelectCategoryClicked}
           className="label-button justify-start normal-case"
           size="large"
           startIcon={
@@ -496,7 +725,7 @@ const TransactionPage: FunctionComponent<{
             <MobileDatePicker
               className="border-none"
               inputFormat="dd MMM yyyy"
-              value={date}
+              value={transactionDate}
               onChange={handleDateChange}
               renderInput={(params) => (
                 <div className="date-picker-render flex items-center">
@@ -524,8 +753,8 @@ const TransactionPage: FunctionComponent<{
           <Select
             variant="standard"
             className="repeat-select"
-            value={repeat}
-            onChange={(e) => handleRepeatChange(e.target.value)}
+            value={repeatMenu ?? "none"}
+            onChange={handleRepeatMenuChange}
             sx={{ border: 0 }}
           >
             <MenuItem value={"none"}>Does not repeat</MenuItem>
@@ -537,7 +766,7 @@ const TransactionPage: FunctionComponent<{
           </Select>
         </div>
         <div className="repeat-options flex flex-col gap-2 mb-1">
-          {repeat === "custom" && (
+          {repeatMenu === "custom" && (
             <div className="flex gap-3 items-center">
               <span className="uppercase text-xs w-11">Every</span>
               <TextField
@@ -545,79 +774,26 @@ const TransactionPage: FunctionComponent<{
                 inputProps={{
                   style: { width: 20, textAlign: "center" },
                 }}
-                value={repeatEveryCount}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-
-                  if (isNaN(Number(inputValue)) && inputValue.length > 0) {
-                    return;
-                  }
-
-                  let newRepeatEveryCount = Number(inputValue.trim());
-
-                  if (newRepeatEveryCount < 1) {
-                    newRepeatEveryCount = 1;
-                  }
-
-                  if (newRepeatEveryCount > 99) {
-                    newRepeatEveryCount = 99;
-                  }
-
-                  setRepeatEveryCount(newRepeatEveryCount);
-                }}
-                onBlur={(e) => {
-                  const inputValue = e.target.value;
-
-                  if (isNaN(Number(inputValue)) && inputValue.length > 0) {
-                    return;
-                  }
-
-                  let newRepeatEveryCount = Number(inputValue.trim());
-
-                  if (newRepeatEveryCount < 1) {
-                    newRepeatEveryCount = 1;
-                  }
-
-                  if (newRepeatEveryCount > 99) {
-                    newRepeatEveryCount = 99;
-                  }
-
-                  setRepeatEveryCount(newRepeatEveryCount);
-                }}
+                value={repeatEvery ?? 1}
+                onChange={handleRepeatEveryChange}
+                onBlur={handleRepeatEveryChange}
               />
               <HorizontalSelect
-                defaultSelect={{ value: repeatType }}
+                defaultSelect={{ value: repeat }}
                 className="horizontal-select"
-                onSelect={(
-                  selected: HorizontalSelectValue<TransactionRepeatType>
-                ) => {
-                  setRepeatType(selected.value);
-                }}
-                values={[
-                  { value: "daily", text: "Day" },
-                  { value: "weekly", text: "Week" },
-                  { value: "monthly", text: "Month" },
-                  { value: "yearly", text: "Year" },
-                ]}
+                onSelect={handleRepeatChange}
+                values={RepeatTypeSelectValues}
               />
             </div>
           )}
-          {repeat !== "none" && (
+          {repeatMenu !== "none" && (
             <div className="repeat-end">
               <div className="flex items-center">
                 <span className="uppercase text-xs w-14">Ends</span>
                 <HorizontalSelect
                   className="horizontal-select capitalize"
-                  onSelect={(
-                    selected: HorizontalSelectValue<"never" | "on" | "after">
-                  ) => {
-                    setRepeatEndType(selected.value);
-                  }}
-                  values={[
-                    { value: "never" },
-                    { value: "on" },
-                    { value: "after" },
-                  ]}
+                  onSelect={handleRepeatEndTypeChange}
+                  values={RepeatEndTypeSelectValues}
                   defaultSelect={{ value: repeatEndType }}
                 />
               </div>
@@ -627,24 +803,22 @@ const TransactionPage: FunctionComponent<{
                     <MobileDatePicker
                       className="border-none"
                       inputFormat="dd MMM yyyy"
-                      value={repeatEnd}
+                      value={repeatEndDate}
                       onChange={handleRepeatDateChange}
                       renderInput={(params) => (
                         <div className="date-picker-render flex items-center">
-                          {repeatEnd && (
-                            <TextField
-                              {...params}
-                              variant="standard"
-                              size="small"
-                              className="date-picker-input ml-11"
-                              InputProps={{
-                                startAdornment: (
-                                  <ScheduleOutlinedIcon className="date-picker-icon" />
-                                ),
-                                disableUnderline: true,
-                              }}
-                            />
-                          )}
+                          <TextField
+                            {...params}
+                            variant="standard"
+                            size="small"
+                            className="date-picker-input ml-11"
+                            InputProps={{
+                              startAdornment: (
+                                <ScheduleOutlinedIcon className="date-picker-icon" />
+                              ),
+                              disableUnderline: true,
+                            }}
+                          />
                         </div>
                       )}
                     />
@@ -659,34 +833,8 @@ const TransactionPage: FunctionComponent<{
                       style: { width: 20, textAlign: "center" },
                     }}
                     value={repeatEndOccurrences}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      if (isNaN(Number(inputValue)) && inputValue.length > 0) {
-                        return;
-                      }
-                      let newRepeatEndOccurrences = Number(inputValue.trim());
-                      if (newRepeatEndOccurrences < 1) {
-                        newRepeatEndOccurrences = 1;
-                      }
-                      if (newRepeatEndOccurrences > 99) {
-                        newRepeatEndOccurrences = 99;
-                      }
-                      setRepeatEndOccurrences(newRepeatEndOccurrences);
-                    }}
-                    onBlur={(e) => {
-                      const inputValue = e.target.value;
-                      if (isNaN(Number(inputValue)) && inputValue.length > 0) {
-                        return;
-                      }
-                      let newRepeatEndOccurrences = Number(inputValue.trim());
-                      if (newRepeatEndOccurrences < 1) {
-                        newRepeatEndOccurrences = 1;
-                      }
-                      if (newRepeatEndOccurrences > 99) {
-                        newRepeatEndOccurrences = 99;
-                      }
-                      setRepeatEndOccurrences(newRepeatEndOccurrences);
-                    }}
+                    onChange={handleRepeatEndOccurrencesChange}
+                    onBlur={handleRepeatEndOccurrencesChange}
                   />
                   <span className="xs">occurrences</span>
                 </div>
@@ -694,7 +842,7 @@ const TransactionPage: FunctionComponent<{
             </div>
           )}
         </div>
-        {repeat === "custom" && <RepeatSummary />}
+        {repeatMenu === "custom" && <RepeatSummary />}
         {!openDescription && (
           <Button
             onClick={() => setOpenDescription(true)}
@@ -703,7 +851,7 @@ const TransactionPage: FunctionComponent<{
             startIcon={<DescriptionOutlined />}
           >
             <span className="description-btn-text">
-              {description.trim().length === 0
+              {(description ?? "").trim().length === 0
                 ? "Add description"
                 : description}
             </span>
@@ -721,13 +869,13 @@ const TransactionPage: FunctionComponent<{
             </IconButton>
             <textarea
               value={editableDescription}
-              onChange={(e) => setEditableDescription(e.target.value)}
+              onChange={handleEditableDescriptionChange}
               className="description-input p-2 outline-0 w-full border-2 grow"
             ></textarea>
             <Button
               className="mt-2"
               onClick={() => {
-                setDescription(editableDescription);
+                dispatch(setTransactionDescription(editableDescription));
                 setOpenDescription(false);
               }}
             >
@@ -735,11 +883,15 @@ const TransactionPage: FunctionComponent<{
             </Button>
           </div>
         )}
-
+        {error && (
+          <div className="text-red-500 font-medium p-4 text-center">
+            {error}
+          </div>
+        )}
         <Dialog
           fullScreen
-          open={drawerIsOpen}
-          onClose={() => setDrawerIsOpen(false)}
+          open={selectCategoryDialogOpen}
+          onClose={() => setSelectCategoryDialogOpen(false)}
           container={() => document.querySelector("#app > #wrapper")}
         >
           <PickCategoriesStyled>
@@ -748,7 +900,7 @@ const TransactionPage: FunctionComponent<{
                 <IconButton
                   edge="start"
                   color="inherit"
-                  onClick={() => setDrawerIsOpen(false)}
+                  onClick={() => setSelectCategoryDialogOpen(false)}
                 >
                   <Close />
                 </IconButton>
@@ -771,8 +923,8 @@ const TransactionPage: FunctionComponent<{
                     <button
                       className="wrapper"
                       onClick={() => {
-                        setCategory(cat);
-                        setDrawerIsOpen(false);
+                        dispatch(setTransactionCategory(cat));
+                        setSelectCategoryDialogOpen(false);
                       }}
                     >
                       <div className="icon">{Icons[cat.icon]}</div>
@@ -789,27 +941,17 @@ const TransactionPage: FunctionComponent<{
         </Dialog>
 
         <RepeatTransactionDialog
-          open={showRepeatTransactionDialog}
-          onClose={(option) => {
-            setShowRepeatTransactionDialog(false);
-
-            if (repeatTransactionDialogCallback) {
-              repeatTransactionDialogCallback(option);
-              setRepeatTransactionDialogCallback(null);
-            }
-          }}
+          open={repeatTransactionDialogOpen}
+          onClose={handleRepeatTransactionDialogClose}
         />
         <DeleteTransactionDialog
           type="transaction"
           open={deleteTransactionDialogOpen}
-          onClose={(option) => {
-            setDeleteTransactionDialogOpen(false);
-
-            if (deleteTransactionDialogCallback) {
-              deleteTransactionDialogCallback(option);
-              setDeleteTransactionDialogCallback(null);
-            }
-          }}
+          onClose={handleDeleteTransactionDialogClose}
+        />
+        <WarningDialog
+          open={warningDialogOpen}
+          onClose={handleWarningDialogClose}
         />
       </div>
     </TransactionPageStyled>

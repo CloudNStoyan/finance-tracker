@@ -3,6 +3,7 @@ import { styled } from "../infrastructure/ThemeManager";
 const TransactionPageStyled = styled.div<{
   bgColor: string;
   isDarkMode: boolean;
+  isLoading: boolean;
 }>`
   height: 100%;
   padding: 10px;
@@ -10,16 +11,14 @@ const TransactionPageStyled = styled.div<{
   display: flex;
   flex-flow: column nowrap;
 
-  .loading {
-    * {
+  ${({ isLoading }) =>
+    isLoading
+      ? `
+    > *:not(.loading-wrapper) {
       opacity: 0.75;
     }
-  }
-
-  .loading-circle {
-    position: absolute;
-    z-index: 1;
-  }
+  `
+      : null}
 
   .repeat-options {
     margin-left: 42px;
