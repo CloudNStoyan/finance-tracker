@@ -172,8 +172,6 @@ const DesktopTransactionModal: FunctionComponent<
   const [deleteTransactionDialogCallback, setDeleteTransactionDialogCallback] =
     useState<(option: boolean) => void>();
   const [warningDialogOpen, setWarningDialogOpen] = useState(false);
-  const [warningDialogTitle, setWarningDialogTitle] = useState("");
-  const [warningDialogMessage, setWarningDialogMessage] = useState("");
 
   const { addOrEditTransactionStatus, deleteTransactionStatus } =
     useAppSelector((state) => state.transactionsReducer);
@@ -317,8 +315,6 @@ const DesktopTransactionModal: FunctionComponent<
 
   const handleWarningDialogClose = () => {
     setWarningDialogOpen(false);
-    setWarningDialogTitle("");
-    setWarningDialogMessage("");
   };
 
   useEffect(() => {
@@ -828,8 +824,6 @@ const DesktopTransactionModal: FunctionComponent<
         <WarningDialog
           open={warningDialogOpen}
           onClose={handleWarningDialogClose}
-          message={warningDialogMessage}
-          title={warningDialogTitle}
         />
       </DesktopTransactionModalStyled>
     </>

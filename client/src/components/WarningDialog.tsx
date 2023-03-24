@@ -12,9 +12,7 @@ import { setNotification } from "../state/notificationSlice";
 
 export interface WarningDialogProps {
   open: boolean;
-  message: string;
   onClose: () => void;
-  title: string;
 }
 
 const DATE_WARNING_KEY = "28th_date_warning";
