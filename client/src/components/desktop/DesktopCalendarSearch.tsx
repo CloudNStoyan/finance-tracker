@@ -102,7 +102,7 @@ const DesktopCalendarSearch = () => {
       >
         <SearchIcon />
       </IconButton>
-      <CalendarNavigation />
+      <CalendarNavigation buttonTailwindColor="text-white" />
     </div>
   );
 };

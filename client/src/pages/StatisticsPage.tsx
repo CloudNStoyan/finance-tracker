@@ -236,8 +236,10 @@ const StatisticsPage = () => {
             transactionDate.getFullYear() === now.getFullYear()
           );
         })
-        .sort((a, b) =>
-          new Date(a.transactionDate) > new Date(b.transactionDate) ? 1 : -1
+        .sort(
+          (a, b) =>
+            new Date(a.transactionDate).getTime() -
+              new Date(b.transactionDate).getTime() || a.value - b.value
         )
     );
   }, [allTransactions, now]);

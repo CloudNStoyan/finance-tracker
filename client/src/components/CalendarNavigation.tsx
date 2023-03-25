@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { Button, IconButton } from "@mui/material";
@@ -9,7 +9,9 @@ import { setNow } from "../state/calendarSlice";
 
 const today = new Date();
 
-const CalendarNavigation = () => {
+const CalendarNavigation: FunctionComponent<{
+  buttonTailwindColor?: string;
+}> = ({ buttonTailwindColor }) => {
   const dispatch = useAppDispatch();
   const now = useAppSelector((state) => state.calendarReducer.now);
 
@@ -28,7 +30,7 @@ const CalendarNavigation = () => {
       <div className="flex justify-center items-center">
         <IconButton
           onClick={() => dispatch(setNow(getTime(subMonths(nowParsed, 1))))}
-          className="text-white"
+          className={buttonTailwindColor}
         >
           <ChevronLeft />
         </IconButton>
@@ -39,7 +41,7 @@ const CalendarNavigation = () => {
         )}
         <IconButton
           onClick={() => dispatch(setNow(getTime(addMonths(nowParsed, 1))))}
-          className="text-white"
+          className={buttonTailwindColor}
         >
           <ChevronRight />
         </IconButton>

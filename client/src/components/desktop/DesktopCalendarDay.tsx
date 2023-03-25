@@ -183,26 +183,28 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
         {(searchInputValue?.trim().length > 0
           ? transactions.filter(compareTransactionToSearchValue)
           : transactions
-        ).map((transaction, idx) => {
-          const transactionCat =
-            categories.find(
-              (cat) => cat.categoryId === transaction.categoryId
-            ) ?? DefaultCategory;
+        )
+          .sort((a, b) => a.value - b.value)
+          .map((transaction, idx) => {
+            const transactionCat =
+              categories.find(
+                (cat) => cat.categoryId === transaction.categoryId
+              ) ?? DefaultCategory;
 
-          return (
-            <DesktopCalendarTransaction
-              onClick={() => {
-                onTransactionClick();
-                dispatch(
-                  loadTransaction([transaction, transactionCat, selected])
-                );
-              }}
-              category={transactionCat}
-              transaction={transaction}
-              key={idx}
-            />
-          );
-        })}
+            return (
+              <DesktopCalendarTransaction
+                onClick={() => {
+                  onTransactionClick();
+                  dispatch(
+                    loadTransaction([transaction, transactionCat, selected])
+                  );
+                }}
+                category={transactionCat}
+                transaction={transaction}
+                key={idx}
+              />
+            );
+          })}
       </div>
     </DesktopCalendarDayStyled>
   );

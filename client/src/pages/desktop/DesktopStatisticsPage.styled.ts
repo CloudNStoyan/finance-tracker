@@ -47,7 +47,7 @@ const DesktopStatisticsPageStyled = styled.div<{ isDarkMode: boolean }>`
     overflow: hidden;
     margin: 10px 0;
     height: 100%;
-    margin-top: 0;
+    margin-top: 20px;
   }
 
   .chart-wrapper {

@@ -23,17 +23,19 @@ const CalendarTransactionList = () => {
   return (
     <div className="flex flex-col gap-1 p-1 h-full mt-2 w-screen mb-2 overflow-hidden overflow-y-scroll">
       {selected &&
-        transactions.map((transaction) => (
-          <TransactionInline
-            transaction={transaction}
-            category={
-              categories.find(
-                (cat) => cat.categoryId === transaction.categoryId
-              ) ?? DefaultCategory
-            }
-            key={transaction.transactionId}
-          />
-        ))}
+        transactions
+          .sort((a, b) => a.value - b.value)
+          .map((transaction) => (
+            <TransactionInline
+              transaction={transaction}
+              category={
+                categories.find(
+                  (cat) => cat.categoryId === transaction.categoryId
+                ) ?? DefaultCategory
+              }
+              key={transaction.transactionId}
+            />
+          ))}
     </div>
   );
 };
