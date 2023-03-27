@@ -20,11 +20,14 @@ import { fetchTransactionsByRange } from "../../state/transactionSlice";
 import { fetchCategories } from "../../state/categorySlice";
 import { clearTransactionState } from "../../state/addOrEditTransactionSlice";
 import DesktopTransaction from "../../components/desktop/DesktopTransaction";
+import DesktopTransactionListModal from "../../components/desktop/DesktopTransactionListModal";
 
 const initialNow = new Date();
 
 const DesktopCalendarPage = () => {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showTransactionListModal, setShowTransactionListModal] =
+    useState(false);
   const dispatch = useAppDispatch();
 
   const selected = useAppSelector((state) => state.calendarReducer.selected);
@@ -138,6 +141,10 @@ const DesktopCalendarPage = () => {
                 onTransactionClick={() => {
                   setShowTransactionModal(true);
                 }}
+                onMoreTransactionsClick={(date) => {
+                  dispatch(setSelected(date.getTime()));
+                  setShowTransactionListModal(true);
+                }}
                 onCreateTransaction={(date) => {
                   dispatch(setSelected(getTime(date)));
                   dispatch(clearTransactionState());
@@ -160,6 +167,20 @@ const DesktopCalendarPage = () => {
           dispatch(clearTransactionState());
         }}
         key={selected}
+      />
+      <DesktopTransactionListModal
+        open={showTransactionListModal}
+        onClose={() => {
+          setShowTransactionListModal(false);
+          dispatch(setSelected(null));
+        }}
+        onTransactionClick={() => {
+          setShowTransactionModal(true);
+        }}
+        onCreateTransaction={() => {
+          dispatch(clearTransactionState());
+          setShowTransactionModal(true);
+        }}
       />
     </DesktopCalendarPageStyled>
   );

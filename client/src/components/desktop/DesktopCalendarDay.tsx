@@ -15,8 +15,10 @@ import { Add } from "@mui/icons-material";
 import {
   FilterTransactions,
   GetBalanceFromTransactions,
+  GetMaxTransactionsCount,
 } from "../../infrastructure/TransactionsBuisnessLogic";
 import { loadTransaction } from "../../state/addOrEditTransactionSlice";
+import MoreTransactionsButton from "../MoreTransactionsButton";
 
 export interface DesktopCalendarDayProps {
   date: Date;
@@ -24,6 +26,7 @@ export interface DesktopCalendarDayProps {
   isToday: boolean;
   onCreateTransaction: (date: Date) => void;
   onTransactionClick: () => void;
+  onMoreTransactionsClick: (date: Date) => void;
   searchInputValue?: string;
 }
 
@@ -33,6 +36,7 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   isToday,
   onCreateTransaction,
   onTransactionClick,
+  onMoreTransactionsClick,
   searchInputValue,
 }) => {
   const allTransactions = useAppSelector(
@@ -53,6 +57,22 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
   const [balance, setBalance] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [notSearchRelevant, setNotSearchRelevant] = useState(false);
+
+  const transactionsContainerRef = useRef<HTMLDivElement>();
+  const [maxShownTransactions, setMaxShownTransactions] = useState<number>();
+
+  useEffect(() => {
+    const transactionsContainer = transactionsContainerRef.current;
+
+    setMaxShownTransactions(GetMaxTransactionsCount(transactionsContainer));
+
+    const resizeListener = () =>
+      setMaxShownTransactions(GetMaxTransactionsCount(transactionsContainer));
+
+    addEventListener("resize", resizeListener);
+
+    return () => removeEventListener("resize", resizeListener);
+  }, []);
 
   const compareTransactionToSearchValue = useCallback(
     (transaction: Transaction) => {
@@ -179,12 +199,21 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
           )}
         </div>
       </div>
-      <div className="transactions flex flex-col">
+      <div
+        ref={transactionsContainerRef}
+        className="transactions flex flex-col"
+      >
         {(searchInputValue?.trim().length > 0
           ? transactions.filter(compareTransactionToSearchValue)
           : transactions
         )
           .sort((a, b) => a.value - b.value)
+          .slice(
+            0,
+            transactions.length > maxShownTransactions
+              ? maxShownTransactions - 1
+              : maxShownTransactions
+          )
           .map((transaction, idx) => {
             const transactionCat =
               categories.find(
@@ -205,6 +234,16 @@ const DesktopCalendarDay: FunctionComponent<DesktopCalendarDayProps> = ({
               />
             );
           })}
+        {transactions.length > maxShownTransactions && (
+          <MoreTransactionsButton
+            onClick={() => {
+              onMoreTransactionsClick(date);
+            }}
+            moreTransactionsCount={
+              transactions.length - (maxShownTransactions - 1)
+            }
+          />
+        )}
       </div>
     </DesktopCalendarDayStyled>
   );

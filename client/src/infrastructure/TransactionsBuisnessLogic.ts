@@ -361,3 +361,11 @@ export const GetTotalFromTransactionsByDate = (
     0
   );
 };
+
+export const GetMaxTransactionsCount = (containerEl: HTMLDivElement) => {
+  const TRANSACTION_ELEMENT_HEIGHT = 22; // 18 (actual height) + 4 (margin) + 0 (padding)
+
+  return Math.floor(
+    (containerEl.offsetHeight - 5) / TRANSACTION_ELEMENT_HEIGHT
+  );
+};
