@@ -1,16 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { format } from "date-fns";
 import {
-  addDays,
-  endOfMonth,
-  format,
-  getDaysInMonth,
-  getTime,
-  startOfMonth,
-  subDays,
-} from "date-fns";
-import {
-  FindDays,
   fromUnixTimeMs,
+  GetCalendarInDays,
   isValidDate,
 } from "../infrastructure/CustomDateUtils";
 import { getStartBalanceByMonth, FetchStatus } from "../server-api";
@@ -70,6 +62,11 @@ const calendarSlice = createSlice({
     },
     setFirstDayOfTheMonth(state, action: PayloadAction<"monday" | "sunday">) {
       state.firstDayOfTheMonth = action.payload;
+
+      state.days = GetCalendarInDays(
+        new Date(state.now),
+        state.firstDayOfTheMonth === "monday"
+      );
     },
     setNow(state, action: PayloadAction<number>) {
       state.fetchingStatus = "idle";
@@ -88,36 +85,10 @@ const calendarSlice = createSlice({
         return;
       }
 
-      const afterResult = FindDays(
-        endOfMonth(now),
+      state.days = GetCalendarInDays(
+        now,
         state.firstDayOfTheMonth === "monday"
       );
-
-      const after: Date[] = [];
-
-      const afterLength =
-        getDaysInMonth(now) - now.getDate() + afterResult.after;
-      4;
-      for (let i = 0; i < afterLength; i++) {
-        after.push(addDays(now, i + 1));
-      }
-
-      const before: Date[] = [];
-
-      const beforeResult = FindDays(
-        startOfMonth(now),
-        state.firstDayOfTheMonth === "monday"
-      );
-
-      const beforeLength = now.getDate() - 1 + beforeResult.before;
-
-      for (let i = 0; i < beforeLength; i++) {
-        before.push(subDays(now, i + 1));
-      }
-
-      before.reverse();
-
-      state.days = [...before, now, ...after].map(getTime);
     },
     setSelected(state, action: PayloadAction<number>) {
       state.selected = action.payload;

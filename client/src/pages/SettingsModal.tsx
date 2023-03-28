@@ -58,13 +58,8 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   const [selectedTheme, setSelectedTheme] = useState<
     "light" | "dark" | "system"
   >((localStorage.getItem("theme_preference") as "light" | "dark") ?? "system");
-
-  const [selectedFirstDayOfTheMonth, setSelectedFirstDayOfTheMonth] = useState<
-    "monday" | "sunday"
-  >(
-    (localStorage.getItem("first_day_of_month_preference") as
-      | "monday"
-      | "sunday") ?? "monday"
+  const firstDayOfTheMonth = useAppSelector(
+    (state) => state.calendarReducer.firstDayOfTheMonth
   );
 
   useEffect(() => {
@@ -78,13 +73,8 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
   }, [selectedTheme, dispatch]);
 
   useEffect(() => {
-    dispatch(setFirstDayOfTheMonth(selectedFirstDayOfTheMonth));
-
-    localStorage.setItem(
-      "first_day_of_month_preference",
-      selectedFirstDayOfTheMonth
-    );
-  }, [selectedFirstDayOfTheMonth, dispatch]);
+    localStorage.setItem("first_day_of_month_preference", firstDayOfTheMonth);
+  }, [firstDayOfTheMonth]);
 
   const onLogout = async () => {
     setIsLoggingOut(true);
@@ -145,18 +135,18 @@ const SettingsModal: FunctionComponent<SettingsModalProps> = ({ onClose }) => {
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
-      <div className="container hidden">
+      <div className="container">
         <h2 className="mb-2 font-bold">First Day Of The Week</h2>
         <ToggleButtonGroup
           color="primary"
           exclusive
-          value={selectedFirstDayOfTheMonth}
+          value={firstDayOfTheMonth}
           onChange={(e, v: "monday" | "sunday") => {
             if (v === null) {
               return;
             }
 
-            setSelectedFirstDayOfTheMonth(v);
+            dispatch(setFirstDayOfTheMonth(v));
           }}
           className="w-full justify-center"
         >
