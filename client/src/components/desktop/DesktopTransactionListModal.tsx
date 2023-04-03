@@ -69,7 +69,10 @@ const DesktopTransactionListModal: FunctionComponent<
   );
 
   const transactions = useMemo(
-    () => FilterTransactions(allTransactions, new Date(selected)),
+    () =>
+      FilterTransactions(allTransactions, new Date(selected)).sort(
+        (a, b) => a.value - b.value
+      ),
     [allTransactions, selected]
   );
 
@@ -98,6 +101,16 @@ const DesktopTransactionListModal: FunctionComponent<
     [allTransactions, startBalance, days, selected]
   );
 
+  const displayDate = useMemo(
+    () => format(new Date(selected), "MMMM dd"),
+    [selected]
+  );
+
+  const handleAddTransaction = () => {
+    onCreateTransaction();
+    onClose();
+  };
+
   return (
     <Dialog
       open={open}
@@ -115,38 +128,36 @@ const DesktopTransactionListModal: FunctionComponent<
     >
       <DesktopTransactionListModalStyled className="bg-white">
         <div className="heading flex justify-between">
-          <div className="display-date">
-            {format(new Date(selected), "MMMM dd")}
-          </div>
+          <div className="display-date">{displayDate}</div>
           <div className="font-medium">
             <div className="text-gray-500 text-xs">Total Balance</div>
             <div className="text-right">{balance}</div>
           </div>
         </div>
         <div className="transactions flex flex-col gap-1">
-          {transactions
-            .sort((a, b) => a.value - b.value)
-            .map((transaction) => {
-              const transactionCat =
-                categories.find(
-                  (cat) => cat.categoryId === transaction.categoryId
-                ) ?? DefaultCategory;
+          {transactions.map((transaction) => {
+            const transactionCat =
+              categories.find(
+                (cat) => cat.categoryId === transaction.categoryId
+              ) ?? DefaultCategory;
 
-              return (
-                <DesktopTransactionInline
-                  onClick={() => {
-                    onTransactionClick();
-                    dispatch(
-                      loadTransaction([transaction, transactionCat, selected])
-                    );
-                    onClose();
-                  }}
-                  transaction={transaction}
-                  category={transactionCat}
-                  key={transaction.transactionId}
-                />
+            const handleTransactionOnClick = () => {
+              onTransactionClick();
+              dispatch(
+                loadTransaction([transaction, transactionCat, selected])
               );
-            })}
+              onClose();
+            };
+
+            return (
+              <DesktopTransactionInline
+                onClick={handleTransactionOnClick}
+                transaction={transaction}
+                category={transactionCat}
+                key={transaction.transactionId}
+              />
+            );
+          })}
         </div>
         <div className="my-3 relative">
           <div className="font-medium absolute right-0 text-right">
@@ -155,10 +166,7 @@ const DesktopTransactionListModal: FunctionComponent<
           </div>
           <div className="flex justify-center">
             <IconButton
-              onClick={() => {
-                onCreateTransaction();
-                onClose();
-              }}
+              onClick={handleAddTransaction}
               className="bg-blue-500 dark:bg-purple-500 dark:text-gray-200 text-white"
             >
               <Add />

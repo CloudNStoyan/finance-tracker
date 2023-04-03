@@ -19,12 +19,16 @@ const DeleteDialog: FunctionComponent<DeleteDialogProps> = ({
   onClose,
   type,
 }) => {
-  const handleClose = (v: boolean) => {
-    onClose(v);
+  const onCancel = () => {
+    onClose(false);
+  };
+
+  const onAccept = () => {
+    onClose(true);
   };
 
   return (
-    <Dialog open={open} onClose={() => handleClose(null)}>
+    <Dialog open={open} onClose={onCancel}>
       <DialogTitle>Delete {type}</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -32,8 +36,8 @@ const DeleteDialog: FunctionComponent<DeleteDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => handleClose(false)}>Cancel</Button>
-        <Button color="error" onClick={() => handleClose(true)}>
+        <Button onClick={onCancel}>Cancel</Button>
+        <Button color="error" onClick={onAccept}>
           YES, DELETE
         </Button>
       </DialogActions>

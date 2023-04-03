@@ -1,9 +1,10 @@
 import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Dialog from "@mui/material/Dialog";
+import { FunctionComponent } from "react";
+import { ListItemButton } from "@mui/material";
 
 export const RepeatTransactionDialogOptions: OptionType[] = [
   {
@@ -33,6 +34,23 @@ export interface RepeatTransactionDialogProps {
   onClose: (value: OptionType) => void;
 }
 
+interface RepeatTransactionOptionProps {
+  onClick: (option: OptionType) => void;
+  option: OptionType;
+}
+
+const RepeatTransactionOption: FunctionComponent<
+  RepeatTransactionOptionProps
+> = ({ onClick, option }) => {
+  const handleClick = () => onClick(option);
+
+  return (
+    <ListItemButton onClick={handleClick}>
+      <ListItemText primary={option.title} />
+    </ListItemButton>
+  );
+};
+
 function RepeatTransactionDialog(props: RepeatTransactionDialogProps) {
   const { onClose, open } = props;
 
@@ -40,8 +58,8 @@ function RepeatTransactionDialog(props: RepeatTransactionDialogProps) {
     onClose(null);
   };
 
-  const handleListItemClick = (value: string) => {
-    onClose(RepeatTransactionDialogOptions.find((o) => o.value === value));
+  const handleListItemClick = (option: OptionType) => {
+    onClose(option);
   };
 
   return (
@@ -53,13 +71,11 @@ function RepeatTransactionDialog(props: RepeatTransactionDialogProps) {
       </DialogContent>
       <List sx={{ pt: 0 }}>
         {RepeatTransactionDialogOptions.map((option) => (
-          <ListItem
-            button
-            onClick={() => handleListItemClick(option.value)}
+          <RepeatTransactionOption
+            onClick={handleListItemClick}
+            option={option}
             key={option.value}
-          >
-            <ListItemText primary={option.title} />
-          </ListItem>
+          />
         ))}
       </List>
     </Dialog>
