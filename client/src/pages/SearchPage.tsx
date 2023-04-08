@@ -1,13 +1,16 @@
-import { InputAdornment, TextField } from "@mui/material";
+import { CircularProgress, InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useEffect, useState } from "react";
-import { getTransactionsBySearch, Transaction } from "../server-api";
-import axios from "axios";
-import DefaultCategory from "../state/DefaultCategory";
+import { Transaction } from "../server-api";
 import SearchTransaction from "../components/SearchTransaction";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { fetchCategories } from "../state/categorySlice";
 import { styled } from "../infrastructure/ThemeManager";
+import { FilterSearchTransactions } from "../infrastructure/TransactionsBuisnessLogic";
+import {
+  addSearchQuery,
+  fetchTransactionsByQuery,
+} from "../state/transactionSlice";
 
 const SearchPageStyled = styled.div`
   display: flex;
@@ -23,8 +26,17 @@ const SearchPageStyled = styled.div`
 `;
 
 const SearchPage = () => {
-  const [alreadySearched, setAlreadySearched] = useState<string[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const transactions = useAppSelector(
+    (state) => state.transactionsReducer.transactions
+  );
+  const searchStatus = useAppSelector(
+    (state) => state.transactionsReducer.searchTransactionStatus
+  );
+
+  const searchedQueries = useAppSelector(
+    (state) => state.transactionsReducer.searchQueries
+  );
+
   const [searchedTransactions, setSearchedTransactions] = useState<
     Transaction[]
   >([]);
@@ -46,71 +58,32 @@ const SearchPage = () => {
 
   useEffect(() => {
     if (
-      alreadySearched.includes(search) ||
       search === null ||
-      search.trim().length === 0
+      search.trim().length === 0 ||
+      searchedQueries.includes(search)
     ) {
       return;
     }
 
-    const fetchApi = async () => {
-      try {
-        const httpResponse = await getTransactionsBySearch(search);
+    dispatch(addSearchQuery(search));
 
-        if (httpResponse.status !== 200) {
-          return;
-        }
-
-        const newTransactions = httpResponse.data.filter(
-          (newTransaction) =>
-            transactions.findIndex(
-              (transaction) =>
-                transaction.transactionId === newTransaction.transactionId
-            ) === -1
-        );
-
-        setTransactions([...newTransactions, ...transactions]);
-        setAlreadySearched([search, ...alreadySearched]);
-      } catch (error) {
-        if (!axios.isAxiosError(error)) {
-          return;
-        }
-      }
-    };
-
-    void fetchApi();
-  }, [search, dispatch, alreadySearched, transactions]);
+    void dispatch(fetchTransactionsByQuery({ search }));
+  }, [dispatch, search, searchedQueries]);
 
   useEffect(() => {
-    if (search === null || search.trim().length === 0) {
+    if (
+      search === null ||
+      search.trim().length === 0 ||
+      searchStatus === "loading"
+    ) {
       setSearchedTransactions([]);
       return;
     }
 
     setSearchedTransactions(
-      transactions.filter((transaction) => {
-        if (transaction.label.toLowerCase().includes(search.toLowerCase())) {
-          return transaction;
-        }
-
-        if (transaction.value.toString().includes(search)) {
-          return transaction;
-        }
-
-        const transactionCategory =
-          categories.find((cat) => cat.categoryId === transaction.categoryId) ??
-          DefaultCategory;
-
-        if (
-          transactionCategory.name
-            .toLowerCase()
-            .includes(search.toLocaleLowerCase())
-        ) {
-          return transaction;
-        }
-      })
+      FilterSearchTransactions(transactions, search, categories)
     );
-  }, [search, transactions, categories]);
+  }, [search, transactions, categories, searchStatus]);
 
   return (
     <SearchPageStyled>
@@ -139,9 +112,16 @@ const SearchPage = () => {
             Find your transactions by name, category, notes or value.
           </div>
         )}
+        {searchStatus === "loading" && (
+          <div className="flex justify-center items-center gap-5 mt-2">
+            <CircularProgress size={20} />
+            <span>Searching...</span>
+          </div>
+        )}
         {search !== null &&
           search.trim().length > 0 &&
-          searchedTransactions.length === 0 && (
+          searchedTransactions.length === 0 &&
+          searchStatus === "succeeded" && (
             <div className="text-center">
               <p className="font-xl font-bold">No transaction found</p>
               <p className="font-md">
@@ -153,11 +133,6 @@ const SearchPage = () => {
           <SearchTransaction
             transaction={transaction}
             key={`${transaction.transactionId}-${idx}`}
-            category={
-              categories.find(
-                (cat) => cat.categoryId === transaction.categoryId
-              ) ?? DefaultCategory
-            }
           />
         ))}
       </div>

@@ -3,11 +3,11 @@ import { FunctionComponent } from "react";
 import { useNavigate } from "react-router-dom";
 import Icons from "../infrastructure/Icons";
 import { styled } from "../infrastructure/ThemeManager";
-import { Category, Transaction } from "../server-api";
+import { Transaction } from "../server-api";
+import useCategory from "../infrastructure/useCategory";
 
 export interface SearchTransactionProps {
   transaction: Transaction;
-  category: Category;
 }
 
 const SearchTransactionStyled = styled.button<{ bgColor: string }>`
@@ -24,10 +24,10 @@ const SearchTransactionStyled = styled.button<{ bgColor: string }>`
 
 const SearchTransaction: FunctionComponent<SearchTransactionProps> = ({
   transaction,
-  category,
 }) => {
   const navigate = useNavigate();
   const transactionDate = new Date(transaction.transactionDate);
+  const category = useCategory(transaction.categoryId);
 
   return (
     <SearchTransactionStyled

@@ -14,7 +14,7 @@ import {
   lastDayOfMonth,
   parseJSON,
 } from "date-fns";
-import { Transaction, TransactionRepeatType } from "../server-api";
+import { Category, Transaction, TransactionRepeatType } from "../server-api";
 import {
   DatesAreEqualWithoutTime,
   fromUnixTimeMs,
@@ -22,6 +22,7 @@ import {
   IsBeforeOrEqual,
   StripTimeFromDate,
 } from "./CustomDateUtils";
+import DefaultCategory from "../state/DefaultCategory";
 
 const GetTransactionOccurrencess = (
   date: Date,
@@ -368,4 +369,34 @@ export const GetMaxTransactionsCount = (containerEl: HTMLDivElement) => {
   return Math.floor(
     (containerEl.offsetHeight - 5) / TRANSACTION_ELEMENT_HEIGHT
   );
+};
+
+export const FilterSearchTransactions = (
+  transactions: Transaction[],
+  search: string,
+  categories: Category[]
+) => {
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (transaction.label.toLowerCase().includes(search.toLowerCase())) {
+      return transaction;
+    }
+
+    if (transaction.value.toString().includes(search)) {
+      return transaction;
+    }
+
+    const transactionCategory =
+      categories.find((cat) => cat.categoryId === transaction.categoryId) ??
+      DefaultCategory;
+
+    if (
+      transactionCategory.name
+        .toLowerCase()
+        .includes(search.toLocaleLowerCase())
+    ) {
+      return transaction;
+    }
+  });
+
+  return filteredTransactions;
 };

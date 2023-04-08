@@ -8,23 +8,30 @@ import {
   Transaction,
   deleteTransaction as deleteTransactionApi,
   FetchStatus,
+  getTransactionsBySearch,
 } from "../server-api";
 import { logoutUser } from "./authSlice";
 
 export interface TransactionState {
   transactions: Transaction[];
   completedTansactionQueries: string[];
+  searchQueries: string[];
   fetchingStatus: FetchStatus;
   addOrEditTransactionStatus: FetchStatus;
   deleteTransactionStatus: FetchStatus;
+  searchTransactionStatus: FetchStatus;
+  lastSearchQuery: string;
 }
 
 const initialState: TransactionState = {
   transactions: [],
   completedTansactionQueries: [],
+  searchQueries: [],
   fetchingStatus: "idle",
   addOrEditTransactionStatus: "idle",
   deleteTransactionStatus: "idle",
+  searchTransactionStatus: "idle",
+  lastSearchQuery: null,
 };
 
 export const fetchTransactionById = createAsyncThunk(
@@ -50,6 +57,15 @@ export const fetchTransactionsByRange = createAsyncThunk(
     const httpResponse = await getTransactionsBeforeAndAfterDate(after, before);
 
     return { transactions: httpResponse.data, now };
+  }
+);
+
+export const fetchTransactionsByQuery = createAsyncThunk(
+  "transactions/fetchTransactionsByQuery",
+  async ({ search }: { search: string }) => {
+    const httpResponse = await getTransactionsBySearch(search);
+
+    return { transactions: httpResponse.data, query: search };
   }
 );
 
@@ -113,6 +129,10 @@ const transactionsSlice = createSlice({
         (t) => t.transactionId !== action.payload
       );
     },
+    addSearchQuery(state, action: PayloadAction<string>) {
+      state.searchQueries.push(action.payload);
+      state.lastSearchQuery = action.payload;
+    },
     addTransaction(state, action: PayloadAction<Transaction>) {
       const stateHasTransaction =
         state.transactions.findIndex(
@@ -137,9 +157,6 @@ const transactionsSlice = createSlice({
         ),
         ...state.transactions,
       ];
-    },
-    addQuery(state, action: PayloadAction<string>) {
-      state.completedTansactionQueries.push(action.payload);
     },
     editTransaction(state, action: PayloadAction<Transaction>) {
       state.transactions = [
@@ -289,6 +306,29 @@ const transactionsSlice = createSlice({
       })
       .addCase(deleteTransaction.rejected, (state) => {
         state.deleteTransactionStatus = "failed";
+      })
+      .addCase(fetchTransactionsByQuery.fulfilled, (state, action) => {
+        const { query, transactions } = action.payload;
+
+        if (query === state.lastSearchQuery) {
+          state.searchTransactionStatus = "succeeded";
+        }
+
+        state.transactions = [
+          ...transactions.filter(
+            (transaction) =>
+              state.transactions.findIndex(
+                (t) => t.transactionId === transaction.transactionId
+              ) === -1
+          ),
+          ...state.transactions,
+        ];
+      })
+      .addCase(fetchTransactionsByQuery.pending, (state) => {
+        state.searchTransactionStatus = "loading";
+      })
+      .addCase(fetchTransactionsByQuery.rejected, (state) => {
+        state.searchTransactionStatus = "failed";
       });
   },
 });
@@ -299,7 +339,7 @@ export const {
   addTransaction,
   editTransaction,
   addTransactions,
-  addQuery,
+  addSearchQuery,
   resetAddOrEditTransactionStatus,
   resetDeleteTransactionStatus,
 } = transactionsSlice.actions;
