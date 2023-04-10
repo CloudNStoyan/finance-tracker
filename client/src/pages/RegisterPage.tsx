@@ -22,7 +22,7 @@ import { setNotification } from "../state/notificationSlice";
 import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
 import PasswordHints from "../components/PasswordHints";
 import { clearError } from "../state/authSlice";
-import { ValidateEmail } from "../infrastructure/Utils";
+import { CustomChangeEvent, ValidateEmail } from "../infrastructure/Utils";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -31,12 +31,35 @@ const RegisterPage = () => {
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [score, color, text] = usePasswordStrength(password);
-  const [showPassword, setShowPassword] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
   const { register, authStatus, authError } = useAuth();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
+  const showPassword = () => {
+    setPasswordVisible(true);
+  };
+
+  const hidePassword = () => {
+    setPasswordVisible(false);
+  };
+
+  const handleEmailChange = (e: CustomChangeEvent) => {
+    if (!ValidateEmail(e.target.value)) {
+      setEmailError("Invalid Email");
+    } else {
+      setEmailError("");
+    }
+
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e: CustomChangeEvent) => {
+    setPasswordError(e.target.value.trim().length === 0);
+    setPassword(e.target.value);
+  };
 
   const validateFields = () => {
     const emailIsValid = ValidateEmail(email);
@@ -61,7 +84,7 @@ const RegisterPage = () => {
     return fieldsAreValid && recaptchaToken !== null;
   };
 
-  const initRegister = () => {
+  const onRegister = () => {
     setLoading(true);
 
     const fieldsAreValid = validateFields();
@@ -126,24 +149,8 @@ const RegisterPage = () => {
               value={email}
               error={emailError.length > 0}
               helperText={emailError}
-              onChange={(e) => {
-                if (!ValidateEmail(e.target.value)) {
-                  setEmailError("Invalid Email");
-                } else {
-                  setEmailError("");
-                }
-
-                setEmail(e.target.value);
-              }}
-              onBlur={(e) => {
-                if (!ValidateEmail(e.target.value)) {
-                  setEmailError("Invalid Email");
-                } else {
-                  setEmailError("");
-                }
-
-                setEmail(e.target.value);
-              }}
+              onChange={handleEmailChange}
+              onBlur={handleEmailChange}
             />
           </div>
           <div
@@ -158,34 +165,30 @@ const RegisterPage = () => {
               <TextField
                 className="w-full"
                 label="Password"
-                type={showPassword ? "text" : "password"}
+                type={passwordVisible ? "text" : "password"}
                 variant="standard"
                 value={password}
                 error={passwordError}
                 helperText={passwordError ? "Password is too weak." : ""}
-                onChange={(e) => {
-                  setPasswordError(e.target.value.trim().length === 0);
-                  setPassword(e.target.value);
-                }}
-                onBlur={(e) => {
-                  setPasswordError(e.target.value.trim().length === 0);
-                  setPassword(e.target.value);
-                }}
+                onChange={handlePasswordChange}
+                onBlur={handlePasswordChange}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
                         size="small"
-                        onTouchStart={() => setShowPassword(true)}
-                        onMouseDown={() => setShowPassword(true)}
-                        onTouchEnd={() => setShowPassword(false)}
-                        onTouchCancel={() => setShowPassword(false)}
-                        onTouchMove={() => setShowPassword(false)}
-                        onMouseUp={() => setShowPassword(false)}
-                        onMouseLeave={() => setShowPassword(false)}
-                        title={showPassword ? "Hide password" : "Show password"}
+                        onTouchStart={showPassword}
+                        onMouseDown={showPassword}
+                        onTouchEnd={hidePassword}
+                        onTouchCancel={hidePassword}
+                        onTouchMove={hidePassword}
+                        onMouseUp={hidePassword}
+                        onMouseLeave={hidePassword}
+                        title={
+                          passwordVisible ? "Hide password" : "Show password"
+                        }
                       >
-                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                        {passwordVisible ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -206,13 +209,10 @@ const RegisterPage = () => {
           />
           <div className="flex items-center justify-between">
             <Button
+              type="button"
               variant="contained"
               className="w-full"
-              onClick={(e) => {
-                e.preventDefault();
-
-                initRegister();
-              }}
+              onClick={onRegister}
               disabled={loading}
             >
               Sign Up

@@ -19,7 +19,7 @@ import { setNotification } from "../state/notificationSlice";
 import useAuth from "../components/useAuth";
 import RecaptchaCheckbox from "../infrastructure/RecaptchaCheckbox";
 import { clearError } from "../state/authSlice";
-import { ValidateEmail } from "../infrastructure/Utils";
+import { CustomChangeEvent, ValidateEmail } from "../infrastructure/Utils";
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -31,6 +31,18 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string>(null);
   const { login, authError, authStatus } = useAuth();
+
+  const handleEmailChange = (e: CustomChangeEvent) => {
+    setEmailError(e.target.value.trim().length === 0);
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e: CustomChangeEvent) => {
+    setPasswordError(e.target.value.trim().length === 0);
+    setPassword(e.target.value);
+  };
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const validateFields = () => {
     const emailIsValid = ValidateEmail(email);
@@ -44,7 +56,7 @@ const LoginPage = () => {
     return fieldsAreValid && recaptchaToken !== null;
   };
 
-  const initLogin = () => {
+  const onLogin = () => {
     setLoading(true);
     const fieldsAreValid = validateFields();
 
@@ -114,14 +126,8 @@ const LoginPage = () => {
               error={emailError}
               helperText={emailError ? "Valid email is required." : ""}
               type="email"
-              onChange={(e) => {
-                setEmailError(!ValidateEmail(e.target.value));
-                setEmail(e.target.value);
-              }}
-              onBlur={(e) => {
-                setEmailError(!ValidateEmail(e.target.value));
-                setEmail(e.target.value);
-              }}
+              onChange={handleEmailChange}
+              onBlur={handleEmailChange}
             />
           </div>
           <div className="mb-6 flex flex-row items-end">
@@ -137,21 +143,12 @@ const LoginPage = () => {
               value={password}
               error={passwordError}
               helperText={passwordError ? "Password is required." : ""}
-              onChange={(e) => {
-                setPasswordError(e.target.value.trim().length === 0);
-                setPassword(e.target.value);
-              }}
-              onBlur={(e) => {
-                setPasswordError(e.target.value.trim().length === 0);
-                setPassword(e.target.value);
-              }}
+              onChange={handlePasswordChange}
+              onBlur={handlePasswordChange}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      size="small"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                    <IconButton size="small" onClick={togglePasswordVisibility}>
                       {showPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>
                   </InputAdornment>
@@ -165,13 +162,10 @@ const LoginPage = () => {
           />
           <div className="flex items-center justify-between">
             <Button
+              type="button"
               variant="contained"
               className="w-full"
-              onClick={(e) => {
-                e.preventDefault();
-
-                initLogin();
-              }}
+              onClick={onLogin}
               disabled={loading}
               color="primary"
             >
