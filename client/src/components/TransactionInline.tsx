@@ -7,8 +7,9 @@ import {
 } from "../infrastructure/CustomDateUtils";
 import Icons from "../infrastructure/Icons";
 import { styled } from "../infrastructure/ThemeManager";
-import { Category, Transaction } from "../server-api";
+import { Transaction } from "../server-api";
 import { useAppSelector } from "../state/hooks";
+import useCategory from "../infrastructure/useCategory";
 
 const TransactionInlineStyled = styled.button<{ bgColor: string }>`
   background-color: ${({ bgColor }) => bgColor};
@@ -24,16 +25,15 @@ const TransactionInlineStyled = styled.button<{ bgColor: string }>`
 
 export interface TransactionInlineProps {
   transaction: Transaction;
-  category: Category;
 }
 
 const TransactionInline: FunctionComponent<TransactionInlineProps> = ({
   transaction,
-  category,
 }) => {
   const navigate = useNavigate();
   const selected = useAppSelector((state) => state.calendarReducer.selected);
   const [parsedSelected, setParsedSelected] = useState<Date>(null);
+  const category = useCategory(transaction.categoryId);
 
   useEffect(() => {
     if (!selected) {

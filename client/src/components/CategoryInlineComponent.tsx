@@ -20,6 +20,10 @@ const CategoryInlineComponent: FunctionComponent<
 > = ({ category }) => {
   const navigate = useNavigate();
 
+  const navigateToCategory = () => {
+    navigate(`/category/${category.categoryId}`);
+  };
+
   return (
     <CategoryInlineComponentStyled
       bgColor={category.bgColor}
@@ -38,7 +42,7 @@ const CategoryInlineComponent: FunctionComponent<
       </div>
       <IconButton
         className="text-white dark:text-gray-300"
-        onClick={() => navigate(`/category/${category.categoryId}`)}
+        onClick={navigateToCategory}
       >
         <EditIcon />
       </IconButton>

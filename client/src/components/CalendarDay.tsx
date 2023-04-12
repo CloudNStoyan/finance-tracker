@@ -50,6 +50,10 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState(0);
 
+  const onDayClicked = () => {
+    onClick(date);
+  };
+
   useEffect(() => {
     setTotal(GetTotalFromTransactionsByDate(transactions, date));
     setBalance(
@@ -77,9 +81,7 @@ const CalendarDay: FunctionComponent<CalendarDayProps> = ({
   return (
     <CalendarDayStyled
       isDarkMode={isDarkMode}
-      onClick={() => {
-        onClick(date);
-      }}
+      onClick={onDayClicked}
       className={`flex flex-col text-center font-semibold ${
         notFromSameMonth ? "opacity-50" : ""
       } ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} `}

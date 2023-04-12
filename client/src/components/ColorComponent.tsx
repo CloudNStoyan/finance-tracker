@@ -18,6 +18,10 @@ const ColorComponent: FunctionComponent<ColorProps> = ({
   idx,
   disabled,
 }) => {
+  const onColorClicked = () => {
+    onClick(bgColor, idx);
+  };
+
   return (
     <ColorComponentStyled
       bgColor={bgColor}
@@ -31,7 +35,7 @@ const ColorComponent: FunctionComponent<ColorProps> = ({
             ? "border-2 border-black dark:border-white border-dashed scale-125"
             : ""
         } ${disabled && !selected ? "opacity-50" : ""}`}
-        onClick={() => onClick(bgColor, idx)}
+        onClick={onColorClicked}
       ></button>
     </ColorComponentStyled>
   );

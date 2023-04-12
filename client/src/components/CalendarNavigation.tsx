@@ -17,6 +17,18 @@ const CalendarNavigation: FunctionComponent<{
 
   const [nowParsed, setNowParsed] = useState(fromUnixTimeMs(now) ?? new Date());
 
+  const onPreviousClicked = () => {
+    dispatch(setNow(getTime(subMonths(nowParsed, 1))));
+  };
+
+  const onNextClicked = () => {
+    dispatch(setNow(getTime(addMonths(nowParsed, 1))));
+  };
+
+  const onTodayClicked = () => {
+    dispatch(setNow(getTime(today)));
+  };
+
   useEffect(() => {
     if (now === null) {
       return;
@@ -28,10 +40,7 @@ const CalendarNavigation: FunctionComponent<{
   return (
     <div className="flex justify-center calendar-nav">
       <div className="flex justify-center items-center">
-        <IconButton
-          onClick={() => dispatch(setNow(getTime(subMonths(nowParsed, 1))))}
-          className={buttonTailwindColor}
-        >
+        <IconButton onClick={onPreviousClicked} className={buttonTailwindColor}>
           <ChevronLeft />
         </IconButton>
         {nowParsed && (
@@ -39,10 +48,7 @@ const CalendarNavigation: FunctionComponent<{
             {format(nowParsed, "MMMM yyyy")}
           </span>
         )}
-        <IconButton
-          onClick={() => dispatch(setNow(getTime(addMonths(nowParsed, 1))))}
-          className={buttonTailwindColor}
-        >
+        <IconButton onClick={onNextClicked} className={buttonTailwindColor}>
           <ChevronRight />
         </IconButton>
       </div>
@@ -50,7 +56,7 @@ const CalendarNavigation: FunctionComponent<{
         variant="text"
         color="inherit"
         className="today-btn"
-        onClick={() => dispatch(setNow(getTime(today)))}
+        onClick={onTodayClicked}
       >
         Today
       </Button>

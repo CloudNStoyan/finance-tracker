@@ -1,15 +1,10 @@
 import { useAppSelector } from "../state/hooks";
 import TransactionInline from "./TransactionInline";
-import DefaultCategory from "../state/DefaultCategory";
 import { FilterTransactions } from "../infrastructure/TransactionsBuisnessLogic";
 import { useMemo } from "react";
 
 const CalendarTransactionList = () => {
   const selected = useAppSelector((state) => state.calendarReducer.selected);
-
-  const categories = useAppSelector(
-    (state) => state.categoriesReducer.categories
-  );
 
   const allTransactions = useAppSelector(
     (state) => state.transactionsReducer.transactions
@@ -28,11 +23,6 @@ const CalendarTransactionList = () => {
           .map((transaction) => (
             <TransactionInline
               transaction={transaction}
-              category={
-                categories.find(
-                  (cat) => cat.categoryId === transaction.categoryId
-                ) ?? DefaultCategory
-              }
               key={transaction.transactionId}
             />
           ))}
