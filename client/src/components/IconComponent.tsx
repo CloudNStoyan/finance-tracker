@@ -37,9 +37,12 @@ const IconComponent: FunctionComponent<IconComponentProps> = ({
   disabled,
 }) => {
   const icon = Icons[iconKey];
+  const onIconClick = () => {
+    onClick(iconKey, idx);
+  };
   return (
     <IconComponentStyled selected={selected}>
-      <IconButton disabled={disabled} onClick={() => onClick(iconKey, idx)}>
+      <IconButton disabled={disabled} onClick={onIconClick}>
         {icon}
       </IconButton>
     </IconComponentStyled>

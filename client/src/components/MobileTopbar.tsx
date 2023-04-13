@@ -24,8 +24,6 @@ const TopbarStyled = styled.div`
 `;
 
 const navigateBackMap: { [key: string]: string } = {
-  "/transaction": "/",
-  "/categories": "/",
   "/category": "/categories",
 };
 
@@ -38,14 +36,38 @@ const MobileTopbar: FunctionComponent = () => {
 
   const { pathname } = useLocation();
 
+  const navigateToHome = () => {
+    navigate("/");
+  };
+
   const canGoBack = pathname !== "/";
 
   const navigateBack = () => {
-    if (!canGoBack || !(pathname in navigateBackMap)) {
+    if (!canGoBack) {
       return;
     }
 
+    if (!("/" + pathname.split("/")[1] in navigateBackMap)) {
+      navigateToHome();
+    }
+
     navigate(navigateBackMap[pathname]);
+  };
+
+  const navigateToSearch = () => {
+    navigate("/search");
+  };
+
+  const navigateToStats = () => {
+    navigate("/stats");
+  };
+
+  const openSettingsModal = () => {
+    setSettingsIsOpen(true);
+  };
+
+  const closeSettingsModal = () => {
+    setSettingsIsOpen(false);
   };
 
   return (
@@ -60,7 +82,7 @@ const MobileTopbar: FunctionComponent = () => {
           <IconButton
             size="small"
             className="text-white ml-2"
-            onClick={() => navigateBack()}
+            onClick={navigateBack}
           >
             <WestIcon />
           </IconButton>
@@ -70,28 +92,28 @@ const MobileTopbar: FunctionComponent = () => {
           <IconButton
             className="text-white"
             size="small"
-            onClick={() => navigate("/")}
+            onClick={navigateToHome}
           >
             <CalendarMonthRoundedIcon />
           </IconButton>
           <IconButton
             className="text-white"
             size="small"
-            onClick={() => navigate("/stats")}
+            onClick={navigateToStats}
           >
             <BarChartRoundedIcon />
           </IconButton>
           <IconButton
             className="text-white"
             size="small"
-            onClick={() => navigate("/search")}
+            onClick={navigateToSearch}
           >
             <SearchIcon />
           </IconButton>
           <IconButton
             className="text-white"
             size="small"
-            onClick={() => setSettingsIsOpen(true)}
+            onClick={openSettingsModal}
           >
             <SettingsOutlinedIcon />
           </IconButton>
@@ -99,13 +121,13 @@ const MobileTopbar: FunctionComponent = () => {
         <Drawer
           anchor="right"
           open={settingsIsOpen}
-          onClose={() => setSettingsIsOpen(false)}
-          container={() => document.getElementById("app")}
+          onClose={closeSettingsModal}
+          container={document.getElementById("app")}
           PaperProps={{
             style: { borderRadius: 0 },
           }}
         >
-          <SettingsModal onClose={() => setSettingsIsOpen(false)} />
+          <SettingsModal onClose={closeSettingsModal} />
         </Drawer>
       </TopbarStyled>
     )
