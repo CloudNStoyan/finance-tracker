@@ -49,6 +49,7 @@ const MobileTopbar: FunctionComponent = () => {
 
     if (!("/" + pathname.split("/")[1] in navigateBackMap)) {
       navigateToHome();
+      return;
     }
 
     navigate(navigateBackMap[pathname]);
